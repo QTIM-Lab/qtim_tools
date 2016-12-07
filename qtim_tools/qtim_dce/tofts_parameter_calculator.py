@@ -342,7 +342,6 @@ def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_
 		else:
 			print 'No image provided to AIF function. Set AIF_mode to \'population\' to use a population AIF. Unable to calculate AIF.'
 			return []
-
 	elif AIF_mode == 'population':
 		print 'Population AIF mode not yet completed. Unable to calculate AIF.'
 	return []

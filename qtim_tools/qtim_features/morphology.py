@@ -84,7 +84,7 @@ def spherical_disproportion(surface_area, volume):
 def sphericity(surface_area, volume):
     return (np.pi**(1/3)) * ((6 * volume)**(2/3)) / surface_area
 
-def morphology_features(image, attributes, features=['volume','surface_area','volume_surface_area_ratio','compactness','compactness_alternate','spherical_disproportion','sphericity'], mask_value=0):
+def morphology_features(image, attributes, features=['voxel_count','volume','surface_area','volume_surface_area_ratio','compactness','compactness_alternate','spherical_disproportion','sphericity'], mask_value=0):
 
     if isinstance(features, basestring):
         features = [features,]
@@ -97,6 +97,8 @@ def morphology_features(image, attributes, features=['volume','surface_area','vo
 
     for f_idx, current_feature in enumerate(features):
 
+        if current_feature == 'voxel_count':
+            output = calc_voxel_count(image, mask_value)
         if current_feature == 'volume':
             output = volume
         if current_feature == 'surface_area':
@@ -116,10 +118,10 @@ def morphology_features(image, attributes, features=['volume','surface_area','vo
 
     return results
 
-def featurename_strings(features=['volume','surface_area','volume_surface_area_ratio','compactness','compactness_alternate','spherical_disproportion','sphericity']):
+def featurename_strings(features=['voxel_count','volume','surface_area','volume_surface_area_ratio','compactness','compactness_alternate','spherical_disproportion','sphericity']):
     return features
 
-def feature_count(features=['volume','surface_area','volume_surface_area_ratio','compactness','compactness_alternate','spherical_disproportion','sphericity']):
+def feature_count(features=['voxel_count','volume','surface_area','volume_surface_area_ratio','compactness','compactness_alternate','spherical_disproportion','sphericity']):
     if isinstance(features, basestring):
         features = [features,]
     return len(features)

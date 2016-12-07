@@ -371,11 +371,17 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
         multiple dimensions look a little bit messy.
     """
 
+    print 'erosion entered'
+
+    iterations = np.copy(iterations)
+
     if isinstance(iterations, list):
         if len(iterations) != 3:
             print 'The erosion parameter does not have enough dimensions (3). Using the first value in the eroison parameter.'
     else:
         iterations == [iterations, iterations, iterations]
+
+    print iterations
 
     for i in xrange(max(iterations)):
 

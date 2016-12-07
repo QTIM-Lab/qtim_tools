@@ -259,6 +259,13 @@ def _glcm_loop(image, distances, angles, levels, out, mask_value):
         the results of the GLCM computation.
     """
 
+    """
+    Interesting note about calculating contrast at different distances. Contrast calculated at large
+    distances -- say, 10 pixels vs 1, will not count pixels that don't have neighbors 10 pixels apart
+    this will artifically deflate the number of hits in those situations. Unknown how to fix, or even
+    what fixing means in this situation.
+    """
+
     # with nogil:
     rows = image.shape[0]
     cols = image.shape[1]
