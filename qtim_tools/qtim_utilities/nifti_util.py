@@ -54,25 +54,25 @@ def return_dicom_dictionary(filepath=[], folder=[], attributes_regex="*.dcm"):
             for filepath_idx, filepath in enumerate(img_dicom_list):
                 img_dicom = dicom.read_file(filepath)
                 try:
-                    print img_dicom[0x117,0x1020][0][0x117,0x1043].value
+                    # print img_dicom[0x117,0x1020][0][0x117,0x1043].value
                     RadiusMatrix[0,:] = img_dicom[0x117,0x1020][0][0x117,0x1043].value[0:3]
                     RadiusMatrix[1,:] = img_dicom[0x117,0x1020][0][0x117,0x1044].value[0:3]
                     RadiusMatrix[2,:] = img_dicom[0x117,0x1020][0][0x117,0x1045].value[0:3]
-                    print filepath
+                    # print filepath
                     temp_list[0, 3] = img_dicom[0x117,0x1020][0][0x117,0x1042].value[0]
                     temp_list[0, 4] = img_dicom[0x117,0x1020][0][0x117,0x1042].value[1]
                     temp_list[0, 5] = img_dicom[0x117,0x1020][0][0x117,0x1042].value[2]
                     temp_list[0, 6] = np.max(abs(RadiusMatrix[:,0]))
                     temp_list[0, 7] = np.max(abs(RadiusMatrix[:,1]))
                     temp_list[0, 8] = np.max(abs(RadiusMatrix[:,2]))
-                    print filepath
+                    # print filepath
                     temp_list[0, 9] = img_dicom[0x117,0x1020][0][0x117,0x1046].value
                     temp_list[0, 2] = img_dicom.StudyDate
                     temp_list[0, 1] = img_dicom.PatientID
                     temp_list[0, 0] = filepath
                     if [img_dicom.StudyDate, img_dicom.PatientID] not in attribute_list[:,1:3]:
                         attribute_list = np.vstack((attribute_list, temp_list))
-                        print temp_list
+                        # print temp_list
                     # print ''
                 except:
                     continue
@@ -84,7 +84,7 @@ def return_dicom_dictionary(filepath=[], folder=[], attributes_regex="*.dcm"):
                         col_vec = attribute_list[0, i][0:3]
                         # col_vec[0]  = -col_vec[0]
                         # col_vec[1] = -col_vec[1]
-                        print np.round(nib.affines.apply_affine(transform_matrix, col_vec))
+                        # print np.round(nib.affines.apply_affine(transform_matrix, col_vec))
                     # print col_vec.shape
                     # for i in xrange(1,5):
                         # transformed = nib.affines.apply_affine(np.linalg.inv(transform_matrix), np.reshape(attribute_list[0, i][0:3], (1,3)))
@@ -371,8 +371,6 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
         multiple dimensions look a little bit messy.
     """
 
-    print 'erosion entered'
-
     iterations = np.copy(iterations)
 
     if isinstance(iterations, list):
@@ -380,8 +378,6 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
             print 'The erosion parameter does not have enough dimensions (3). Using the first value in the eroison parameter.'
     else:
         iterations == [iterations, iterations, iterations]
-
-    print iterations
 
     for i in xrange(max(iterations)):
 

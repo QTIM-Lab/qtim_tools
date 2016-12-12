@@ -218,7 +218,6 @@ def generate_filename_list(folder, labels=False, label_suffix='-label', recursiv
 
     if labels:
         label_images = [ x for x in imagepaths if label_suffix in x ]
-        print os.path.join(folder, "*" + label_suffix + ".nii*")
 
     imagepaths = [ x for x in imagepaths if label_suffix not in x ]
 
@@ -230,15 +229,6 @@ def generate_filename_list(folder, labels=False, label_suffix='-label', recursiv
     return [imagepaths, label_images]
 
 def generate_numpy_images(imagepath, labels=False, label_suffix='-label', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0):
-
-    print imagepath
-    print labels
-    print label_suffix
-    print label_images
-    print mask_value
-    print levels
-    print use_labels
-    print erode
 
     image_list = []
     unmodified_image_list = []
@@ -378,7 +368,8 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
     return numerical_output
 
 def test_method():
-    generate_feature_list_batch(folder='C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/test_data/test_data_features', labels=True, levels=100, outfile='test_feature_results.csv',test=False, mask_value=0, erode=[3,3,0], overwrite=True)
+    test_folder = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features'))
+    generate_feature_list_batch(folder=test_folder, labels=True, levels=100, outfile='test_feature_results.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True)
     return
 
 def Elizabeth_Mets_ROIS():
@@ -388,6 +379,6 @@ def Elizabeth_Mets_ROIS():
 if __name__ == "__main__":
 
     np.set_printoptions(suppress=True, precision=2)
-    Elizabeth_Mets_ROIS()
-    # test_method()
+    # Elizabeth_Mets_ROIS()
+    test_method()
     # generate_feature_list_batch(folder='', labels=True, levels=100, outfile='',test=False, mask_value=0, erode=[3,3,0])

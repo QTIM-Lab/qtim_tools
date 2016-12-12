@@ -1,0 +1,12 @@
+Metadata-Version: 1.1
+Name: qtim-tools
+Version: 0.1.1
+Summary: A library for medical imaging analysis, with an emphasis on MRI, machine learning, and neuroimaging. Created by the Quantiative Tumor Imaging Lab at the Martinos Center (Harvard-MIT Program in Health, Sciences, and Technology / Massachussets General Hospital)
+Home-page: https://github.com/QTIM-Lab/qtim_tools
+Author: Andrew Beers
+Author-email: abeers@mgh.harvard.edu
+License: UNKNOWN
+Download-URL: https://github.com/QTIM-Lab/qtim_tools/tarball/0.1
+Description: UNKNOWN
+Keywords: neuroimaging,niftis,nifti,mri,dce,dsc,ktrans,ve,tofts,machine learning,vision,texture,learning
+Platform: UNKNOWN
