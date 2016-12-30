@@ -135,7 +135,7 @@ def nifti_2_numpy(filepath):
     img = nib.load(filepath).get_data().astype(float)
     return img
 
-def save_nifti_2_numpy(image_numpy, reference_nifti_filepath, output_path):
+def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path):
     nifti_image = nib.load(reference_nifti_filepath)
     image_affine = nifti_image.affine
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)

@@ -5,17 +5,35 @@ import nibabel as nib
 import math
 import os
 
+
+# class ParamWorker(Thread):
+#     def __init__(self, queue):
+#         Thread.__init__(self)
+#         self.queue = queue
+#         self.__output_image = []
+
+#     def run(self):
+#         while True:
+#            # Get the work from the queue and expand the tuple
+#             contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, mask_value, mask_threshold, intial_fitting_function_parameters = self.queue.get()
+#             self.__output_image = simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, mask_value, mask_threshold, intial_fitting_function_parameters)
+#             self.queue.task_done()
+    
+#     def join(self):
+#         Thread.join(self)
+#         return self.__output_image
+
 def convert_intensity_to_concentration(data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = []):
 
 	flip_angle_radians = flip_angle_degrees*np.pi/180
 
 	if T1_map != []:
-		R1_pre = 1 / T1_map
+		R1_pre = float(1) / float(T1_map)
 		R1_pre = np.reshape(R1_pre.shape + (1,))
 	elif T1_blood == 0:
-		R1_pre = 1 / T1_tissue
+		R1_pre = float(1) / float(T1_tissue)
 	else:
-		R1_pre = 1 / T1_blood
+		R1_pre = float(1) / float(T1_blood)
 
 	a = np.exp(-1 * TR * R1_pre)
 	relative_term = (1-a) / (1-a*np.cos(flip_angle_radians))
@@ -38,9 +56,11 @@ def convert_intensity_to_concentration(data_numpy, T1_tissue, TR, flip_angle_deg
 	output_numpy = np.copy(data_numpy)
 
 	output_numpy = output_numpy / baseline
+
 	output_numpy = output_numpy * relative_term
 
 	output_numpy = (output_numpy - 1) / (a * (output_numpy * np.cos(flip_angle_radians) - 1))
+
 	output_numpy = -1 * (1 / (relaxivity * TR)) * np.log(output_numpy)
 
 	output_numpy = np.nan_to_num(output_numpy)
@@ -66,9 +86,7 @@ def create_4d_from_3d(filepath, stacks=5):
 
 	t1_map = np.zeros((numpy_3d.shape[0], numpy_3d.shape[1], stacks), dtype=float)
 	t1_map[0:50,0:70,:] = 1000
-	print t1_map
 	t1_map[t1_map == 0] = 1440
-	print t1_map
 
 	# t1_map = np.reshape(t1_map, (t1_map.shape[0], t1_map.shape[1], 1, t1_map.shape[2]))
 	# t1_map = np.tile(t1_map, (1,1,5,1))
@@ -154,6 +172,42 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
 	###
 
 	return data_numpy
+
+def estimate_concentration(params, contrast_AIF_numpy, time_interval):
+
+    # Notation is very inexact here. Clean it up later.
+
+    estimated_concentration = [0]
+    # if params[0] > 10 or params[1] > 10:
+    #   return estimated_concentration
+
+    append = estimated_concentration.append
+    e = math.e
+
+    ktrans = e**params[0]
+    ve = 1 / (1 + e**(-params[1]))
+    kep = ktrans / ve
+
+    log_e = -1 * kep * time_interval
+    capital_E = e**log_e
+    log_e_2 = log_e**2
+
+    block_A = (capital_E - log_e - 1)
+    block_B = (capital_E - (capital_E * log_e) - 1)
+    block_ktrans = ktrans * time_interval / log_e_2
+
+    for i in xrange(1, np.size(contrast_AIF_numpy)):
+        term_A = contrast_AIF_numpy[i] * block_A
+        term_B = contrast_AIF_numpy[i-1] * block_B
+        append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+
+    # Quick, error prone convolution method
+    # print estimated_concentration
+        # res = np.exp(-1*kep*time_series)
+        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+        # estimated_concentration = estimated_concentration[0:np.size(res)]
+
+    return estimated_concentration
 
 if __name__ == "__main__":
 	pass

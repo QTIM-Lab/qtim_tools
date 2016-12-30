@@ -21,11 +21,7 @@ qtim_tools/qtim_utilities/nifti_util.py
 qtim_tools/qtim_visualization/__init__.py
 qtim_tools/qtim_wrappers/__init__.py
 qtim_tools/qtim_wrappers/process_dce.py
-test_data/test_data_dce/tofts_v6-AIF-label.nii.gz
-test_data/test_data_dce/tofts_v6.nii.gz
-test_data/test_data_dce/tofts_v9_5SNR-AIF-label.nii
-test_data/test_data_dce/tofts_v9_5SNR.nii
-test_data/test_data_features/MRBrainTumor2-label.nii.gz
-test_data/test_data_features/MRBrainTumor2.nii.gz
-test_data/test_data_features/MRHead-label.nii.gz
-test_data/test_data_features/MRHead.nii.gz
+qtim_tools/test_data/test_data_features/MRBrainTumor2-label.nii.gz
+qtim_tools/test_data/test_data_features/MRBrainTumor2.nii.gz
+qtim_tools/test_data/test_data_features/MRHead-label.nii.gz
+qtim_tools/test_data/test_data_features/MRHead.nii.gz
