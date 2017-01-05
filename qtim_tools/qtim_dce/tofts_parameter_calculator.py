@@ -18,6 +18,7 @@ import os
 # import dce_util
 import re
 import time
+import fnmatch
 
 from Queue import Queue
 from threading import Thread
@@ -102,7 +103,7 @@ def check_image(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_v
             imgplot = plt.imshow(maximal[1], interpolation='none', aspect='auto')
             plt.show()
 
-def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
+def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], AIF_value_suffix=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
 
     print '\n'
 
@@ -224,11 +225,20 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
         T1_image = []
 
 
-    #TODO: Create suffix-finding for AIF values text files. Also address different delimiters between files? Or maybe others have to do this.
+    #TODO: Address different delimiters between files? Or maybe others have to do this.
+    # Also have no idea what should happen when AIF remains empty after this point.
 
     if AIF_value_data != []:
 
-        if isinstance(filepath, basestring):
+        if AIF_value_suffix != []:
+            split_path = str.split(filepath, '.nii')
+                if os.path.isfile(split_path[0] + T1_map_suffix + '.txt'):
+                    AIF_value_data = nifti_2_numpy(split_path[0] + T1_map_suffix + '.txt')
+                else:
+                    AIF_value_data = []
+                    print 'No AIF values found at provided AIF value suffix. Continuing without... \n'   
+
+        if isinstance(AIF_value_data, basestring):
 
             try:
                 AIF = np.loadtxt(AIF_value_data, dtype=object, delimiter=';')
@@ -245,8 +255,12 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
                 print "Error reading AIF values file. AIF reader requires text files with semicolons (;) as delimiters. Skipping this volume... \n"
                 AIF = []
 
-        else:
+        elif AIF_value_data != []:
             AIF = AIF_value_data
+
+        else:
+            AIF = []
+
     else:
         AIF = []
 
@@ -491,8 +505,6 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
     # print 'entered loop'
     # return np.zeros_like(contrast_image_numpy)
 
-    # mask_threshold = 0
-    initial_fitting_function_parameters = [1,1]
 
     np.set_printoptions(threshold=np.nan)
     power = np.power
@@ -503,11 +515,17 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
     time_series = np.arange(0, contrast_AIF_numpy.size) / (60 / time_interval_seconds)
     time_interval = time_series[1]
 
+    # Hard to know what this max value should be right now. TODO, maybe, add as a parameter.
+    ktransmax = 1
+
     def cost_function(params):
 
         # The estimate concentration function is repeated locally to eke out every last bit of efficiency
         # from this massively looping program. As much as possible is calculated outside the loop for
         # performance reasons. Appending is faster than pre-allocating space in this case - who knew.
+
+        # On second thought, I'm not sure if there is any effeciency reason for keeping this function
+        # locally. It does make passing variables a lot less complicated...
 
         estimated_concentration = [0]
 
@@ -531,13 +549,13 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
             term_B = contrast_AIF_numpy[i-1] * block_B
             append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
 
-        difference_term = observed_concentration - estimated_concentration
+        difference_term = observed_concentration- estimated_concentration
         difference_term = power(difference_term, 2)
 
         return sum(difference_term)
 
     def ve_constraint1(params):
-        return params[1]
+        return params[1] - .001
 
     def ve_constraint2(params):
         return 1 - params[1]
@@ -546,7 +564,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         return params[0] - .001
 
     def ktrans_constraint2(params):
-        return 1 - params[0]
+        return ktransmax - params[0]
 
     # Remember to change later if different amounts of outputs.
     output_image = np.zeros((contrast_image_numpy.shape[0:-1] + (3,)), dtype=float)
@@ -565,153 +583,97 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
         # Because multiprocessing divvies up the image into pieces, these indexed values
         # do not have real-world meaning.
-        print index
+        # print index
 
         observed_concentration = contrast_image_numpy[index]
 
+        # I am currently unsure when to start calculating AUC. Perhaps have this specified by the user? TODO.
+        auc = trapz(observed_concentration[bolus_time:])
+
         # with timewith('concentration estimator') as timer:
-        # result_params, fopt, iterations, funcalls, warnflag, allvecs = scipy.optimize.fmin(cost_function, initial_fitting_function_parameters, disp=0, ftol=1e-14, xtol=1e-8, full_output = True, retall=True)
-        initial_fitting_function_parameters = [.3, .3]
-        result_params = scipy.optimize.fmin_cobyla(cost_function, initial_fitting_function_parameters, [ktrans_constraint1, ktrans_constraint2, ve_constraint1, ve_constraint2], rhoend=1e-9, disp=0)
+        initial_fitting_function_parameters = [.3,.1]        
+        result_params, fopt, iterations, funcalls, warnflag, allvecs = scipy.optimize.fmin(cost_function, initial_fitting_function_parameters, disp=0, ftol=1e-14, xtol=1e-8, full_output = True, retall=True)
+
+        ktrans = result_params[0]
+        ve = result_params[1]
+
+        if ve <= .01 or ve >= .98 or ktrans > ktransmax:
+            result_params = scipy.optimize.fmin_cobyla(cost_function, initial_fitting_function_parameters, [ktrans_constraint1, ktrans_constraint2, ve_constraint1, ve_constraint2], rhoend=1e-9, disp=0)
+            ktrans = result_params[0]
+            ve = result_params[1]
+            print index
+            print [ktrans, ve, auc]
+
+        if (ve >= .98 and ktrans < .03) or (ktrans >= .98 and ve < .03):
+            ve = 0
+            ktrans = 0
 
         # This weird parameter transform is a holdover from Xiao's program. I wonder what purpose it serves..
         # ktrans = np.exp(result_params[0]) #ktrans
         # ve = 1 / (1 + np.exp(-result_params[1])) #ve
 
-        ktrans = result_params[0]
-        ve = result_params[1]
-        auc = trapz(observed_concentration[bolus_time:])
-
-        # I am currently unsure how to calculate AUC. Perhaps have this specified by the user? TODO.
-        # auc = np.trapz(observed_concentration, dx=time_interval_seconds) / np.trapz(contrast_AIF_numpy, dx=time_interval_seconds)
-
-        print [ktrans, ve, auc]
+        # print [ktrans, ve, auc]
         output_image[index + (0,)] = ktrans
         output_image[index + (1,)] = ve
         output_image[index + (2,)] = auc
 
-        # Gratuitous plotting snippet for sanity checks
-        if False and (ktrans > .12 and ktrans < .13):
-
-            # optimization_path = np.zeros((len(allvecs), 2), dtype=float)
-            # for a_idx, allvec in enumerate(allvecs):
-            #     optimization_path[a_idx, :] = allvec
-            #     print allvec
-
-            time_series = np.arange(0, contrast_AIF_numpy.size)
-            estimated_concentration = estimate_concentration(result_params, contrast_AIF_numpy, time_interval)
-
-            difference_term = observed_concentration - estimated_concentration
-            # print sum(power(difference_term, 2))
-            print [ktrans, ve]
-            plt.plot(time_series, estimated_concentration, 'r--', time_series, observed_concentration, 'b--')
-            plt.show()
-
-            time_series = np.arange(0, contrast_AIF_numpy.size)
-            estimated_concentration = estimate_concentration([.2, ve], contrast_AIF_numpy, time_interval)
-
-            time_series = np.arange(0, contrast_AIF_numpy.size)
-            estimated_concentration2 = estimate_concentration([.2, .05], contrast_AIF_numpy, time_interval)
-
-            difference_term = observed_concentration - estimated_concentration
-            # print sum(power(difference_term, 2))
-
-            plt.plot(time_series, estimated_concentration, 'r--', time_series, estimated_concentration2, 'g--', time_series, observed_concentration, 'b--')
-            plt.show()
-
-            delta = .01
-            x = np.arange(0, 1, delta)
-            delta = .01
-            y = np.arange(0, 1, delta)
-            X, Y = np.meshgrid(x, y)
-            Z = np.copy(X)
-
-            W = x
-            x1 = np.copy(x)
-            y1 = np.copy(x)
-
-            for k_idx, ktrans in enumerate(x):
-                for v_idx, ve in enumerate(y):
-                    estimated_concentration = estimate_concentration([ktrans, ve], contrast_AIF_numpy, time_interval)
-                    difference_term = observed_concentration - estimated_concentration
-                    Z[v_idx, k_idx] = sum(power(difference_term, 2))
-
-                estimated_concentration = estimate_concentration([ktrans, .1], contrast_AIF_numpy, time_interval)
-                difference_term = observed_concentration - estimated_concentration
-                W[k_idx] = sum(power(difference_term, 2))
-
-            CS = plt.contourf(X,Y,Z, 30)
-            plt.clabel(CS, inline=1, fontsize=10)
-            plt.show()
-
-            # plt.plot(optimization_path)
-            # plt.show()
-
-
-
-    # These values are arbitrary and will likely differ between AIFs. TODO: Figure out a way to reconcile that.
+    # These masking values are arbitrary and will likely differ between AIFs. TODO: Figure out a way to reconcile that.
 
     # output_image[...,1][output_image[...,0] < .05] = 0
-    output_image[...,2][abs(output_image[...,2]) > 100] = 0
-    # output_image[output_image[...,1] > .99] = -.01
-    # output_image[output_image[...,1] < 1e-4] = -.01
-
+    output_image[...,2][abs(output_image[...,2]) > 1e6] = 0
+    # output_image[...,0][output_image[...,0] > .95*ktransmax] = 0
+    # output_image[...,1][output_image[...,1] > .98] = 0
 
     return output_image
 
-    return []
+def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
 
-def estimate_concentration(params, contrast_AIF_numpy, time_interval):
 
-    # Notation is very inexact here. Clean it up later.
+    suffix_exclusion_regex = []
+    for suffix in label_suffix, T1_map_suffix, AIF_label_suffix, AIF_value_suffix:
+        if suffix != []:
+            suffix_exclusion_regex += [suffix]
 
-    estimated_concentration = [0]
-    # if params[0] > 10 or params[1] > 10:
-    #   return estimated_concentration
+    # The file-grabbing portion below should be a nifti_util function.
+    
+    volume_list = []
+    if recursive:
+        for root, dirnames, filenames in os.walk(folder):
+            for filename in fnmatch.filter(filenames, regex):
+                volume_list.append(os.path.join(root, filename))
+    else:
+        for filename in os.listdir(folder):
+            if fnmatch.fnmatch(regex):
+                volume_list.append(os.path.join(root, filename))
+    
+    for volume in volume_list:
+        for suffix in suffix_exclusion_regex:
+            if suffix_exclusion_regex not in volume:
 
-    append = estimated_concentration.append
-    e = math.e
+                print 'Working on volume located at... ' + volume
 
-    ktrans = params[0]
-    ve = params[1]
-    kep = ktrans / ve
+                calc_DCE_properties_single(volume, T1_tissue, T1_blood, relaxivity, TR, TE, scan_time_seconds, hematocrit, injection_start_time_seconds, flip_angle_degrees, label_file, label_suffix, label_value, mask_value, mask_threshold, T1_map_file, T1_map_suffix, AIF_label_file,  AIF_value_data, convert_AIF_values, AIF_mode, AIF_label_suffix, AIF_label_value, label_mode, param_file, default_population_AIF, initial_fitting_function_parameters, outputs, outfile_prefix, processes, gaussian_blur, gaussian_blur_axis)
 
-    log_e = -1 * kep * time_interval
-    capital_E = e**log_e
-    log_e_2 = log_e**2
-
-    block_A = (capital_E - log_e - 1)
-    block_B = (capital_E - (capital_E * log_e) - 1)
-    block_ktrans = ktrans * time_interval / log_e_2
-
-    for i in xrange(1, np.size(contrast_AIF_numpy)):
-        term_A = contrast_AIF_numpy[i] * block_A
-        term_B = contrast_AIF_numpy[i-1] * block_B
-        append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
-
-    # Quick, error prone convolution method
-    # print estimated_concentration
-        # res = np.exp(-1*kep*time_series)
-        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
-        # estimated_concentration = estimated_concentration[0:np.size(res)]
-
-    return estimated_concentration
-
-def calc_DCE_properties_batch(filepath, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
-
-    return
 
 def test_method_2d():
     # print 'hello'
-    filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
-    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_reassurance_', processes=16, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
+    # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
+    # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/gradient_toftsv6.nii'
+    filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v9_5SNR.nii'
 
-def test_method_3d():
+    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_v6_evp_', processes=1, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
+
+    # calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.3,.3], outfile_prefix='tofts_v9_sls_', processes=16, mask_threshold=-1, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=-1)
+
+
+def test_method_3d(filepath=[]):
     # print 'hello'
     # These are params for NHX/CED data
-    filepath = 'C:/Users/azb22/Documents/Junk/dce_mc_st_corrected.nii'
+    if filepath == []:
+        filepath = 'C:/Users/azb22/Documents/Junk/dce_mc_st_corrected.nii'
+
     AIF_value_data = 'C:/Users/azb22/Documents/Junk/VISIT_01_autoAIF_bAIF.txt'
-    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1500, T1_blood=1440, relaxivity=.0039, TR=6.8, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=160, flip_angle_degrees=10, label_suffix=[], AIF_mode='population', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='CED_01_', processes=22, mask_threshold=20, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=2)
+    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1500, T1_blood=1440, relaxivity=.0039, TR=6.8, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=160, flip_angle_degrees=10, label_suffix=[], AIF_mode='population', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='3dtest_', processes=3, mask_threshold=20, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=2)
 
 if __name__ == '__main__':
 

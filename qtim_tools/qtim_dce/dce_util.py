@@ -209,5 +209,99 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval):
 
     return estimated_concentration
 
+        # Gratuitous plotting snippet for sanity checks
+        if True and (ve > 0.2):
+        # if False and index[0] == 0 and index[1] > 11:
+
+            # optimization_path = np.zeros((len(allvecs), 2), dtype=float)
+            # for a_idx, allvec in enumerate(allvecs):
+            #     optimization_path[a_idx, :] = allvec
+            #     print allvec
+
+            # time_series = np.arange(0, contrast_AIF_numpy.size)
+            # estimated_concentration = estimate_concentration(result_params, contrast_AIF_numpy, time_interval)
+
+            # difference_term = observed_concentration - estimated_concentration
+            # # print sum(power(difference_term, 2))
+            # print [ktrans, ve]
+            # plt.plot(time_series, estimated_concentration, 'r--', time_series, observed_concentration, 'b--')
+            # plt.show()
+
+            # time_series = np.arange(0, contrast_AIF_numpy.size)
+            # estimated_concentration = estimate_concentration([.1, .01], contrast_AIF_numpy, time_interval)
+
+            # time_series = np.arange(0, contrast_AIF_numpy.size)
+            # estimated_concentration2 = estimate_concentration([.25, .01], contrast_AIF_numpy, time_interval)
+
+            # difference_term = observed_concentration - estimated_concentration
+            # # print sum(power(difference_term, 2))
+
+            # plt.plot(time_series, estimated_concentration, 'r--', time_series, estimated_concentration2, 'g--', time_series, observed_concentration, 'b--')
+            # plt.show()
+
+            delta = .01
+            x = np.arange(0, .35, delta)
+            delta = .01
+            y = np.arange(0, .5, delta)
+            X, Y = np.meshgrid(x, y)
+            Z = np.copy(X)
+
+            W = x
+            x1 = np.copy(x)
+            y1 = np.copy(x)
+
+            for k_idx, ktrans in enumerate(x):
+                for v_idx, ve in enumerate(y):
+                    estimated_concentration = estimate_concentration([ktrans, ve], contrast_AIF_numpy, time_interval)
+                    difference_term = observed_concentration - estimated_concentration
+                    Z[v_idx, k_idx] = sum(power(difference_term, 2))
+
+                estimated_concentration = estimate_concentration([ktrans, .1], contrast_AIF_numpy, time_interval)
+                difference_term = observed_concentration - estimated_concentration
+                W[k_idx] = sum(power(difference_term, 2))
+
+            CS = plt.contourf(X,Y,Z, 30)
+            plt.clabel(CS, inline=1, fontsize=10)
+            plt.show()
+
+            # plt.plot(optimization_path)
+            # plt.show()
+
+def estimate_concentration(params, contrast_AIF_numpy, time_interval):
+
+    # Notation is very inexact here. Clean it up later.
+
+    estimated_concentration = [0]
+    # if params[0] > 10 or params[1] > 10:
+    #   return estimated_concentration
+
+    append = estimated_concentration.append
+    e = math.e
+
+    ktrans = params[0]
+    ve = params[1]
+    kep = ktrans / ve
+
+    log_e = -1 * kep * time_interval
+    capital_E = e**log_e
+    log_e_2 = log_e**2
+
+    block_A = (capital_E - log_e - 1)
+    block_B = (capital_E - (capital_E * log_e) - 1)
+    block_ktrans = ktrans * time_interval / log_e_2
+
+    for i in xrange(1, np.size(contrast_AIF_numpy)):
+        term_A = contrast_AIF_numpy[i] * block_A
+        term_B = contrast_AIF_numpy[i-1] * block_B
+        append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+
+    # Quick, error prone convolution method
+    # print estimated_concentration
+        # res = np.exp(-1*kep*time_series)
+        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+        # estimated_concentration = estimated_concentration[0:np.size(res)]
+
+    return estimated_concentration
+
 if __name__ == "__main__":
 	pass
