@@ -125,7 +125,7 @@ def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivi
 
     image = preprocess_dce(image, gaussian_blur=gaussian_blur, gaussian_blur_axis=gaussian_blur_axis)
 
-    AIF_label_image, label_image, T1_image, AIF = retreive_data_from_files(filepath, label_file, label_mode, label_suffix, label_value, AIF_label_file, AIF_label_value, AIF_mode, AIF_label_suffix, T1_map_file, T1_map_suffix, AIF_value_data, image)
+    AIF_label_image, label_image, T1_image, AIF = retreive_data_from_files(filepath, label_file, label_mode, label_suffix, label_value, AIF_label_file, AIF_label_value, AIF_mode, AIF_label_suffix, T1_map_file, T1_map_suffix, AIF_value_data, AIF_value_suffix, image)
 
     if AIF == []:
         AIF = generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image, AIF_label_image, AIF_value_data, AIF_mode, dimension, AIF_label_value)
@@ -152,7 +152,7 @@ def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivi
 
     return outputs
 
-def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, label_value, AIF_label_file, AIF_label_value, AIF_mode, AIF_label_suffix, T1_map_file, T1_map_suffix, AIF_value_data, image=[]):
+def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, label_value, AIF_label_file, AIF_label_value, AIF_mode, AIF_label_suffix, T1_map_file, T1_map_suffix, AIF_value_data, AIF_value_suffix, image=[]):
 
     # This is such an unreadable part of the program. There is probably a better way..
     # Particularly, all the redundant suffix parts can probably be exported to a subprogram.
@@ -232,11 +232,11 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
 
         if AIF_value_suffix != []:
             split_path = str.split(filepath, '.nii')
-                if os.path.isfile(split_path[0] + T1_map_suffix + '.txt'):
-                    AIF_value_data = nifti_2_numpy(split_path[0] + T1_map_suffix + '.txt')
-                else:
-                    AIF_value_data = []
-                    print 'No AIF values found at provided AIF value suffix. Continuing without... \n'   
+            if os.path.isfile(split_path[0] + AIF_value_suffix + '.txt'):
+                AIF_value_data = nifti_2_numpy(split_path[0] + AIF_value_suffix + '.txt')
+            else:
+                AIF_value_data = []
+                print 'No AIF values found at provided AIF value suffix. Continuing without... \n'   
 
         if isinstance(AIF_value_data, basestring):
 
