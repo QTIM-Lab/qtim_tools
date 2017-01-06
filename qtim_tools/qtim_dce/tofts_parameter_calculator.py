@@ -505,6 +505,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
     # print 'entered loop'
     # return np.zeros_like(contrast_image_numpy)
 
+    contrast_AIF_numpy = contrast_AIF_numpy[bolus_time:]
 
     np.set_printoptions(threshold=np.nan)
     power = np.power
@@ -555,13 +556,13 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         return sum(difference_term)
 
     def ve_constraint1(params):
-        return params[1] - .001
+        return params[1] - 1e-3
 
     def ve_constraint2(params):
         return 1 - params[1]
 
     def ktrans_constraint1(params):
-        return params[0] - .001
+        return params[0] - 1e-3
 
     def ktrans_constraint2(params):
         return ktransmax - params[0]
@@ -583,9 +584,9 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
         # Because multiprocessing divvies up the image into pieces, these indexed values
         # do not have real-world meaning.
-        # print index
+        print index
 
-        observed_concentration = contrast_image_numpy[index]
+        observed_concentration = contrast_image_numpy[index][bolus_time:]
 
         # I am currently unsure when to start calculating AUC. Perhaps have this specified by the user? TODO.
         auc = trapz(observed_concentration[bolus_time:])
@@ -601,12 +602,12 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
             result_params = scipy.optimize.fmin_cobyla(cost_function, initial_fitting_function_parameters, [ktrans_constraint1, ktrans_constraint2, ve_constraint1, ve_constraint2], rhoend=1e-9, disp=0)
             ktrans = result_params[0]
             ve = result_params[1]
-            print index
-            print [ktrans, ve, auc]
+        #     print index
+        #     print [ktrans, ve, auc]
 
-        if (ve >= .98 and ktrans < .03) or (ktrans >= .98 and ve < .03):
-            ve = 0
-            ktrans = 0
+        # if (ve >= .98 and ktrans < .03) or (ktrans >= .98 and ve < .03):
+        #     ve = 0
+        #     ktrans = 0
 
         # This weird parameter transform is a holdover from Xiao's program. I wonder what purpose it serves..
         # ktrans = np.exp(result_params[0]) #ktrans
@@ -654,6 +655,8 @@ def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000,
 
                 calc_DCE_properties_single(volume, T1_tissue, T1_blood, relaxivity, TR, TE, scan_time_seconds, hematocrit, injection_start_time_seconds, flip_angle_degrees, label_file, label_suffix, label_value, mask_value, mask_threshold, T1_map_file, T1_map_suffix, AIF_label_file,  AIF_value_data, convert_AIF_values, AIF_mode, AIF_label_suffix, AIF_label_value, label_mode, param_file, default_population_AIF, initial_fitting_function_parameters, outputs, outfile_prefix, processes, gaussian_blur, gaussian_blur_axis)
 
+def postprocess_maps():
+    return
 
 def test_method_2d():
     # print 'hello'
@@ -673,7 +676,7 @@ def test_method_3d(filepath=[]):
         filepath = 'C:/Users/azb22/Documents/Junk/dce_mc_st_corrected.nii'
 
     AIF_value_data = 'C:/Users/azb22/Documents/Junk/VISIT_01_autoAIF_bAIF.txt'
-    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1500, T1_blood=1440, relaxivity=.0039, TR=6.8, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=160, flip_angle_degrees=10, label_suffix=[], AIF_mode='population', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='3dtest_', processes=3, mask_threshold=20, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=2)
+    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=AIF_value_data, convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1500, T1_blood=1440, relaxivity=.0039, TR=6.8, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=160, flip_angle_degrees=10, label_suffix=[], AIF_mode='population', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='mead_cobyal_individual_ktrans_no_mask', processes=22, mask_threshold=20, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=2)
 
 if __name__ == '__main__':
 
