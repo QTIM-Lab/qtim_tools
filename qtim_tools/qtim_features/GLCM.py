@@ -102,7 +102,7 @@ def glcm_2d_aggregate(image, distances, angles, levels=None, symmetric=False, no
             glcm_sums = np.apply_over_axes(np.sum, result_GLCM, axes=(0, 1))
             glcm_sums[glcm_sums == 0] = 1
             result_GLCM /= glcm_sums
-
+            
         return result_GLCM
 
     else:

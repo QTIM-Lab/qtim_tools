@@ -10,7 +10,12 @@ from ..qtim_utilities import nifti_util
 import numpy as np
 from scipy import stats
 
-standard_features = ['mean','min','max','median','range','standard_deviation','variance','energy','entropy','kurtosis','skewness','COV']
+standard_bins = [[-np.inf, -1000],[-1000, -950],[-950, -650],[-650, -300],[-300, 0],[0, 100],[100,600],[600, np.inf]]
+standard_bin_labels = []
+for label in standard_bins:
+    standard_bin_labels += ['histogram_percent_' + str(label[0]) + '_' + str(label[1])]
+
+standard_features = ['mean','min','max','median','range','standard_deviation','variance','energy','entropy','kurtosis','skewness','COV'] + standard_bin_labels
 
 def calc_mean(image_numpy):
     return np.mean(image_numpy)
@@ -55,6 +60,20 @@ def calc_skewness(image_numpy):
 def calc_COV(image_numpy):
     return np.std(image_numpy) / np.mean(image_numpy)
 
+def calc_voxel_count(image_numpy, mask_value=0):
+    return image_numpy[image_numpy != mask_value].size
+
+def calc_intensity_histogram(image_numpy, bins, mask_value=0):
+    
+    # This function is not generalizable yet.. TODO.
+    voxel_count = calc_voxel_count(image_numpy, mask_value)
+    histo_counts = []
+
+    for histo_bin in standard_bins:
+        histo_counts += [((histo_bin[0] < image_numpy) & (image_numpy < histo_bin[1])).sum() / voxel_count]
+
+    return histo_counts
+
 def statistics_features(image, features=standard_features, mask_value=0):
 
     if isinstance(features, basestring):
@@ -90,6 +109,13 @@ def statistics_features(image, features=standard_features, mask_value=0):
             output = calc_skewness(stats_image)
         if current_feature == 'COV':
             output = calc_COV(stats_image)
+
+        # This histogram method is very fragile.
+        if 'histogram_percent' in current_feature:
+            output = calc_intensity_histogram(stats_image, f_idx, mask_value)
+            results[f_idx:] = output
+            break
+
         results[f_idx] = output
 
     return results
