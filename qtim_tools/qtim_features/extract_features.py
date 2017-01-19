@@ -374,13 +374,7 @@ def test_method():
     generate_feature_list_batch(folder=test_folder, features=['morphology', 'statistics'], labels=True, levels=100, outfile='test_feature_results_shape.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True)
     return
 
-def Elizabeth_Mets_ROIS():
-    generate_feature_list_batch(folder='C:/Users/azb22/Documents/Scripting/Elizabeth_Mets_Heterogeneity/Melanoma_Mets_with_ROIs', labels=True, levels=100, outfile='mets_feature_results.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True, recursive=True, label_suffix=".nii-label", write_empty=False)
-    return
-
 if __name__ == "__main__":
 
     np.set_printoptions(suppress=True, precision=2)
-    # Elizabeth_Mets_ROIS()
     test_method()
-    # generate_feature_list_batch(folder='', labels=True, levels=100, outfile='',test=False, mask_value=0, erode=[3,3,0])

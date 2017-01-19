@@ -3,9 +3,11 @@ import extract_features
 
 def test_method():
 
+    # This code should be run from the folder above the main "qtim_tools" folder using the command "python -m qtim_tools.qtim_features.test"
+
 	# All niftis in this folder will be processed. The program searches for a nifti file, and then checks if there is a matching labelmap file with the suffix '-label'.
 	# It currently loads from some built in data from the qtim_tools project, but you can change the filepath below to anywhere.
-    test_folder = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','MR_Tumor_Shape'))
+    test_folder = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','Phantom_Intensity'))
     
     # If labels is set to False, the whole image will be processed. This can take a very long time for GLCM features especially, so it is best we stick to labels.
     labels = True
@@ -18,7 +20,7 @@ def test_method():
     levels = 100
 
     # This will save a spreadsheet of all requested feature results.
-    outfile = 'test_feature_results_shape.csv'
+    outfile = 'test_feature_results_intensity.csv'
 
     # If your label is for some reason masked with a value other than zero, change this parameter.
     mask_value = 0
