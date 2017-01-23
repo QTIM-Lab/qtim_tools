@@ -100,18 +100,19 @@ def intensity_cube_phantom(reference_image, output_folder):
 
 def get_phantom_filepath(input):
 
+	# intensity_square, glcm_square, size_square, mri_size
 	if input == 'intensity_square':
 		return os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','Phantom_Intensity'))
 	elif input == 'glcm_square':
 		return os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','Phantom_GLCM'))
 	elif input == 'size_square':
 		return os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','Phantom_Size'))
-	elif input == 'size_mri':
+	elif input == 'mri_size':
 		return os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','MR_Tumor_Size'))
-	elif input == 'shape_mri':
+	elif input == 'mri_shape':
 		return os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','MR_Tumor_Shape'))
 	else:
-		print 'Sorry, there is no available phantom data by that keyword. Available keywords: "intensity_square", "glcm_square", "size_square", "size_mri", "shape_mri".'
+		print 'Sorry, there is no available phantom data by that keyword. Available keywords: "intensity_square", "glcm_square", "size_square", "mri_size", "mri_shape".'
 		return ''
 
 def test_method():
