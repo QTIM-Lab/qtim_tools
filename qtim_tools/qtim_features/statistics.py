@@ -45,10 +45,12 @@ def calc_entropy(image_numpy):
 
     """ Note this silly solution to deal with log(0)
         Surely there must be a better way.
+        Also I am not sure if entropy is valid for negative
+        numbers in general..
     """
 
     entropy_image = np.copy(image_numpy)
-    entropy_image[entropy_image == 0] = 1
+    entropy_image[entropy_image <= 0] = 1
     return np.sum(entropy_image * -1 * (np.log(entropy_image)))
 
 def calc_kurtosis(image_numpy):
