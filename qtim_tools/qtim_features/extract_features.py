@@ -22,6 +22,8 @@ import nibabel as nib
 import csv
 import fnmatch
 from shutil import copy, move
+from multiprocessing.pool import Pool
+from functools import partial
 
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
 
@@ -151,54 +153,22 @@ def generate_feature_list_parallel(folder, features=['GLCM', 'morphology', 'stat
 
         subunits += [[imagepaths[int((processes - 1)*sublength):], label_images[int((processes - 1)*sublength):]]]
 
-        subprocess = partial(generate_feature_list_chunk, contrast_AIF_numpy=contrast_AIF_numpy, time_interval_seconds=time_interval_seconds, bolus_time=bolus_time, mask_value=mask_value, mask_threshold=mask_threshold, initial_fitting_function_parameters=initial_fitting_function_parameters)
+        subprocess = partial(generate_feature_list_chunk, total_features=total_features, feature_indexes=feature_indexes, label_output=label_output, features=features, labels=labels, label_suffix=label_suffix, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode, write_empty=write_empty)
 
         optimization_pool = Pool(processes)
         results = optimization_pool.map(subprocess, subunits)
 
-            print '\n'
-            print 'Pre-processing data...'
+        output_data = np.zeros((1, total_features + 1), dtype=object)
+        stitch_index = 0
+        for result in results:
+            output_data = np.vstack[output_data, result]
 
-            image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode)
-            
-            if image_list == []:
-                if write_empty:
-                    empty_output = np.zeros((1, total_features + 1), dtype=object)
-                    empty_output[0,0] = imagepath
-                    csvfile.writerow(empty_output[0,:])
-                    continue
-
-            print 'Pre-processing complete!'
-
-            for image_idx, image in enumerate(image_list):
-
-                print ''
-                print 'Working on image...'
-                print imagename_list[image_idx]
-                print 'Voxel sum...'
-                print np.sum(image)
-                print 'Image shape...'
-                print image.shape
-
-                if filenames:
-                    index = imagename_list[image_idx]
-                else:
-                    index = numerical_output.shape[0]
-
-                if numerical_output[0,0] == 0:
-                    numerical_output[0, :] = generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)
-                    index_output[0,:] = index
-                else:
-                    numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)))
-                    index_output = np.vstack((index_output, index))
-
-                csvfile.writerow(np.hstack((index_output[-1,:], numerical_output[-1,:])))
-
-    final_output = np.hstack((index_output, numerical_output))
+    final_output = output_data
 
     with open(outfile, 'ab') as writefile:
         csvfile = csv.writer(writefile, delimiter=',')
-        csvfile.writerow(label_output[0,:])
+        for row in final_output:
+            csvfile.writerow(row)
 
     print 'Feature writing complete, writing output...'
     print '\n'
@@ -209,12 +179,14 @@ def generate_feature_list_parallel(folder, features=['GLCM', 'morphology', 'stat
     if return_output:
         return final_output
 
-def generate_feature_list_chunk(data, features=['GLCM', 'morphology', 'statistics'], labels=False, label_suffix="-label", levels=255, mask_value=0, use_labels=[-1], erode=[0,0,0], write_empty=True):
+def generate_feature_list_chunk(data, total_features, feature_indexes, label_output, features=['GLCM', 'morphology', 'statistics'], labels=False, label_suffix="-label", levels=255, mask_value=0, use_labels=[-1], erode=[0,0,0], write_empty=True):
 
     imagepaths = data[0]
     label_images = data[1]
 
-    for imagepath in imagepaths
+    output_data = np.zeros((1, total_features + 1), dtype=object)
+
+    for imagepath in imagepaths:
 
         print '\n'
         print 'Pre-processing data...'
@@ -225,7 +197,7 @@ def generate_feature_list_chunk(data, features=['GLCM', 'morphology', 'statistic
             if write_empty:
                 empty_output = np.zeros((1, total_features + 1), dtype=object)
                 empty_output[0,0] = imagepath
-                csvfile.writerow(empty_output[0,:])
+                output_data = np.vstack(output_data, empty_output)
                 continue
 
         print 'Pre-processing complete!'
@@ -252,7 +224,9 @@ def generate_feature_list_chunk(data, features=['GLCM', 'morphology', 'statistic
                 numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)))
                 index_output = np.vstack((index_output, index))
 
-            csvfile.writerow(np.hstack((index_output[-1,:], numerical_output[-1,:])))
+            output_data = np.vstack(output_data, (np.hstack((index_output[-1,:], numerical_output[-1,:]))))
+
+    return output_data
 
 
 def write_image_method(imagepath, label_images, csvfile, total_features, features, feature_indexes, numerical_output, index_output, labels=False, label_suffix='-label', levels=100, mask_value=0, use_labels=[-1], erode=0, write_empty=False):
@@ -512,6 +486,11 @@ def test_method():
     generate_feature_list_batch(folder=test_folder, features=['morphology', 'statistics'], labels=True, levels=100, outfile='test_feature_results_shape.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True)
     return
 
+def test_parallel():
+    test_folder = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','MR_Tumor_Shape'))
+    generate_feature_list_parallel(folder=test_folder, features=['morphology', 'statistics'], labels=True, levels=100, outfile='test_feature_results_shape_parallel.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True, processes=2)
+    return
+
 def parse_command_line(argv):
 
     # This code should be run from the folder above the main "qtim_tools" folder using the command "python -m qtim_tools.qtim_features.test"
@@ -548,4 +527,5 @@ def parse_command_line(argv):
 if __name__ == "__main__":
 
     np.set_printoptions(suppress=True, precision=2)
-    test_method()
+    # test_method()
+    test_parallel()
