@@ -360,8 +360,10 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', label_
         if label_suffix == '':
             label_path = label_images
         else:
-            split_path = str.split(imagepath, '.')
+            head, tail = os.path.split(imagepath)
+            split_path = str.split(tail, '.')
             label_path = split_path[0] + label_suffix + '.' + '.'.join(split_path[1:])
+            label_path = os.path.join(head, label_path)
 
         if os.path.isfile(label_path):
             label_image = nifti_util.nifti_2_numpy(label_path)
