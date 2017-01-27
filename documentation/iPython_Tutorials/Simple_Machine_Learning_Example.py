@@ -26,15 +26,24 @@ def RandomForest_Classifier():
 	np.set_printoptions(precision=3, suppress=True)
 	data_title = 'LungData'
 
-	Data = np.loadtxt('Lung_Feature_Results_Final.csv', delimiter=",", skiprows=1, dtype="object")
+	Data = np.loadtxt('./Lung_Challenge_Features/Lung_Feature_Results_Final.csv', delimiter=",", skiprows=1, dtype="object")
 
 	# Randomly divide the data according to a .5 proportion into train and test
 	# In order to get the same random split, make sure that the np.random.seed
 	# line is left uncommented.
-	np.random.seed(0)
-	random_mask = np.random.rand(len(Data)) < .5
-	TrainData = Data[random_mask]
-	TestData = Data[~random_mask]
+	# np.random.seed(0)
+
+	TrainData = np.zeros((0, Data.shape[1]))
+	TestData = np.zeros((0, Data.shape[1]))
+
+	for endpoint in np.arange(100, 600, 100):
+		TempData = Data[endpoint-100:endpoint]
+		random_mask = np.random.rand(len(TempData)) < .5
+		TrainData = np.vstack((TrainData, TempData[random_mask]))
+		TestData = np.vstack((TestData, TempData[~random_mask]))
+
+	np.random.shuffle(TrainData)
+	np.random.shuffle(TestData)
 
 	dimsT = np.shape(TestData)
 	dims = np.shape(TrainData)
@@ -59,8 +68,8 @@ def RandomForest_Classifier():
 	Winner = []
 	ParameterTuner = 20
 
-	for i in range(1,ParameterTuner+1):
-		
+	# for i in range(1,ParameterTuner+1):
+	for i in [15]:
 		# Some different machine learning options to test..
 
 		for k in [[1, RandomForestClassifier(n_estimators=i)]]:

@@ -24,7 +24,8 @@ def parse_args():
 	parser.add_argument('-T1_tissue', required=False, help = 'Static T1 value in tissue to be used for calculations if there is no T1 map. Default is 1000.')
 	parser.add_argument('-T1_blood', required=False, help = 'Static T1 value in blood to be used for AIF calculations. Default is 1440.')
 	parser.add_argument('-T1_map', required=False, help = 'Filepath to a T1 map to be used in parameter calculations')
-	parser.add_argument('')
+
+	parser.add_argument('-relaxivity', required=False, help = 'Relaxivity of the chosen contrast agent to be used for parameter map calculations.')
 
 def main():
 	return
