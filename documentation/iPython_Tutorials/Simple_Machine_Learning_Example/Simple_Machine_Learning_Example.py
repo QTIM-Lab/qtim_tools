@@ -26,7 +26,7 @@ def RandomForest_Classifier():
 	np.set_printoptions(precision=3, suppress=True)
 	data_title = 'LungData'
 
-	Data = np.loadtxt('./Lung_Challenge_Features/Lung_Feature_Results_Final.csv', delimiter=",", skiprows=1, dtype="object")
+	Data = np.loadtxt('../Lung_Challenge_Features/Lung_Feature_Results_Final.csv', delimiter=",", skiprows=1, dtype="object")
 
 	# Randomly divide the data according to a .5 proportion into train and test
 	# In order to get the same random split, make sure that the np.random.seed
