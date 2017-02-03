@@ -9,6 +9,8 @@ This will install a local version of qtim_tools to your workstation. Alternative
 
 pip install qtim_tools
 
+You may need to install some other python libraries to run this code (most likely nibabel and pydicom).
+
 # qtim_tools.qtim_features
 
 qtim_features is meant to extract features (size, shape, texture, intensity, etc.) from medical imaging data. It currently takes .nii or .nii.gz files as input and output, although support for other filetypes will come soon.
