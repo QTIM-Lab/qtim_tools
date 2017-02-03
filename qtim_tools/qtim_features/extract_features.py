@@ -228,7 +228,6 @@ def generate_feature_list_chunk(data, total_features, feature_indexes, label_out
 
     return output_data
 
-
 def write_image_method(imagepath, label_images, csvfile, total_features, features, feature_indexes, numerical_output, index_output, labels=False, label_suffix='-label', levels=100, mask_value=0, use_labels=[-1], erode=0, write_empty=False):
 
     # This function is a bit clumsy. So many parameters..
@@ -427,7 +426,7 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', label_
             return[[],[],[],[]]
 
     else:
-        image = nifti_util.coerce_levels(image, levels=levels, reference_image='', method="divide", mask_value=mask_value)
+        image = nifti_util.coerce_levels(image, levels=levels, reference_image=image, method="divide", mask_value=mask_value)
         image_list += [image]
         unmodified_image_list += [image]
         imagename_list += [imagepath]
@@ -526,6 +525,9 @@ def parse_command_line(argv):
     overwrite = True
 
     extract_features.generate_feature_list_batch(folder=test_folder, features=features, labels=labels, levels=levels, outfile=outfile, mask_value=mask_value, erode=erode, overwrite=overwrite)
+
+def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels = 100, mask_value = 0, erode = [0,0,0], overwrite = True, label_suffix='-label'):
+    generate_feature_list_batch(folder=folder, features=features, labels=labels, levels=levels, outfile=outfile, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix)
 
 if __name__ == "__main__":
 
