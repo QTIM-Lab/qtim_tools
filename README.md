@@ -5,7 +5,7 @@ To get this package up and running, clone this repository from github and run fr
 
 python setup.py install
 
-This will install a local version of qtim_tools to your workstation. Alternatively, you could remotely install using the command
+This will install a local version of qtim_tools to your workstation. Alternatively, you could remotely install the latest public version of qtim_tools using the command
 
 pip install qtim_tools
 
@@ -17,9 +17,9 @@ qtim_features is meant to extract features (size, shape, texture, intensity, etc
 
 In order to use our feature extractor, run the following code:
 
-import qtim_tools
+__import qtim_tools__
 
-qtim_tools.qtim_features.extract_features(folder, outfile)
+__qtim_tools.qtim_features.extract_features(folder, outfile)__
 
 The extract_features command looks into the provided folder and attempts to match any available .nii or .nii.gz volume with a corresponding file with the suffix "-label." For example, the file "Test_Volume.nii.gz" would be matched with the file "Test_Volume-label.nii.gz", provided they are both in the given folder. Volumes without a label will be skipped. You can choose to extract features from an entire volume using the labels=False parameter. Be mindful that extracting features from large images without labels can take a very long time, particularly for GLCM and other texture features.
 
@@ -45,4 +45,4 @@ __label_suffix__ - If your label files use a different identifier than '-label',
 
 __mask_value__ - If your background values is not 0 for your label-maps (e.g. -1), you can change that value here. Deafult is 0.
 
-To see some sample data, check out the files at ~\qtim_tools\test_data\test_data_features. Also try running the command qtim_tools.qtim_features.test() to do a test-run of extract_features() with sample data.
+To see some sample data, check out the files at ~\qtim_tools\test_data\test_data_features. Also try running the command __qtim_tools.qtim_features.test()__ to do a test-run of extract_features() with sample data.
