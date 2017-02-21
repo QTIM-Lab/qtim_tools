@@ -28,7 +28,7 @@ from functools import partial
 
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
 
-def generate_feature_list_batch(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", decisions=False, levels=255, mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
+def generate_feature_list_batch(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", decisions=False, levels=255, normalize_intensities=False,mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
 
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -83,10 +83,10 @@ def generate_feature_list_batch(folder, features=['GLCM', 'morphology', 'statist
                         index = numerical_output.shape[0]
 
                     if numerical_output[0,0] == 0:
-                        numerical_output[0, :] = generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)
+                        numerical_output[0, :] = generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=mask_value, normalize_intensities=normalize_intensities)
                         index_output[0,:] = index
                     else:
-                        numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)))
+                        numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=mask_value, normalize_intensities=normalize_intensities)))
                         index_output = np.vstack((index_output, index))
 
                     csvfile.writerow(np.hstack((index_output[-1,:], numerical_output[-1,:])))
@@ -434,7 +434,7 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', label_
 
     return [image_list, unmodified_image_list, imagename_list, attributes_list]
 
-def generate_feature_list_method(image, unmodified_image, attributes, features, feature_indexes='', total_features='', levels=-1, mask_value=0):
+def generate_feature_list_method(image, unmodified_image, attributes, features, feature_indexes='', total_features='', levels=-1, mask_value=0, normalize_intensities=False):
 
     if feature_indexes == '' or total_features == '':
         total_features = 0
@@ -476,7 +476,10 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
             # Should intensity statistics be eroded? Currently, they are not, as indicated by the "unmodified image" parameter.
 
             print 'Calculating statistical features...'
-            numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = statistics.statistics_features(unmodified_image)
+            if normalize_intensities:
+                numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = statistics.statistics_features(glcm_image)
+            else:
+                numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = statistics.statistics_features(unmodified_image)
 
     print '\n'
 

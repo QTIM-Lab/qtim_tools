@@ -510,7 +510,8 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
     # Hard to know what this max value should be right now. TODO, maybe, add as a parameter.
     ktransmax = 1
 
-    def cost_function(params):
+    # def cost_function(params):
+    def cost_function(contrast_AIF_numpy, ktrans, ve):
 
         # The estimate concentration function is repeated locally to eke out every last bit of efficiency
         # from this massively looping program. As much as possible is calculated outside the loop for
@@ -523,8 +524,8 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
         append = estimated_concentration.append
 
-        ktrans = params[0]
-        ve = params[1]
+        # ktrans = params[0]
+        # ve = params[1]
         kep = ktrans / ve
 
         log_e = -1 * kep * time_interval
@@ -587,11 +588,15 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         observed_concentration = contrast_image_numpy[index][bolus_time:]
 
         # I am currently unsure when to start calculating AUC. Perhaps have this specified by the user? TODO.
-        auc = trapz(observed_concentration[bolus_time:])
+        auc = trapz(observed_concentration)
 
         # with timewith('concentration estimator') as timer:
-        # initial_fitting_function_parameters = [.3,.1]        
-        result_params, fopt, iterations, funcalls, warnflag, allvecs = scipy.optimize.fmin(cost_function, initial_fitting_function_parameters, disp=0, ftol=1e-14, xtol=1e-8, full_output = True, retall=True)
+        initial_fitting_function_parameters = [.3,.1]        
+        # result_params, fopt, iterations, funcalls, warnflag, allvecs = scipy.optimize.fmin(cost_function, initial_fitting_function_parameters, disp=0, ftol=1e-14, xtol=1e-8, full_output = True, retall=True)
+        try:
+            result_params, pcov = scipy.optimize.curve_fit(cost_function, contrast_AIF_numpy, observed_concentration, p0=initial_fitting_function_parameters)
+        except:
+            result_params = [0,0]
 
         ktrans = result_params[0]
         ve = result_params[1]
@@ -622,7 +627,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
     # output_image[...,1][output_image[...,0] < .05] = 0
     output_image[...,2][abs(output_image[...,2]) > 1e6] = 0
-    # output_image[...,0][output_image[...,0] > .95*ktransmax] = 0
+    output_image[...,0][output_image[...,0] > .95*ktransmax] = 0
     # output_image[...,1][output_image[...,1] > .98] = 0
 
     return output_image
@@ -660,12 +665,12 @@ def postprocess_maps():
 
 def test_method_2d():
     # print 'hello'
-    # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
+    filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
     # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/gradient_toftsv6.nii'
     # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v9_5SNR.nii'
-    filepath = 'C:/Users/abeers/Documents/GitHub/Public_QTIM/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
+    # filepath = 'C:/Users/abeers/Documents/GitHub/Public_QTIM/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
 
-    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_v6_non_square_diff_', processes=2, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
+    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_v6_', processes=16, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
 
     # calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.3,.3], outfile_prefix='tofts_v9_sls_', processes=16, mask_threshold=-1, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=-1)
 
