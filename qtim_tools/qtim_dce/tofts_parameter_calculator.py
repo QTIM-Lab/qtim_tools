@@ -2,10 +2,7 @@ from __future__ import division
 
 # TODO Clean up these imports..
 
-# from ..qtim_utilities import nifti_util
 from functools import partial
-# from scipy
-
 import numpy as np
 import nibabel as nib
 import scipy.optimize
@@ -15,7 +12,6 @@ import matplotlib.pyplot as plt
 import math
 import random
 import os
-# import dce_util
 import re
 import time
 import fnmatch
@@ -24,118 +20,68 @@ from Queue import Queue
 from threading import Thread
 from multiprocessing.pool import Pool
 
-class timewith():
-    def __init__(self, name=''):
-        self.name = name
-        self.start = time.time()
-
-    @property
-    def elapsed(self):
-        return time.time() - self.start
-
-    def checkpoint(self, name=''):
-        print '{timer} {checkpoint} took {elapsed} seconds'.format(
-            timer=self.name,
-            checkpoint=name,
-            elapsed=self.elapsed,
-        ).strip()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.checkpoint('finished')
-        pass
-
 def nifti_2_numpy(filepath):
+
+    """ Utility function run through nibabel for loading nifti volumes into float numpy arrays."""
 
     img = nib.load(filepath).get_data().astype(float)
     return img
 
 def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path):
 
+    """ Rather than constructing a nifti header from scratch, it is usually easiest to just
+        copy one from a nearby reference header.
+    """
+
     nifti_image = nib.load(reference_nifti_filepath)
     image_affine = nifti_image.affine
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)
     nib.save(output_nifti, output_path)
 
-def check_image(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_value=0):
-
-    """ A useful utiltiy for spot checks.
-    """
-
-    if second_image_numpy != []:
-        for i in xrange(image_numpy.shape[0]):
-            print i
-            fig = plt.figure()
-            a=fig.add_subplot(1,2,1)
-            imgplot = plt.imshow(image_numpy[:,:,i*step], interpolation='none', aspect='auto')
-            a=fig.add_subplot(1,2,2)
-            imgplot = plt.imshow(second_image_numpy[:,:,i*step], interpolation='none', aspect='auto')
-            plt.show()
-    else:
-        if mode == "cycle":
-            for i in xrange(image_numpy.shape[0]):
-                fig = plt.figure()
-                imgplot = plt.imshow(image_numpy[i,:,:], interpolation='none', aspect='auto')
-                plt.show()
-
-        if mode == "first":
-            fig = plt.figure()
-            imgplot = plt.imshow(image_numpy[0,:,:], interpolation='none', aspect='auto')
-            plt.show()
-
-        if mode == "maximal_slice":
-
-            maximal = [0, np.zeros(image_numpy.shape)]
-
-            for i in xrange(image_numpy.shape[2]):
-            
-                image_slice = image_numpy[:,:,i]
-
-                test_maximal = (image_slice != mask_value).sum()
-
-                if test_maximal >= maximal[0]:
-                    maximal[0] = test_maximal
-                    maximal[1] = image_slice
-
-            fig = plt.figure()
-            imgplot = plt.imshow(maximal[1], interpolation='none', aspect='auto')
-            plt.show()
-
 def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], AIF_value_suffix=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
+
+    """ This is a master function that creates ktrans, ve, and auc values from raw intensity 1D-4D volumes.
+    """
 
     print '\n'
 
-    # Is there any plausible benefit to keeping NaN values? Simplicity?
+    # NaN values are cleaned for ease of calculation.
     if isinstance(filepath, basestring):
         image = np.nan_to_num(nifti_2_numpy(filepath))
     else:
         image = np.nan_to_num(np.copy(filepath))
 
+    # Unlikely that this circumstance will apply to 4D images in the future..
     dimension = len(image.shape)
     if dimension > 4:
         print 'Error: Images greater than dimension 4 are currently not supported. Skipping this volume...'
         return []
 
+    # Convenience variables created from input parameters.
     flip_angle_radians = flip_angle_degrees*np.pi/180
     time_interval_seconds = float(scan_time_seconds / image.shape[dimension-1])
     timepoints = image.shape[-1]
     bolus_time = int(np.ceil((injection_start_time_seconds / scan_time_seconds) * timepoints))
 
+    # This step applies a gaussian blur to the provided axes. Blurring greatly increases DCE accuracy on noisy data.
     image = preprocess_dce(image, gaussian_blur=gaussian_blur, gaussian_blur_axis=gaussian_blur_axis)
 
+    # Data store in other files may be relevant to DCE calculations. This utility function collects them and stores them in local variables.
     AIF_label_image, label_image, T1_image, AIF = retreive_data_from_files(filepath, label_file, label_mode, label_suffix, label_value, AIF_label_file, AIF_label_value, AIF_mode, AIF_label_suffix, T1_map_file, T1_map_suffix, AIF_value_data, AIF_value_suffix, image)
 
+    # If no pre-set AIF text file is provided, one must be generated either from a label-map or a population AIF.
     if AIF == []:
         AIF = generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image, AIF_label_image, AIF_value_data, AIF_mode, dimension, AIF_label_value)
 
+    # Error-catching for broken AIFs.
     if AIF == []:
         print 'Problem calculating AIF. Skipping this volume...'
         return []
 
+    # Signal conversion is required in order for raw data to interface with the Tofts model.
     contrast_image = convert_intensity_to_concentration(image, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit)
 
+    # Depending on where the AIF is derived from, AIF values may also need to be convered into Gd concentration.
     if AIF_mode == 'population':
         contrast_AIF = AIF
     elif AIF_value_data != [] and convert_AIF_values == False:
@@ -143,21 +89,22 @@ def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivi
     else:
         contrast_AIF = convert_intensity_to_concentration(AIF, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=T1_blood)
 
-    # Note-to-self: implement 'output' parameter functionality. Any custom-specified outputs
-    # will currently break the program.
+    # The optimization portion of the program is run here.
     parameter_maps = simplex_optimize(contrast_image, contrast_AIF, time_interval_seconds, bolus_time, image, label_image, mask_value, mask_threshold, initial_fitting_function_parameters, outputs, processes)
 
+    # Outputs are saved, and then returned.
     for param_idx, param in enumerate(outputs):
         save_numpy_2_nifti(parameter_maps[...,param_idx], filepath, outfile_prefix + param + '.nii.gz')
-
     return outputs
 
 def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, label_value, AIF_label_file, AIF_label_value, AIF_mode, AIF_label_suffix, T1_map_file, T1_map_suffix, AIF_value_data, AIF_value_suffix, image=[]):
 
-    # This is such an unreadable part of the program. There is probably a better way..
-    # Particularly, all the redundant suffix parts can probably be exported to a subprogram.
-    # Also make all the parameters not required.
+    """ Check for associated data relevant to DCE calculation either via provided filenames or provided filename suffixes (e.g. '-T1map')
+    """
 
+    # TODO: Clean up redundancies in this function.
+
+    # Check for a provided region of interest for calculating parameter values.
     if label_mode == 'none':
         label_image = []
     elif label_file != []:
@@ -174,8 +121,7 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
     else:
         label_image = []
 
-    # Note: specific label value functionality not yet added.
-
+    # Check for a provided region of interest for determining an AIF.
     if AIF_mode == 'label_average':
         if AIF_label_file != []:
             AIF_label_image = nifti_2_numpy(AIF_label_file)
@@ -198,14 +144,13 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
             else:
                 print 'No label found for this AIF. If the AIF label is in a separate file from the ROI, change the label_mode parameter to \'separate\'. If not, be sure that the AIF_label_value parameter matches the AIF label value in your ROI. Skipping this volume...'
                 AIF_label_image = []
-
     elif AIF_mode == 'population':
         AIF_label_image = []
-
     else:
         print 'Invalid AIF_mode parameter. This volume will be skipped. \n'
         AIF_label_image = []
 
+    # Check for a provided T1 mapping file, which will be relevant to signal conversion.
     if T1_map_file != []:
         T1_image = nifti_2_numpy(T1_map_file)
     elif T1_map_suffix != []:
@@ -225,24 +170,30 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
         T1_image = []
 
 
-    #TODO: Address different delimiters between files? Or maybe others have to do this.
-    # Also have no idea what should happen when AIF remains empty after this point.
-
+    # This option is for text files that have AIF values in either raw or signal-converted format.
+    # TODO: Address different delimiters between files? Or maybe others have to do this.
     if AIF_value_data != []:
-
         if AIF_value_suffix != []:
             split_path = str.split(filepath, '.nii')
             if os.path.isfile(split_path[0] + AIF_value_suffix + '.txt'):
-                AIF_value_data = nifti_2_numpy(split_path[0] + AIF_value_suffix + '.txt')
+                try:
+                    AIF = np.loadtxt(split_path[0] + AIF_value_suffix + '.txt', dtype=object, delimiter=';')
+                    AIF = [value for value in AIF if value != '']
+
+                    if len(AIF) != image.shape[-1]:
+                        print 'AIF does not have as many timepoints as image. Assuming AIF timepoints are post-baseline, and filling pre-baseline points with zeros. \n'
+                        new_AIF = np.zeros(image.shape[-1], dtype=float)
+                        new_AIF[-len(AIF):] = AIF
+                        AIF = new_AIF
+                except:
+                    print "Error reading AIF values file. AIF reader requires text files with semicolons (;) as delimiters. Skipping this volume... \n"
+                    AIF = []
             else:
                 AIF_value_data = []
                 print 'No AIF values found at provided AIF value suffix. Continuing without... \n'   
-
         if isinstance(AIF_value_data, basestring):
-
             try:
                 AIF = np.loadtxt(AIF_value_data, dtype=object, delimiter=';')
-                # TODO. You don't need me to tell you that temporarily turning AIF into a list is wrong.
                 AIF = [value for value in AIF if value != '']
 
                 if len(AIF) != image.shape[-1]:
@@ -250,17 +201,13 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
                     new_AIF = np.zeros(image.shape[-1], dtype=float)
                     new_AIF[-len(AIF):] = AIF
                     AIF = new_AIF
-
             except:
                 print "Error reading AIF values file. AIF reader requires text files with semicolons (;) as delimiters. Skipping this volume... \n"
                 AIF = []
-
         elif AIF_value_data != []:
             AIF = AIF_value_data
-
         else:
             AIF = []
-
     else:
         AIF = []
 
@@ -268,8 +215,10 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
 
 def preprocess_dce(image_numpy=[], gaussian_blur=0, gaussian_blur_axis=-1):
 
-    # This first conditional is supposed to check if someone wanted ANY preprocessing steps.
-    # If not, may as well not waste the memory cloning the array.
+    """ Apply pre-processing methods to incoming DCE data. Currently, only gaussian blurring is available, although
+        other methods might be available in the future. Gaussian blurring greatly improves fitting performance on
+        phantom data and increases repeatability on patient data.
+    """
 
     if gaussian_blur > 0:
 
@@ -294,18 +243,14 @@ def preprocess_dce(image_numpy=[], gaussian_blur=0, gaussian_blur_axis=-1):
 
 def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=[], AIF_label_numpy=[], AIF_value_data=[], AIF_mode='label_average', dimension=4, AIF_label_value=1):
 
-    # It's an open question how to create labels for 2-D DCE phantoms. For now, I assume that people draw their label at time-point zero.
+    """ This function attempts to create AIFs both from 2D and 3D ROIs, or reroutes to population AIFs.
+    """
+
+    # It's not clear how to draw labels for 2-D DCE phantoms. For now, I assume that people draw their label at time-point zero.
+
     if AIF_mode == 'label_average':
         if image_numpy != []:
             if AIF_label_numpy != []:
-
-
-                # Note-to-self: Maybe find a way for this to work regardless of array dimension.
-                # Also find a better way to mask arrays.
-                # Broadcasting would be nice, if it worked as intended. Would solve the memory overhead here,
-                # although it's hard to imagine it mattering (super-high resolution images?) (Parallel batch processing?)
-                # Also this function is extremely messy and unreadable. It will fail if an image has zero
-                # values. This will probably occur, so it must be fixed soon.
 
                 AIF_subregion = np.nan_to_num(np.copy(image_numpy))
 
@@ -351,6 +296,9 @@ def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_
 
 def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=[]):
 
+    """ Creates and AIF of a set duration and with a set bolus arrival time using the Parker model.
+    """ 
+
     timepoints = image_numpy.shape[-1]
     AIF = np.zeros(timepoints)
 
@@ -358,7 +306,7 @@ def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_inter
 
     time_series_minutes = time_interval_seconds * np.arange(timepoints-bolus_time) / 60
 
-    # Parker parameters. Taken from his orginal published paper.
+    # Parker parameters. Taken from their orginal published paper.
     a1 = 0.809
     a2 = 0.330
     T1 = 0.17406
@@ -370,8 +318,6 @@ def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_inter
     s = 38.078
     tau = 0.483
 
-    # This is taken from our original Matlab script. I don't know the Matlab script well
-    # enough to make more descriptive variable names.
     term_0 = alpha*np.exp(-1 * beta * time_series_minutes) / (1 + np.exp(-s*(time_series_minutes-tau)))
     
     A1 = a1 / (sigma1 * ((2*np.pi)**.5))
@@ -404,9 +350,6 @@ def convert_intensity_to_concentration(data_numpy, T1_tissue, TR, flip_angle_deg
 
     a = np.exp(-1 * TR * R1_pre)
     relative_term = (1-a) / (1-a*np.cos(flip_angle_radians))
-
-    # Tuple notation is very confusing, but I unfortunately have to use it to ge this working with
-    # arbitrary dimensions.
 
     dim = len(data_numpy.shape)
 
@@ -441,20 +384,11 @@ def convert_intensity_to_concentration(data_numpy, T1_tissue, TR, flip_angle_deg
         output_numpy = output_numpy / (1-hematocrit)
         return output_numpy
 
-def mask_array_with_label(contrast_image_numpy, label_image):
-
-    dims = len(contrast_image_numpy.shape)
-
-    if dims == 3:
-        pass
-
-    return
-
 def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, image=[], label_image=[], mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve'], processes=1):
 
-    # Parallelization using multiprocessing has been tricky. Relative imports don't seem
-    # to work with multiprocessing.. Maybe I should get out of Python 2.7 - it seems like a lot of
-    # multiprocessing was built for 3.
+    """ This function sets up parallel processing. Until this function is reimplemented in Cython, paralell processing
+        may be required to get semi-normal processing speeds.
+    """
 
     # I am extremely skeptical about this broken masking method.
     if label_image != []:
@@ -493,9 +427,6 @@ def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_sec
 
 def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[1,1]):
 
-    # print 'entered loop'
-    # return np.zeros_like(contrast_image_numpy)
-
     contrast_AIF_numpy = contrast_AIF_numpy[bolus_time:]
 
     np.set_printoptions(threshold=np.nan)
@@ -503,29 +434,23 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
     sum = np.sum
     e = math.e
 
-    # inexplicable minute conversion; investigate changing whole optimization to seconds. It looks like the Tofts model is just set up that way.
     time_series = np.arange(0, contrast_AIF_numpy.size) / (60 / time_interval_seconds)
     time_interval = time_series[1]
 
-    # Hard to know what this max value should be right now. TODO, maybe, add as a parameter.
     ktransmax = 1
 
-    # def cost_function(params):
-    def cost_function(contrast_AIF_numpy, ktrans, ve):
+    def cost_function(params):
 
         # The estimate concentration function is repeated locally to eke out every last bit of efficiency
         # from this massively looping program. As much as possible is calculated outside the loop for
         # performance reasons. Appending is faster than pre-allocating space in this case - who knew.
 
-        # On second thought, I'm not sure if there is any effeciency reason for keeping this function
-        # locally. It does make passing variables a lot less complicated...
-
         estimated_concentration = [0]
 
         append = estimated_concentration.append
 
-        # ktrans = params[0]
-        # ve = params[1]
+        ktrans = params[0]
+        ve = params[1]
         kep = ktrans / ve
 
         log_e = -1 * kep * time_interval
@@ -541,7 +466,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
             term_B = contrast_AIF_numpy[i-1] * block_B
             append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
 
-        # This is a much fast, but less accurate curve generation method
+        # This is a much faster, but less accurate curve generation method
         # res = np.exp(-1*kep*time_series)
         # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
         # estimated_concentration = estimated_concentration[0:np.size(res)]        
@@ -551,6 +476,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
         return sum(difference_term)
 
+    # These constraints are currently unused.
     def ve_constraint1(params):
         return params[1] - 1e-3
 
@@ -570,9 +496,6 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
     for index in np.ndindex(space_dims):
 
-        # if (index[0] % 10) != 0 or (index[1] % 10) < 8:
-            # continue 
-
         # Need to think about how to implement masking. Maybe np.ma involved. Will likely require
         # editing other np.math functions down the line.
         if contrast_image_numpy[index + (0,)] == mask_value:
@@ -583,7 +506,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
         # Because multiprocessing divvies up the image into pieces, these indexed values
         # do not have real-world meaning.
-        print index
+        # print index
 
         observed_concentration = contrast_image_numpy[index][bolus_time:]
 
@@ -592,39 +515,19 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
         # with timewith('concentration estimator') as timer:
         initial_fitting_function_parameters = [.3,.1]        
-        # result_params, fopt, iterations, funcalls, warnflag, allvecs = scipy.optimize.fmin(cost_function, initial_fitting_function_parameters, disp=0, ftol=1e-14, xtol=1e-8, full_output = True, retall=True)
-        try:
-            result_params, pcov = scipy.optimize.curve_fit(cost_function, contrast_AIF_numpy, observed_concentration, p0=initial_fitting_function_parameters)
-        except:
-            result_params = [0,0]
+        result_params, fopt, iterations, funcalls, warnflag, allvecs = scipy.optimize.fmin(cost_function, initial_fitting_function_parameters, disp=0, ftol=1e-14, xtol=1e-8, full_output = True, retall=True)
 
         ktrans = result_params[0]
         ve = result_params[1]
 
-        # if ve <= .01 or ve >= .98 or ktrans > ktransmax:
-            # result_params = scipy.optimize.fmin_cobyla(cost_function, initial_fitting_function_parameters, [ktrans_constraint1, ktrans_constraint2, ve_constraint1, ve_constraint2], rhoend=1e-9, disp=0)
-            # ktrans = result_params[0]
-            # ve = result_params[1]
-        #     print index
-        #     print [ktrans, ve, auc]
-
         print [ktrans, ve, auc]
-        # initial_fitting_function_parameters = [ktrans, ve]
-        # if (ve >= .98 and ktrans < .03) or (ktrans >= .98 and ve < .03):
-        #     ve = 0
-        #     ktrans = 0
 
-        # This weird parameter transform is a holdover from Xiao's program. I wonder what purpose it serves..
-        # ktrans = np.exp(result_params[0]) #ktrans
-        # ve = 1 / (1 + np.exp(-result_params[1])) #ve
-
-        # print [ktrans, ve, auc]
         output_image[index + (0,)] = ktrans
         output_image[index + (1,)] = ve
         output_image[index + (2,)] = auc
 
-    # These masking values are arbitrary and will likely differ between AIFs. TODO: Figure out a way to reconcile that.
 
+    # These masking values are arbitrary and will likely differ between AIFs. TODO: Figure out a way to reconcile that.
     # output_image[...,1][output_image[...,0] < .05] = 0
     output_image[...,2][abs(output_image[...,2]) > 1e6] = 0
     output_image[...,0][output_image[...,0] > .95*ktransmax] = 0
@@ -639,8 +542,6 @@ def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000,
     for suffix in label_suffix, T1_map_suffix, AIF_label_suffix, AIF_value_suffix:
         if suffix != []:
             suffix_exclusion_regex += [suffix]
-
-    # The file-grabbing portion below should be a nifti_util function.
     
     volume_list = []
     if recursive:
@@ -659,9 +560,6 @@ def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000,
                 print 'Working on volume located at... ' + volume
 
                 calc_DCE_properties_single(volume, T1_tissue, T1_blood, relaxivity, TR, TE, scan_time_seconds, hematocrit, injection_start_time_seconds, flip_angle_degrees, label_file, label_suffix, label_value, mask_value, mask_threshold, T1_map_file, T1_map_suffix, AIF_label_file,  AIF_value_data, convert_AIF_values, AIF_mode, AIF_label_suffix, AIF_label_value, label_mode, param_file, default_population_AIF, initial_fitting_function_parameters, outputs, outfile_prefix, processes, gaussian_blur, gaussian_blur_axis)
-
-def postprocess_maps():
-    return
 
 def test_method_2d():
     # print 'hello'
@@ -685,9 +583,6 @@ def test_method_3d(filepath=[]):
     calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=AIF_value_data, convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1500, T1_blood=1440, relaxivity=.0039, TR=6.8, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=160, flip_angle_degrees=10, label_suffix=[], AIF_mode='population', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='mead_cobyal_individual_ktrans_no_mask', processes=22, mask_threshold=20, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=2)
 
 if __name__ == '__main__':
-
-    # print 'hello'
-    # pass
 
     # np.set_printoptions(suppress=True, precision=4, threshold=np.nan)
     np.set_printoptions(suppress=True, precision=4)

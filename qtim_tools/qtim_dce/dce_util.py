@@ -5,6 +5,73 @@ import nibabel as nib
 import math
 import os
 
+def check_image(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_value=0):
+
+    """ A useful utiltiy for spot checks.
+    """
+
+    if second_image_numpy != []:
+        for i in xrange(image_numpy.shape[0]):
+            print i
+            fig = plt.figure()
+            a=fig.add_subplot(1,2,1)
+            imgplot = plt.imshow(image_numpy[:,:,i*step], interpolation='none', aspect='auto')
+            a=fig.add_subplot(1,2,2)
+            imgplot = plt.imshow(second_image_numpy[:,:,i*step], interpolation='none', aspect='auto')
+            plt.show()
+    else:
+        if mode == "cycle":
+            for i in xrange(image_numpy.shape[0]):
+                fig = plt.figure()
+                imgplot = plt.imshow(image_numpy[i,:,:], interpolation='none', aspect='auto')
+                plt.show()
+
+        if mode == "first":
+            fig = plt.figure()
+            imgplot = plt.imshow(image_numpy[0,:,:], interpolation='none', aspect='auto')
+            plt.show()
+
+        if mode == "maximal_slice":
+
+            maximal = [0, np.zeros(image_numpy.shape)]
+
+            for i in xrange(image_numpy.shape[2]):
+            
+                image_slice = image_numpy[:,:,i]
+
+                test_maximal = (image_slice != mask_value).sum()
+
+                if test_maximal >= maximal[0]:
+                    maximal[0] = test_maximal
+                    maximal[1] = image_slice
+
+            fig = plt.figure()
+            imgplot = plt.imshow(maximal[1], interpolation='none', aspect='auto')
+            plt.show()
+
+# class timewith():
+#     def __init__(self, name=''):
+#         self.name = name
+#         self.start = time.time()
+
+#     @property
+#     def elapsed(self):
+#         return time.time() - self.start
+
+#     def checkpoint(self, name=''):
+#         print '{timer} {checkpoint} took {elapsed} seconds'.format(
+#             timer=self.name,
+#             checkpoint=name,
+#             elapsed=self.elapsed,
+#         ).strip()
+
+#     def __enter__(self):
+#         return self
+
+#     def __exit__(self, type, value, traceback):
+#         self.checkpoint('finished')
+#         pass
+
 # class ParamWorker(Thread):
 #     def __init__(self, queue):
 #         Thread.__init__(self)
