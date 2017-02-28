@@ -28,7 +28,7 @@ from functools import partial
 
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
 
-def generate_feature_list_batch(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", decisions=False, levels=255, normalize_intensities=False,mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
+def generate_feature_list_batch(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", universal_label='', decisions=False, levels=255, normalize_intensities=True,mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
 
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -562,8 +562,8 @@ def test():
 
     generate_feature_list_batch(folder=test_folder, features=features, labels=labels, levels=levels, outfile=outfile, mask_value=mask_value, erode=erode, overwrite=overwrite)
 
-def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels = 100, mask_value = 0, erode = [0,0,0], overwrite = True, label_suffix='-label'):
-    generate_feature_list_batch(folder=folder, outfile=outfile, labels=labels, features=features, levels=levels, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix)
+def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels = 100, mask_value = 0, erode = [0,0,0], overwrite = True, label_suffix='-label', universal_label=''):
+    generate_feature_list_batch(folder=folder, outfile=outfile, labels=labels, features=features, levels=levels, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix, universal_label=universal_label)
 
 if __name__ == "__main__":
 

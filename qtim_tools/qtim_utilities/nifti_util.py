@@ -6,8 +6,8 @@ import os
 from shutil import copy, move
 import matplotlib.pyplot as plt
 import glob
-from scipy import stats
-from scipy import signal
+from scipy import stats, signal, misc
+from scipy.ndimage.morphology import binary_fill_holes
 import csv
 import fnmatch
 
@@ -32,6 +32,9 @@ def copy_files(infolder, outfolder, name, duplicate=True):
                 move(file, outfolder)
 
 def return_dicom_dictionary(filepath=[], folder=[], attributes_regex="*.dcm"):
+
+    """ This is currently broken, and overly-specific. Consider removing.
+    """
 
     image_numpy = nib.load('C:/Users/azb22/Documents/Scripting/Breast_MRI_Challenge/ISPY_data/AllFiles/ISPY1_1098_19860919/ISPY1_1098_19860919_BreastTissue.nii.gz')
     transform_matrix = image_numpy.affine
@@ -700,41 +703,114 @@ def assert_nD(array, ndim, arg_name='image'):
     if not array.ndim in ndim:
         raise ValueError(msg % (arg_name, '-or-'.join([str(n) for n in ndim])))
 
+def fill_in_convex_outline(filepath, output_file, outline_lower_threshold=[], outline_upper_threshold=[], outline_color=[], output_label_num=1, reference_nifti=[]):
+
+    outline_upper_threshold = np.array(outline_upper_threshold)
+    outline_lower_threshold = np.array(outline_lower_threshold)
+
+    if filepath.endswith('.nii') or filepath.endswith('nii.gz'):
+        return
+
+    else:
+        image_file = misc.imread(filepath)
+        label_file = np.zeros_like(image_file)
+        # print image_file.shape
+
+        for row in xrange(image_file.shape[0]):
+            row_section = 0
+            fill_index = 0
+            for col in xrange(image_file.shape[1]):
+                match = False
+                pixel = image_file[row, col, ...]
+                
+                if outline_upper_threshold != [] and outline_lower_threshold != []:
+                    if all(pixel > outline_lower_threshold) and all(pixel < outline_upper_threshold):
+                        match = True
+                elif outline_color != []:
+                    if (pixel == outline_color):
+                        match = True
+                else:
+                    print 'Error. Please provide a valid outline color or threshold.'
+                    return
+
+                if match:
+                    label_file[row, col, ...] = output_label_num                    
+                    if row_section == 0:
+                        row_section = 1
+                    if row_section == 2:
+                        row_section = 3
+                        label_file[row, fill_index:col, ...] = output_label_num
+                else:
+                    if row_section == 1:
+                        row_section = 2
+                        fill_index = col
+                    if row_section == 3:
+                        row_section = 0
+
+                # label_file[row, col, ...] = pixel
+
+        label_file = binary_fill_holes(label_file[:,:,0]).astype(label_file.dtype)
+        # label_file = label_file[:,:,0]
+
+        if reference_nifti == []:
+            misc.imsave(output_file, label_file)
+        else:
+            save_numpy_2_nifti(label_file, reference_nifti, output_file)
+
+def replace_slice(input_nifti, output_file, input_nifti_slice, slice_num):
+
+    input_numpy = nifti_2_numpy(input_nifti)
+    input_numpy_slice = nifti_2_numpy(input_nifti_slice)
+    output_numpy = np.zeros_like(input_numpy)
+
+    output_numpy[:,:,slice_num] = np.flipud(np.rot90(input_numpy_slice[:,:]))
+
+    save_numpy_2_nifti(output_numpy, input_nifti, output_file)
+
+
 if __name__ == '__main__':
     # grab_files('C:/Users/azb22/Documents/Scripting/Head_Neck_Cancer_Challenge/Training/Training/Training/Case_10', 'C:/Users/azb22/Documents/Scripting/Head_Neck_Cancer_Challenge/Training/Training/Training/Case_10/TempFolder', '*dcm')
     np.set_printoptions(suppress=True, precision=2)
     # return_dicom_dictionary(folder="C:/Users/azb22/Documents/Scripting/Breast_MRI_Challenge/ISPY_data/ISPY1/")
 
+    filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi.jpg'
+    output_filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi-label-test.nii.gz'
+    reference_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER.nii.gz'
+    output_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER-label.nii.gz'
+
+    # fill_in_convex_outline(filepath, output_filepath, outline_lower_threshold = [175,0,0], outline_upper_threshold=[300,50,50], reference_nifti=reference_nifti)
+    replace_slice(reference_nifti, output_nifti, output_filepath, 10)
+
     # label_numpy = nifti_2_numpy('C:/Users/azb22/Documents/Scripting/TMZ Registration/TMZ_NEW/TMZ_COREGISTERED/TMZ_01-VISIT_01/TMZ_01-VISIT_01-label_r_T2_final.nii.gz')
     # image_numpy = nifti_2_numpy('C:/Users/azb22/Documents/Scripting/TMZ Registration/TMZ_NEW/TMZ_COREGISTERED/TMZ_01-VISIT_01/TMZ_01-VISIT_01-T1POST_r_T2.nii.gz')
 
-    for folder in glob.glob('C:\\Users\\azb22\\Documents\\Scripting\\TMZ Registration\\TMZ_NEW\\TMZ_COREGISTERED\\TMZ_0*-VISIT_0*'):
-        if '.' in folder:
-            continue
-        print folder
-        if not os.path.exists(folder + '\\Mosaic\\'):
-            os.makedirs(folder + '\\Mosaic\\')
+    # for folder in glob.glob('C:\\Users\\azb22\\Documents\\Scripting\\TMZ Registration\\TMZ_NEW\\TMZ_COREGISTERED\\TMZ_0*-VISIT_0*'):
+    #     if '.' in folder:
+    #         continue
+    #     print folder
+    #     if not os.path.exists(folder + '\\Mosaic\\'):
+    #         os.makedirs(folder + '\\Mosaic\\')
 
-        nn_label = glob.glob(folder + '\\*label_r_T2_final*')
-        if nn_label != []:
-            nn_label = nn_label[0]
-            nn_label_numpy = nifti_2_numpy(nn_label)
-            nn_label_numpy = generate_label_outlines(nn_label_numpy)
-            for volume in glob.glob(folder + '\\*.nii.gz'):
-                if ('MPRAGE' in volume or 'T1POST' in volume or 'FLAIR' in volume or 'SUV' in volume) and 'label' not in volume:
-                    image_numpy = nifti_2_numpy(volume)
-                    filename = str.split(volume, '\\')[-1]
-                    filename = str.split(filename, '.')[0]
-                    filename = filename + '.png'
-                    filename = folder +'\\Mosaic\\' + filename
-                    print filename
-                    try:
-                        create_mosaic(image_numpy, nn_label_numpy, generate_outline=False, outfile=filename)
-                    except:
-                        print 'failure to make mosaic'
-                    # move(filename, folder +'\\Mosaic\\' + filename)
-        else:
-            print 'no label!'
+    #     nn_label = glob.glob(folder + '\\*label_r_T2_final*')
+    #     if nn_label != []:
+    #         nn_label = nn_label[0]
+    #         nn_label_numpy = nifti_2_numpy(nn_label)
+    #         nn_label_numpy = generate_label_outlines(nn_label_numpy)
+    #         for volume in glob.glob(folder + '\\*.nii.gz'):
+    #             if ('MPRAGE' in volume or 'T1POST' in volume or 'FLAIR' in volume or 'SUV' in volume) and 'label' not in volume:
+    #                 image_numpy = nifti_2_numpy(volume)
+    #                 filename = str.split(volume, '\\')[-1]
+    #                 filename = str.split(filename, '.')[0]
+    #                 filename = filename + '.png'
+    #                 filename = folder +'\\Mosaic\\' + filename
+    #                 print filename
+    #                 try:
+    #                     create_mosaic(image_numpy, nn_label_numpy, generate_outline=False, outfile=filename)
+    #                 except:
+    #                     print 'failure to make mosaic'
+    #                 # move(filename, folder +'\\Mosaic\\' + filename)
+    #     else:
+    #         print 'no label!'
     # create_mosaic(image_numpy, label_numpy, outfile='test_mosaic.png')
 
 

@@ -1,6 +1,7 @@
 from __future__ import division
 
 # TODO Clean up these imports..
+# Import nifti_util. It only fails if this is script is not loaded as a package, which it should be.
 
 from functools import partial
 import numpy as np
@@ -390,6 +391,10 @@ def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_sec
         may be required to get semi-normal processing speeds.
     """
 
+    print contrast_image_numpy.shape
+    integration_test(contrast_image_numpy[25, 65, :], contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value)
+    fd = gd
+
     # I am extremely skeptical about this broken masking method.
     if label_image != []:
         contrast_image_numpy[label_image == 0] = mask_value
@@ -424,6 +429,99 @@ def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_sec
         output_image = simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value, mask_threshold, initial_fitting_function_parameters)
 
     return output_image
+
+def integration_test(contrast_sample_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value):
+
+    observed_concentration = contrast_sample_numpy
+    time_series = np.arange(0, contrast_AIF_numpy.size) / (60 / time_interval_seconds)
+    time_interval = time_series[1]
+
+    power = np.power
+    sum = np.sum
+    e = math.e
+
+    def cost_function_bad(params):
+
+        # The estimate concentration function is repeated locally to eke out every last bit of efficiency
+        # from this massively looping program. As much as possible is calculated outside the loop for
+        # performance reasons. Appending is faster than pre-allocating space in this case - who knew.
+
+        estimated_concentration = [0]
+
+        append = estimated_concentration.append
+
+        ktrans = params[0]
+        ve = params[1]
+        kep = ktrans / ve
+
+        log_e = -1 * kep * time_interval
+        capital_E = e**log_e
+        log_e_2 = log_e**2
+
+        block_A = (capital_E - log_e - 1)
+        block_B = (capital_E - (capital_E * log_e) - 1)
+        block_ktrans = ktrans * time_interval / log_e_2
+
+        # for i in xrange(1, np.size(contrast_AIF_numpy)):
+        #     term_A = contrast_AIF_numpy[i] * block_A
+        #     term_B = contrast_AIF_numpy[i-1] * block_B
+        #     append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+
+        # This is a much faster, but less accurate curve generation method
+        res = np.exp(-1*kep*time_series)
+        estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+        estimated_concentration = estimated_concentration[0:np.size(res)]        
+
+        difference_term = observed_concentration- estimated_concentration
+        difference_term = power(difference_term, 2)
+
+        return difference_term, observed_concentration, estimated_concentration
+
+    def cost_function_good(params):
+
+        # The estimate concentration function is repeated locally to eke out every last bit of efficiency
+        # from this massively looping program. As much as possible is calculated outside the loop for
+        # performance reasons. Appending is faster than pre-allocating space in this case - who knew.
+
+        estimated_concentration = [0]
+
+        append = estimated_concentration.append
+
+        ktrans = params[0]
+        ve = params[1]
+        kep = ktrans / ve
+
+        log_e = -1 * kep * time_interval
+        capital_E = e**log_e
+        log_e_2 = log_e**2
+
+        block_A = (capital_E - log_e - 1)
+        block_B = (capital_E - (capital_E * log_e) - 1)
+        block_ktrans = ktrans * time_interval / log_e_2
+
+        for i in xrange(1, np.size(contrast_AIF_numpy)):
+            term_A = contrast_AIF_numpy[i] * block_A
+            term_B = contrast_AIF_numpy[i-1] * block_B
+            append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+
+        # This is a much faster, but less accurate curve generation method
+        # res = np.exp(-1*kep*time_series)
+        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+        # estimated_concentration = estimated_concentration[0:np.size(res)]        
+
+        difference_term = observed_concentration- estimated_concentration
+        difference_term = power(difference_term, 2)
+
+        return difference_term, observed_concentration, estimated_concentration
+
+    good_difference_term, good_observed_concentration, good_estimated_concentration = cost_function_good([.35,.1])
+    bad_difference_term, bad_observed_concentration, bad_estimated_concentration = cost_function_bad([.35, .1])
+
+    plt.plot(time_series, good_difference_term, 'r--', time_series, bad_difference_term, 'g--')
+    plt.show()
+
+    plt.plot(time_series, good_estimated_concentration, 'r--', time_series, bad_estimated_concentration, 'g--', time_series, observed_concentration, 'b--')
+    plt.show()
 
 def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[1,1]):
 
@@ -461,15 +559,15 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         block_B = (capital_E - (capital_E * log_e) - 1)
         block_ktrans = ktrans * time_interval / log_e_2
 
-        for i in xrange(1, np.size(contrast_AIF_numpy)):
-            term_A = contrast_AIF_numpy[i] * block_A
-            term_B = contrast_AIF_numpy[i-1] * block_B
-            append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+        # for i in xrange(1, np.size(contrast_AIF_numpy)):
+        #     term_A = contrast_AIF_numpy[i] * block_A
+        #     term_B = contrast_AIF_numpy[i-1] * block_B
+        #     append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
 
         # This is a much faster, but less accurate curve generation method
-        # res = np.exp(-1*kep*time_series)
-        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
-        # estimated_concentration = estimated_concentration[0:np.size(res)]        
+        res = np.exp(-1*kep*time_series)
+        estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+        estimated_concentration = estimated_concentration[0:np.size(res)]        
 
         difference_term = observed_concentration- estimated_concentration
         difference_term = power(difference_term, 2)
@@ -568,7 +666,7 @@ def test_method_2d():
     # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v9_5SNR.nii'
     # filepath = 'C:/Users/abeers/Documents/GitHub/Public_QTIM/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
 
-    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_v6_', processes=16, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
+    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_v6_alt_integrate', processes=16, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
 
     # calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.3,.3], outfile_prefix='tofts_v9_sls_', processes=16, mask_threshold=-1, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=-1)
 
