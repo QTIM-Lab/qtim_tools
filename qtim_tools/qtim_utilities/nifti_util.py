@@ -735,21 +735,21 @@ def fill_in_convex_outline(filepath, output_file, outline_lower_threshold=[], ou
 
                 if match:
                     label_file[row, col, ...] = output_label_num                    
-                    if row_section == 0:
-                        row_section = 1
-                    if row_section == 2:
-                        row_section = 3
-                        label_file[row, fill_index:col, ...] = output_label_num
-                else:
-                    if row_section == 1:
-                        row_section = 2
-                        fill_index = col
-                    if row_section == 3:
-                        row_section = 0
+                #     if row_section == 0:
+                #         row_section = 1
+                #     if row_section == 2:
+                #         row_section = 3
+                #         label_file[row, fill_index:col, ...] = output_label_num
+                # else:
+                #     if row_section == 1:
+                #         row_section = 2
+                #         fill_index = col
+                #     if row_section == 3:
+                #         row_section = 0
 
                 # label_file[row, col, ...] = pixel
 
-        label_file = binary_fill_holes(label_file[:,:,0]).astype(label_file.dtype)
+        label_file = binary_fill_holes(label_file[:,:,0]).astype(label_file.dtype)*255
         # label_file = label_file[:,:,0]
 
         if reference_nifti == []:
@@ -773,13 +773,16 @@ if __name__ == '__main__':
     np.set_printoptions(suppress=True, precision=2)
     # return_dicom_dictionary(folder="C:/Users/azb22/Documents/Scripting/Breast_MRI_Challenge/ISPY_data/ISPY1/")
 
-    filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi.jpg'
-    output_filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi-label-test.nii.gz'
+    filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi_test.jpg'
+    output_filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi_test-label.nii.gz'
     reference_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER.nii.gz'
     output_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER-label.nii.gz'
 
     # fill_in_convex_outline(filepath, output_filepath, outline_lower_threshold = [175,0,0], outline_upper_threshold=[300,50,50], reference_nifti=reference_nifti)
-    replace_slice(reference_nifti, output_nifti, output_filepath, 10)
+    # replace_slice(reference_nifti, output_nifti, output_filepath, 10)
+
+    output_filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi_test-label.jpg'
+    fill_in_convex_outline(filepath, output_filepath, outline_lower_threshold = [100,0,0], outline_upper_threshold=[300,100,100], reference_nifti=[], output_label_num=255)
 
     # label_numpy = nifti_2_numpy('C:/Users/azb22/Documents/Scripting/TMZ Registration/TMZ_NEW/TMZ_COREGISTERED/TMZ_01-VISIT_01/TMZ_01-VISIT_01-label_r_T2_final.nii.gz')
     # image_numpy = nifti_2_numpy('C:/Users/azb22/Documents/Scripting/TMZ Registration/TMZ_NEW/TMZ_COREGISTERED/TMZ_01-VISIT_01/TMZ_01-VISIT_01-T1POST_r_T2.nii.gz')

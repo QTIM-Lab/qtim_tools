@@ -16,6 +16,7 @@ import os
 import re
 import time
 import fnmatch
+import csv
 
 from Queue import Queue
 from threading import Thread
@@ -391,9 +392,9 @@ def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_sec
         may be required to get semi-normal processing speeds.
     """
 
-    print contrast_image_numpy.shape
-    integration_test(contrast_image_numpy[25, 65, :], contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value)
-    fd = gd
+    # print contrast_image_numpy.shape
+    # integration_test(contrast_image_numpy[5, 15, :], contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value)
+    # fd = gd
 
     # I am extremely skeptical about this broken masking method.
     if label_image != []:
@@ -514,14 +515,22 @@ def integration_test(contrast_sample_numpy, contrast_AIF_numpy, time_interval_se
 
         return difference_term, observed_concentration, estimated_concentration
 
-    good_difference_term, good_observed_concentration, good_estimated_concentration = cost_function_good([.35,.1])
-    bad_difference_term, bad_observed_concentration, bad_estimated_concentration = cost_function_bad([.35, .1])
+    good_difference_term, good_observed_concentration, good_estimated_concentration = cost_function_good([.02,.01])
+    bad_difference_term, bad_observed_concentration, bad_estimated_concentration = cost_function_bad([.02, .01])
 
-    plt.plot(time_series, good_difference_term, 'r--', time_series, bad_difference_term, 'g--')
-    plt.show()
+    output_numpy = np.zeros((good_observed_concentration.size,3), dtype=float)
+    output_numpy = [good_observed_concentration, good_estimated_concentration, bad_estimated_concentration]
+    with open('C:/Users/azb22/Documents/Scripting/CED_NHX_DCE_Comparisons/Integration_Curves.csv', 'wb') as writefile:
+        csvfile = csv.writer(writefile, delimiter=',')
+        for row in output_numpy:
+            csvfile.writerow(row)
 
-    plt.plot(time_series, good_estimated_concentration, 'r--', time_series, bad_estimated_concentration, 'g--', time_series, observed_concentration, 'b--')
-    plt.show()
+
+    # plt.plot(time_series, good_difference_term, 'r--', time_series, bad_difference_term, 'g--')
+    # plt.show()
+
+    # plt.plot(time_series, good_estimated_concentration, 'r--', time_series, bad_estimated_concentration, 'g--', time_series, observed_concentration, 'b--')
+    # plt.show()
 
 def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[1,1]):
 
@@ -624,7 +633,6 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         output_image[index + (1,)] = ve
         output_image[index + (2,)] = auc
 
-
     # These masking values are arbitrary and will likely differ between AIFs. TODO: Figure out a way to reconcile that.
     # output_image[...,1][output_image[...,0] < .05] = 0
     output_image[...,2][abs(output_image[...,2]) > 1e6] = 0
@@ -632,6 +640,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
     # output_image[...,1][output_image[...,1] > .98] = 0
 
     return output_image
+
 
 def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
 
@@ -661,14 +670,14 @@ def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000,
 
 def test_method_2d():
     # print 'hello'
-    filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
-    # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/gradient_toftsv6.nii'
+    # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
+    filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/gradient_toftsv6.nii'
     # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v9_5SNR.nii'
     # filepath = 'C:/Users/abeers/Documents/GitHub/Public_QTIM/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
 
-    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_v6_alt_integrate', processes=16, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
+    calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='tofts_v6_gradient', processes=16, mask_threshold=20, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
 
-    # calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.3,.3], outfile_prefix='tofts_v9_sls_', processes=16, mask_threshold=-1, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=-1)
+    # calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode='label_average', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.3,.3], outfile_prefix='tofts_v9_noblur_', processes=22, mask_threshold=-1, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)
 
 
 def test_method_3d(filepath=[]):
@@ -685,6 +694,6 @@ if __name__ == '__main__':
     # np.set_printoptions(suppress=True, precision=4, threshold=np.nan)
     np.set_printoptions(suppress=True, precision=4)
 
-    test_method_2d()
-    # test_method_3d()
+    # test_method_2d()
+    test_method_3d()
     # create_4d_from_3d(filepath)

@@ -34,8 +34,8 @@ def register_to_one(filepath, Slicer_Path, registration_folder, output_suffix = 
 
 		try:
 			# call(' '.join(BRAINSFit_specific_command), shell=True)
-			print 'cp ' + '"' + no_path[0] +  '/' + no_path[1] + '" "' + output_folder + file_prefix + '_r_T2-label' + '.nii.gz"'
-			call('cp ' + '"' + no_path[0] +  '/' + no_path[1] + '" "' + output_folder + file_prefix + '_r_T2-label' + '.nii.gz"')
+			print 'cp ' + '"C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER-label.nii.gz" "' + output_folder + file_prefix + '_r_T2-label' + '.nii.gz"'
+			call('cp ' + '"C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER-label.nii.gz" "' + output_folder + file_prefix + '_r_T2-label' + '.nii.gz"')
 		except:
 			pass
 
