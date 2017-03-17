@@ -28,7 +28,7 @@ from functools import partial
 
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
 
-def generate_feature_list_batch(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", universal_label='', decisions=False, levels=255, normalize_intensities=True,mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
+def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", set_label='', decisions=False, levels=255, normalize_intensities=True,mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
 
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -46,7 +46,7 @@ def generate_feature_list_batch(folder, features=['GLCM', 'morphology', 'statist
             csvfile = csv.writer(writefile, delimiter=',')
             csvfile.writerow(label_output[0,:])
 
-            imagepaths, label_images = generate_filename_list(folder, labels, label_suffix, recursive)
+            imagepaths, label_images = generate_filename_list(folder, file_regex, labels, label_suffix, set_label, recursive)
             
             numerical_output = np.zeros((1, total_features), dtype=float)
             index_output = np.zeros((1, 1), dtype=object)
@@ -312,25 +312,27 @@ def generate_feature_indices(features=['GLCM', 'morphology', 'statistics'], feat
 
     return [total_features, feature_indexes, label_output]
 
-def generate_filename_list(folder, labels=False, label_suffix='-label', recursive=False):
+def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suffix='-label', set_label='', recursive=False):
 
     if recursive:
         imagepaths = []
         for root, dirnames, filenames in os.walk(folder):
-            for filename in fnmatch.filter(filenames, '*.nii*'):
+            for filename in fnmatch.filter(filenames, file_regex):
                 imagepaths.append(os.path.join(root, filename))
     else:
-        imagepaths = glob.glob(os.path.join(folder, "*.nii*"))
+        imagepaths = glob.glob(os.path.join(folder, file_regex))
 
     # A bit redundant; this step and the previous step could probably be combined.
     imagepaths = [x for x in imagepaths if (x.endswith('.nii') or x.endswith('.nii.gz'))]
 
     if labels:
-        label_images = [ x for x in imagepaths if label_suffix in x ]
+        if set_label == '':
+            label_images = [ x for x in imagepaths if label_suffix in x ]
+            imagepaths = [ x for x in imagepaths if label_suffix not in x ]
+        else:
+            label_images = [os.path.join(os.dirname(x), set_label) if os.path.exists(x) else '' for x in imagepaths]
     else:
         label_images = []
-
-    imagepaths = [ x for x in imagepaths if label_suffix not in x ]
 
     if imagepaths == []:
         raise ValueError("There are no .nii or .nii.gz images in the provided folder.")
@@ -562,8 +564,8 @@ def test():
 
     generate_feature_list_batch(folder=test_folder, features=features, labels=labels, levels=levels, outfile=outfile, mask_value=mask_value, erode=erode, overwrite=overwrite)
 
-def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels = 100, mask_value = 0, erode = [0,0,0], overwrite = True, label_suffix='-label', universal_label=''):
-    generate_feature_list_batch(folder=folder, outfile=outfile, labels=labels, features=features, levels=levels, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix, universal_label=universal_label)
+def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels = 100, mask_value = 0, erode = [0,0,0], overwrite = True, label_suffix='-label', set_label='', recursive=False):
+    generate_feature_list_batch(folder=folder, outfile=outfile, labels=labels, features=features, levels=levels, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix, set_label=set_label, recursive=recursive)
 
 if __name__ == "__main__":
 
