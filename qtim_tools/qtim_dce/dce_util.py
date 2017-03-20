@@ -369,5 +369,107 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval):
 
     return estimated_concentration
 
+
+def integration_test(contrast_sample_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value):
+
+    observed_concentration = contrast_sample_numpy
+    time_series = np.arange(0, contrast_AIF_numpy.size) / (60 / time_interval_seconds)
+    time_interval = time_series[1]
+
+    power = np.power
+    sum = np.sum
+    e = math.e
+
+    def cost_function_bad(params):
+
+        # The estimate concentration function is repeated locally to eke out every last bit of efficiency
+        # from this massively looping program. As much as possible is calculated outside the loop for
+        # performance reasons. Appending is faster than pre-allocating space in this case - who knew.
+
+        estimated_concentration = [0]
+
+        append = estimated_concentration.append
+
+        ktrans = params[0]
+        ve = params[1]
+        kep = ktrans / ve
+
+        log_e = -1 * kep * time_interval
+        capital_E = e**log_e
+        log_e_2 = log_e**2
+
+        block_A = (capital_E - log_e - 1)
+        block_B = (capital_E - (capital_E * log_e) - 1)
+        block_ktrans = ktrans * time_interval / log_e_2
+
+        # for i in xrange(1, np.size(contrast_AIF_numpy)):
+        #     term_A = contrast_AIF_numpy[i] * block_A
+        #     term_B = contrast_AIF_numpy[i-1] * block_B
+        #     append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+
+        # This is a much faster, but less accurate curve generation method
+        res = np.exp(-1*kep*time_series)
+        estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+        estimated_concentration = estimated_concentration[0:np.size(res)]        
+
+        difference_term = observed_concentration- estimated_concentration
+        difference_term = power(difference_term, 2)
+
+        return difference_term, observed_concentration, estimated_concentration
+
+    def cost_function_good(params):
+
+        # The estimate concentration function is repeated locally to eke out every last bit of efficiency
+        # from this massively looping program. As much as possible is calculated outside the loop for
+        # performance reasons. Appending is faster than pre-allocating space in this case - who knew.
+
+        estimated_concentration = [0]
+
+        append = estimated_concentration.append
+
+        ktrans = params[0]
+        ve = params[1]
+        kep = ktrans / ve
+
+        log_e = -1 * kep * time_interval
+        capital_E = e**log_e
+        log_e_2 = log_e**2
+
+        block_A = (capital_E - log_e - 1)
+        block_B = (capital_E - (capital_E * log_e) - 1)
+        block_ktrans = ktrans * time_interval / log_e_2
+
+        for i in xrange(1, np.size(contrast_AIF_numpy)):
+            term_A = contrast_AIF_numpy[i] * block_A
+            term_B = contrast_AIF_numpy[i-1] * block_B
+            append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+
+        # This is a much faster, but less accurate curve generation method
+        # res = np.exp(-1*kep*time_series)
+        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+        # estimated_concentration = estimated_concentration[0:np.size(res)]        
+
+        difference_term = observed_concentration- estimated_concentration
+        difference_term = power(difference_term, 2)
+
+        return difference_term, observed_concentration, estimated_concentration
+
+    good_difference_term, good_observed_concentration, good_estimated_concentration = cost_function_good([.02,.01])
+    bad_difference_term, bad_observed_concentration, bad_estimated_concentration = cost_function_bad([.02, .01])
+
+    output_numpy = np.zeros((good_observed_concentration.size,3), dtype=float)
+    output_numpy = [good_observed_concentration, good_estimated_concentration, bad_estimated_concentration]
+    with open('C:/Users/azb22/Documents/Scripting/CED_NHX_DCE_Comparisons/Integration_Curves.csv', 'wb') as writefile:
+        csvfile = csv.writer(writefile, delimiter=',')
+        for row in output_numpy:
+            csvfile.writerow(row)
+
+
+    # plt.plot(time_series, good_difference_term, 'r--', time_series, bad_difference_term, 'g--')
+    # plt.show()
+
+    # plt.plot(time_series, good_estimated_concentration, 'r--', time_series, bad_estimated_concentration, 'g--', time_series, observed_concentration, 'b--')
+    # plt.show()
+
 if __name__ == "__main__":
 	pass
