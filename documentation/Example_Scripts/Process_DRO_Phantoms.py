@@ -35,7 +35,7 @@ def Test_Noiseless_Gradient_Tofts_Phantom(output_folder=''):
 
 def Test_Noisy_v9_Tofts_Phantom(output_folder=''):
 
-    # See more details at the following link: https://sites.duke.edu/dblab/files/2015/05/Dynamic_v6_beta1_description_Rev1.pdf
+    # See more details at the following link: https://sites.duke.edu/dblab/files/2015/05/Dynamic_v9_description_Rev1.pdf
     # This phantom is meant to have a relatively high signal to noise ratio. Other, even noisier phantoms can be found at the link above.
 
     input_DCE = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','..','qtim_tools', 'test_data','test_data_dce','tofts_v9.nii'))
