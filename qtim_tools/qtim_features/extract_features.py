@@ -56,7 +56,7 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
                 print '\n'
                 print 'Pre-processing data...'
 
-                image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode)
+                image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, set_label=set_label, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode)
                 
                 if image_list == []:
                     if write_empty:
@@ -330,7 +330,8 @@ def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suff
             label_images = [ x for x in imagepaths if label_suffix in x ]
             imagepaths = [ x for x in imagepaths if label_suffix not in x ]
         else:
-            label_images = [os.path.join(os.dirname(x), set_label) if os.path.exists(x) else '' for x in imagepaths]
+            label_images = [os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) if os.path.exists(x) else '' for x in imagepaths]
+            imagepaths = [ x for x in imagepaths if os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) not in x ]
     else:
         label_images = []
 
@@ -341,7 +342,7 @@ def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suff
 
     return [imagepaths, label_images]
 
-def generate_numpy_images(imagepath, labels=False, label_suffix='-label', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0):
+def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_label='', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0):
 
     image_list = []
     unmodified_image_list = []
@@ -358,8 +359,8 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', label_
 
     if labels:
 
-        if label_suffix == '':
-            label_path = label_images
+        if set_label != '':
+            label_path = os.path.join(os.path.dirname(imagepath), os.path.basename(os.path.normpath(set_label)))
         else:
             head, tail = os.path.split(imagepath)
             split_path = str.split(tail, '.')
@@ -410,7 +411,11 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', label_
 
                 image_list += [masked_image]
 
-            filename = str.split(label_path, '\\')[-1]
+            if set_label == '':
+                filename = str.split(label_path, '\\')[-1]
+            else:
+                filename = imagepath
+
 
             if label_indices.size == 2:
                 imagename_list += [filename]

@@ -24,10 +24,10 @@ def Register_Folder_to_One_Volume(fixed_volume, moving_volume_folder, output_fol
 
     return
 
-def Extract_Features_From_Folder(input_folder, output_csv, label_filepath):
+def Extract_Features_From_Folder(input_folder, output_csv, label_identifier):
 
     # Extract texture and shape features using QTIM's feature extraction package. Erode labels by 3 voxels in the XY plane.
-    extract_features(input_folder, output_csv, set_label=label_filepath, erode=[3,3,0])
+    extract_features(input_folder, output_csv, set_label=label_identifier, erode=[3,3,0])
 
     return
 
@@ -47,13 +47,14 @@ def Full_Pipeline():
     moving_volume_folder = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/'
     output_folder = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/Registered_Volumes/'
     output_suffix = '_registered_T2'
-    Register_Folder_to_One_Volume(fixed_volume, moving_volume_folder, output_folder, output_suffix, Slicer_Path)
+    # Register_Folder_to_One_Volume(fixed_volume, moving_volume_folder, output_folder, output_suffix, Slicer_Path)
 
     # Parameters for feature extraction.
-    input_folder = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/Registered_Volumes/'
+    input_folder = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/Registered_Volumes/Extract_Features_Test'
     output_csv = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/Feature_Extraction_Results.csv'
-    label_filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi-label.nii.gz'
-    # Extract_Features_From_Folder(input_folder, output_csv, label_filepath)
+    # Our feature extractor looks for a label in the same folder as input_folder with the filename below.
+    label_identifier = 'image_with_roi-label.nii.gz'
+    Extract_Features_From_Folder(input_folder, output_csv, label_identifier)
 
 if __name__ == "__main__":
     Full_Pipeline()
