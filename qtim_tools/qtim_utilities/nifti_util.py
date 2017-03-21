@@ -1,7 +1,6 @@
 from __future__ import division
 import numpy as np
 import nibabel as nib
-import dicom
 import os
 from shutil import copy, move
 import matplotlib.pyplot as plt
@@ -11,117 +10,12 @@ from scipy.ndimage.morphology import binary_fill_holes
 import csv
 import fnmatch
 
-def copy_files(infolder, outfolder, name, duplicate=True):
-
-    """ I'm not sure how many of these file-moving helper functions should be
-        included. I know I like to have them, but it may be better to have 
-        people code their own. It's hard to customize such functions exactly
-        to users' needs.
-    """
-
-    path = os.path.join(infolder, name)
-    print path
-    files = glob.glob(path)
-    if files == []:
-        print 'No files moved. Might you have made an error with the filenames?'
-    else:
-        for file in files:
-            if duplicate:
-                copy(file, outfolder)
-            else:
-                move(file, outfolder)
-
-def return_dicom_dictionary(filepath=[], folder=[], attributes_regex="*.dcm"):
-
-    """ This is currently broken, and overly-specific. Consider removing.
-    """
-
-    image_numpy = nib.load('C:/Users/azb22/Documents/Scripting/Breast_MRI_Challenge/ISPY_data/AllFiles/ISPY1_1098_19860919/ISPY1_1098_19860919_BreastTissue.nii.gz')
-    transform_matrix = image_numpy.affine
-
-    if folder != []:
-        img_dicom_list = []
-        for root, dirnames, filenames in os.walk(folder):
-            for filename in fnmatch.filter(filenames, attributes_regex):
-                img_dicom_list.append(os.path.join(root, filename))
-
-        if img_dicom_list == []:
-            print "No DICOM attributes returned. Folder is empty."
-        else:
-
-            attribute_list = np.zeros((1, 10), dtype=object)
-            temp_list = np.zeros((1, 10), dtype=object)
-            attribute_list[0,:] = ['filename','PatientName','date','center1', 'center2', 'center3', 'lx','ly','lz','type']
-            RadiusMatrix = np.zeros((3,3), dtype=float)
-
-            for filepath_idx, filepath in enumerate(img_dicom_list):
-                img_dicom = dicom.read_file(filepath)
-                try:
-                    # print img_dicom[0x117,0x1020][0][0x117,0x1043].value
-                    RadiusMatrix[0,:] = img_dicom[0x117,0x1020][0][0x117,0x1043].value[0:3]
-                    RadiusMatrix[1,:] = img_dicom[0x117,0x1020][0][0x117,0x1044].value[0:3]
-                    RadiusMatrix[2,:] = img_dicom[0x117,0x1020][0][0x117,0x1045].value[0:3]
-                    # print filepath
-                    temp_list[0, 3] = img_dicom[0x117,0x1020][0][0x117,0x1042].value[0]
-                    temp_list[0, 4] = img_dicom[0x117,0x1020][0][0x117,0x1042].value[1]
-                    temp_list[0, 5] = img_dicom[0x117,0x1020][0][0x117,0x1042].value[2]
-                    temp_list[0, 6] = np.max(abs(RadiusMatrix[:,0]))
-                    temp_list[0, 7] = np.max(abs(RadiusMatrix[:,1]))
-                    temp_list[0, 8] = np.max(abs(RadiusMatrix[:,2]))
-                    # print filepath
-                    temp_list[0, 9] = img_dicom[0x117,0x1020][0][0x117,0x1046].value
-                    temp_list[0, 2] = img_dicom.StudyDate
-                    temp_list[0, 1] = img_dicom.PatientID
-                    temp_list[0, 0] = filepath
-                    if [img_dicom.StudyDate, img_dicom.PatientID] not in attribute_list[:,1:3]:
-                        attribute_list = np.vstack((attribute_list, temp_list))
-                        # print temp_list
-                    # print ''
-                except:
-                    continue
-                if attribute_list[0, 7] == 'nan':
-                    # continue
-                    for i in xrange(attribute_list.shape[1]):
-                        print attribute_list[0, i]
-                    for i in xrange(2,6):
-                        col_vec = attribute_list[0, i][0:3]
-                        # col_vec[0]  = -col_vec[0]
-                        # col_vec[1] = -col_vec[1]
-                        # print np.round(nib.affines.apply_affine(transform_matrix, col_vec))
-                    # print col_vec.shape
-                    # for i in xrange(1,5):
-                        # transformed = nib.affines.apply_affine(np.linalg.inv(transform_matrix), np.reshape(attribute_list[0, i][0:3], (1,3)))
-                        # print transformed
-                        # image = image_numpy.get_data()
-
-                # fig = plt.figure()
-                # imgplot = plt.imshow(image[:,:,int(transformed[0][2])], interpolation='none', aspect='auto')
-                # plt.show()
-                
-                # print transform_matrix
-                # print attribute_list[0, 1]
-            with open('C:/Users/azb22/Documents/GitHub/QTIM_Pipelines/QTIM_Feature_Extraction_Pipeline/Test_Data/VOI_INFO_ISPY1.csv', 'wb') as writefile:
-                csvfile = csv.writer(writefile, delimiter=',')
-                for row in attribute_list:
-                    csvfile.writerow(row)
-
-        # print attribute_list
-
-    elif filepath != []:
-        img_dicom = dicom.read_file(filepath) 
-        print img_dicom
-
-    else:
-        print "No DICOM attributes returned. Please provide a file or folder path."
-        return
-
 def return_nifti_attributes(filepath):
 
-    """ For now, this just returns pixel dimensions, which are important
-        for calculating volume etc. It is still unknown whether pixel
-        dimensions are transformed by an affine matrix; they may need to
-        be transformed back in the case of our arrays. TO-DO: Make this
-        return a dictionary.
+    """ This returns nibabel's version of the nifti header. Note that this
+        is NOT the full header! fslhd, from FSL, returns other things such
+        as the qform orientation code. TODO: add an option for returning fslhd
+        if installed.
     """
 
     img_nifti = nib.load(filepath)
@@ -143,12 +37,6 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path):
     image_affine = nifti_image.affine
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)
     nib.save(output_nifti, output_path)
-
-def dcm_2_numpy(filepath):
-
-    # Maybe for the future...
-
-    return
 
 def get_intensity_range(image_numpy, percentiles=[.25,.75]):
     intensity_range = [np.percentile(image_numpy, .25, interpolation="nearest"), np.percentile(image_numpy, .75, interpolation="nearest")]
@@ -509,6 +397,7 @@ def check_tumor_histogram(image_numpy, second_image_numpy=[], mask_value=0, imag
         plt.show()
 
 def save_alternate_nifti(filepath, levels, reference_image=[], method="z_score", mask_value=0):
+
     image = nib.load(filepath)
     image_numpy = image.get_data()
     image_affine = image.get_affine()
@@ -757,109 +646,25 @@ def fill_in_convex_outline(filepath, output_file, outline_lower_threshold=[], ou
         else:
             save_numpy_2_nifti(label_file, reference_nifti, output_file)
 
-def replace_slice(input_nifti, output_file, input_nifti_slice, slice_num):
+def replace_slice(input_nifti_slice_filepath, reference_nifti_filepath, output_file, slice_number, orientation_commands=[np.rot90, np.flipud]):
 
-    input_numpy = nifti_2_numpy(input_nifti)
-    input_numpy_slice = nifti_2_numpy(input_nifti_slice)
-    output_numpy = np.zeros_like(input_numpy)
+    """ Orients a 1-D label nifti, likely created by the convex outline function, with respect to a reference
+        3-D nifti. Saves out a 3-D nifti of the same shape with just the one ROI slice.
+    """
 
-    output_numpy[:,:,slice_num] = np.flipud(np.rot90(input_numpy_slice[:,:]))
+    refererence_numpy = nifti_2_numpy(reference_nifti_filepath)
+    input_numpy_slice = nifti_2_numpy(input_nifti_slice_filepath)
+    output_numpy = np.zeros_like(refererence_numpy)
 
-    save_numpy_2_nifti(output_numpy, input_nifti, output_file)
+    # Some rotations may be necessary to get the labelmap in the right orientation.
+    # It is not obvious from the starting jpgs what those rotations should be.
 
+    for transformation_function in orientation_commands:
+        input_numpy_slice = transformation_function(input_numpy_slice)
+
+    output_numpy[:,:,slice_number] = input_numpy_slice[:,:]
+
+    save_numpy_2_nifti(output_numpy, reference_nifti_filepath, output_file)
 
 if __name__ == '__main__':
-    # grab_files('C:/Users/azb22/Documents/Scripting/Head_Neck_Cancer_Challenge/Training/Training/Training/Case_10', 'C:/Users/azb22/Documents/Scripting/Head_Neck_Cancer_Challenge/Training/Training/Training/Case_10/TempFolder', '*dcm')
-    np.set_printoptions(suppress=True, precision=2)
-    # return_dicom_dictionary(folder="C:/Users/azb22/Documents/Scripting/Breast_MRI_Challenge/ISPY_data/ISPY1/")
-
-    filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi_test.jpg'
-    output_filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi_test-label.nii.gz'
-    reference_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER.nii.gz'
-    output_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER-label.nii.gz'
-
-    # fill_in_convex_outline(filepath, output_filepath, outline_lower_threshold = [175,0,0], outline_upper_threshold=[300,50,50], reference_nifti=reference_nifti)
-    # replace_slice(reference_nifti, output_nifti, output_filepath, 10)
-
-    output_filepath = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi_test-label.jpg'
-    fill_in_convex_outline(filepath, output_filepath, outline_lower_threshold = [100,0,0], outline_upper_threshold=[300,100,100], reference_nifti=[], output_label_num=255)
-
-    # label_numpy = nifti_2_numpy('C:/Users/azb22/Documents/Scripting/TMZ Registration/TMZ_NEW/TMZ_COREGISTERED/TMZ_01-VISIT_01/TMZ_01-VISIT_01-label_r_T2_final.nii.gz')
-    # image_numpy = nifti_2_numpy('C:/Users/azb22/Documents/Scripting/TMZ Registration/TMZ_NEW/TMZ_COREGISTERED/TMZ_01-VISIT_01/TMZ_01-VISIT_01-T1POST_r_T2.nii.gz')
-
-    # for folder in glob.glob('C:\\Users\\azb22\\Documents\\Scripting\\TMZ Registration\\TMZ_NEW\\TMZ_COREGISTERED\\TMZ_0*-VISIT_0*'):
-    #     if '.' in folder:
-    #         continue
-    #     print folder
-    #     if not os.path.exists(folder + '\\Mosaic\\'):
-    #         os.makedirs(folder + '\\Mosaic\\')
-
-    #     nn_label = glob.glob(folder + '\\*label_r_T2_final*')
-    #     if nn_label != []:
-    #         nn_label = nn_label[0]
-    #         nn_label_numpy = nifti_2_numpy(nn_label)
-    #         nn_label_numpy = generate_label_outlines(nn_label_numpy)
-    #         for volume in glob.glob(folder + '\\*.nii.gz'):
-    #             if ('MPRAGE' in volume or 'T1POST' in volume or 'FLAIR' in volume or 'SUV' in volume) and 'label' not in volume:
-    #                 image_numpy = nifti_2_numpy(volume)
-    #                 filename = str.split(volume, '\\')[-1]
-    #                 filename = str.split(filename, '.')[0]
-    #                 filename = filename + '.png'
-    #                 filename = folder +'\\Mosaic\\' + filename
-    #                 print filename
-    #                 try:
-    #                     create_mosaic(image_numpy, nn_label_numpy, generate_outline=False, outfile=filename)
-    #                 except:
-    #                     print 'failure to make mosaic'
-    #                 # move(filename, folder +'\\Mosaic\\' + filename)
-    #     else:
-    #         print 'no label!'
-    # create_mosaic(image_numpy, label_numpy, outfile='test_mosaic.png')
-
-
-    # path = 'C:/Users/azb22/Documents/Scripting/Machine_Learning_Pipeline/qin_moistRun/'
-    # for folder in glob.glob(path + 'niiVolumes/*'):
-    #     for subfolder in glob.glob(folder + '/*'):
-    #         for subfile in glob.glob(subfolder + '/*'):
-    #             # print subfile
-    #             filename = str.split(subfile, '\\')[-1]
-    #             # copy(subfile, path + filename)
-    #         segmentations = glob.glob(path + 'convertedFromDicomSeg/' + '\\'.join(str.split(subfolder, '\\')[-2:]) + '\\*')
-    #         print segmentations
-    #         for segment in segmentations:
-    #             segmentfilename = str.split(segment, '\\')[-1]
-    #             copy(subfile, path + filename + '_' + segmentfilename)
-    #             copy(segment, path + filename + '_' + str.split(segmentfilename, '.nii')[0] + '-label.nii')
-
-
-    # path = 'C:/Users/azb22/Documents/Scripting/Machine_Learning_Pipeline/qin_moistRun/*'
-    # for current_file in glob.glob(path):
-    #     if '.nii' in current_file:
-    #         split_file = str.split(current_file, '.nii')
-    #         print current_file
-    #         outfile = split_file[0] + split_file[1] + '.nii'
-    #         move(current_file, outfile)
-
-    # path = 'C:/Users/azb22/Documents/Scripting/Elizabeth_Mets_Heterogeneity/BWH_Scans'
-    # for file in glob.glob(path + '/Nifti_Images*'):
-    #     split_file = str.split(file, 'Nifti_Images')
-    #     print split_file
-    #     move(file, ''.join(split_file))
-
-    # path = 'C:/Users/azb22/Documents/Scripting/Machine_Learning_Pipeline/qin_moistRun/niiVolumes/rider'
-    # for subfolder in glob.glob(path + '/*'):
-    #     for subfile in glob.glob(subfolder + '/*'):
-    #         # print subfile
-    #         filename = str.split(subfile, '\\')[-1]
-    #         filename = str.split(filename, '.')[0]
-    #         print filename
-    #         # copy(subfile, path + filename)
-    #     print 'C:/Users/azb22/Documents/Scripting/Machine_Learning_Pipeline/qin_moistRun/convertedFromDicomSeg/' + '\\'.join(str.split(subfolder, '/')[-1:]) + '\\*'
-
-    #     segmentations = glob.glob('C:/Users/azb22/Documents/Scripting/Machine_Learning_Pipeline/qin_moistRun/convertedFromDicomSeg/' + '\\'.join(str.split(subfolder, '/')[-1:]) + '\\*')
-    #     print segmentations
-    #     for segment in segmentations:
-    #         segmentfilename = str.split(segment, '\\')[-1]
-    #         # print filename
-    #         copy(subfile, 'C:/Users/azb22/Documents/Scripting/Machine_Learning_Pipeline/qin_moistRun/' + filename + '_' + segmentfilename)
-    #         copy(segment, 'C:/Users/azb22/Documents/Scripting/Machine_Learning_Pipeline/qin_moistRun/' + filename + '_' + str.split(segmentfilename, '.nii')[0] + '-label.nii')
+    pass

@@ -1,7 +1,13 @@
+""" TODO: Fill in docstring (sorry...)
+
+"""
+
 from __future__ import division
 
 # TODO Clean up these imports..
 # Import nifti_util. It only fails if this is script is not loaded as a package, which it should be.
+
+from ..qtim_utilities.nifti_util import save_numpy_2_nifti, nifti_2_numpy
 
 from functools import partial
 import numpy as np
@@ -21,24 +27,6 @@ import csv
 from Queue import Queue
 from threading import Thread
 from multiprocessing.pool import Pool
-
-def nifti_2_numpy(filepath):
-
-    """ Utility function run through nibabel for loading nifti volumes into float numpy arrays."""
-
-    img = nib.load(filepath).get_data().astype(float)
-    return img
-
-def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path):
-
-    """ Rather than constructing a nifti header from scratch, it is usually easiest to just
-        copy one from a nearby reference header.
-    """
-
-    nifti_image = nib.load(reference_nifti_filepath)
-    image_affine = nifti_image.affine
-    output_nifti = nib.Nifti1Image(image_numpy, image_affine)
-    nib.save(output_nifti, output_path)
 
 def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], AIF_value_suffix=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
 
