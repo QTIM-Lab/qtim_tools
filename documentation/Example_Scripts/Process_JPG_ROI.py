@@ -34,24 +34,27 @@ def Extract_Features_From_Folder(input_folder, output_csv, label_identifier):
 def Full_Pipeline():
 
     # Parameters for JPG -> NIFTI conversion.
-    input_image = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi.jpg'
-    reference_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER.nii.gz'
-    output_nifti = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/image_with_roi-label.nii.gz'
+    # #-----------------------------------------------------#
+    input_image = '/home/qin/input/image_with_roi.jpg'
+    reference_nifti = '/home/qin/input/7_Ax_T2_PROPELLER.nii.gz'
+    output_nifti = '/home/qin/input/image_with_roi-label.nii.gz'
     ROI_color_range = [[100,300],[0,100],[0,100]] # RGB -> Bright Red
     slice_number = 10
     # Convert_JPG_ROI_2_Nifti(input_image, output_nifti, reference_nifti, ROI_color_range, slice_number)
 
     # Parameters for group registration.
-    Slicer_Path = '"C:/Users/azb22/Documents/Software/SlicerNightly/Slicer 4.6.0/Slicer.exe"'
-    fixed_volume = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/7_Ax_T2_PROPELLER.nii.gz'
-    moving_volume_folder = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/'
-    output_folder = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/Registered_Volumes/'
-    output_suffix = '_registered_T2'
+    # #-----------------------------------------------------#
+    # Slicer_Path = '"/opt/Slicer/Slicer"'
+    # fixed_volume = '/home/qin/input7_Ax_T2_PROPELLER.nii.gz'
+    # moving_volume_folder = '/home/qin/input/Drawn_ROI_TestFiles/'
+    # output_folder = '/home/qin/input/Registered_Volumes/'
+    # output_suffix = '_registered_T2'
     # Register_Folder_to_One_Volume(fixed_volume, moving_volume_folder, output_folder, output_suffix, Slicer_Path)
 
     # Parameters for feature extraction.
-    input_folder = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/Registered_Volumes/Extract_Features_Test'
-    output_csv = 'C:/Users/azb22/Documents/Scripting/Tata_Hospital/Drawn_ROI_TestFiles/Feature_Extraction_Results.csv'
+    # #-----------------------------------------------------#
+    input_folder = '/home/qin/input/'
+    output_csv = '/home/qin/input/out.csv'
     # Our feature extractor looks for a label in the same folder as input_folder with the filename below.
     label_identifier = 'image_with_roi-label.nii.gz'
     Extract_Features_From_Folder(input_folder, output_csv, label_identifier)
