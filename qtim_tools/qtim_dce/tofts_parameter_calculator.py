@@ -17,9 +17,7 @@ import scipy.ndimage
 from scipy.integrate import trapz
 import matplotlib.pyplot as plt
 import math
-import random
 import os
-import re
 import time
 import fnmatch
 import csv
