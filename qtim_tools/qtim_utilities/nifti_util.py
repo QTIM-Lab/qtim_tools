@@ -39,7 +39,7 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path):
     nib.save(output_nifti, output_path)
 
 def get_intensity_range(image_numpy, percentiles=[.25,.75]):
-    intensity_range = [np.percentile(image_numpy, .25, interpolation="nearest"), np.percentile(image_numpy, .75, interpolation="nearest")]
+    intensity_range = [np.percentile(image_numpy, percentiles[0], interpolation="nearest"), np.percentile(image_numpy, percentiles[1], interpolation="nearest")]
 
 def histogram_normalization(image_numpy, mode='uniform'):
 
@@ -256,6 +256,7 @@ def remove_islands():
     return
 
 def erode_label(image_numpy, iterations=2, mask_value=0):
+
     """ For each iteration, removes all voxels not completely surrounded by
         other voxels. This might be a bit of an aggressive erosion. Also I
         would bet it is incredibly ineffecient. Also custom erosions in
@@ -300,18 +301,11 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
         label_numpy[label_numpy == mask_value] = 0
 
         edge_image = signal.convolve(label_numpy, edges_kernel, mode='same')
-        # check_image(edge_image, mode="maximal_slice")
         edge_image[edge_image < 0] = -1
-        # check_image(edge_image, mode="maximal_slice")
         edge_image[np.where((edge_image <= kernel_center) & (edge_image > 0))] = -1
-        # check_image(edge_image, mode="maximal_slice")
         edge_image[edge_image == 0] = 1
-        # check_image(edge_image, mode="maximal_slice")
         edge_image[edge_image == -1] = 0
-        # check_image(edge_image, mode="maximal_slice")
         image_numpy[edge_image == 0] = mask_value
-        # check_image(image_numpy, mode="maximal_slice")
-
 
     return image_numpy
 
@@ -361,6 +355,9 @@ def check_image(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_v
 
 def check_tumor_histogram(image_numpy, second_image_numpy=[], mask_value=0, image_name = ''):
 
+    """ Make more general, edit out the word tumor
+    """
+
     if second_image_numpy != []:
         tumor_ROI = image_numpy[image_numpy != mask_value]
         whole_brain = second_image_numpy[second_image_numpy > (second_image_numpy.max()*0.075)]
@@ -398,6 +395,9 @@ def check_tumor_histogram(image_numpy, second_image_numpy=[], mask_value=0, imag
 
 def save_alternate_nifti(filepath, levels, reference_image=[], method="z_score", mask_value=0):
 
+    """ Consider for deletion, or scrap pile
+    """
+
     image = nib.load(filepath)
     image_numpy = image.get_data()
     image_affine = image.get_affine()
@@ -418,6 +418,9 @@ def save_alternate_nifti(filepath, levels, reference_image=[], method="z_score",
     nib.save(new_img, 'zmapped_' + str.split(filepath, '//')[-1])
 
 def create_mosaic(image_numpy, label_numpy=[], generate_outline=True, mask_value=0, step=1, dim=2, cols=8, label_buffer=5, rotate_90=3, outfile='', flip=True):
+
+    """ Creates mosaics from a nifti based optionally on a label. Seems a bit over-long right now.
+    """
 
     if label_numpy != []:
 
@@ -538,7 +541,7 @@ def create_mosaic(image_numpy, label_numpy=[], generate_outline=True, mask_value
 
 def generate_label_outlines(label_numpy, dim=2, mask_value=0):
 
-    # Will not work if someone uses 0 or <0 for a label.
+    # Will not work if someone uses 0 or < 0 for a label.
     # Also this is super slow.
         
     edges_kernel = np.zeros((3,3,3),dtype=float)
@@ -624,26 +627,12 @@ def fill_in_convex_outline(filepath, output_file, outline_lower_threshold=[], ou
 
                 if match:
                     label_file[row, col, ...] = output_label_num                    
-                #     if row_section == 0:
-                #         row_section = 1
-                #     if row_section == 2:
-                #         row_section = 3
-                #         label_file[row, fill_index:col, ...] = output_label_num
-                # else:
-                #     if row_section == 1:
-                #         row_section = 2
-                #         fill_index = col
-                #     if row_section == 3:
-                #         row_section = 0
-
-                # label_file[row, col, ...] = pixel
-
-        label_file = binary_fill_holes(label_file[:,:,0]).astype(label_file.dtype)*255
-        # label_file = label_file[:,:,0]
 
         if reference_nifti == []:
+            label_file = binary_fill_holes(label_file[:,:,0]).astype(label_file.dtype)*255
             misc.imsave(output_file, label_file)
         else:
+            label_file = label_file[:,:,0]
             save_numpy_2_nifti(label_file, reference_nifti, output_file)
 
 def replace_slice(input_nifti_slice_filepath, reference_nifti_filepath, output_file, slice_number, orientation_commands=[np.rot90, np.flipud]):
