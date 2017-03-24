@@ -5,6 +5,9 @@ from os import path
 # with open(path.join('./', 'README.md'), encoding='utf-8') as f:
     # long_description = f.read()
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setup(
   name = 'qtim_tools',
   # packages = ['qtim_tools'], # this must be the same as the name above
@@ -16,6 +19,6 @@ setup(
   url = 'https://github.com/QTIM-Lab/qtim_tools', # use the URL to the github repo
   download_url = 'https://github.com/QTIM-Lab/qtim_tools/tarball/0.1.10', # I'll explain this in a second
   keywords = ['neuroimaging', 'niftis', 'nifti','mri','dce','dsc','ktrans','ve','tofts','machine learning','vision','texture','learning'], # arbitrary keywords
-  install_requires=['pydicom','nibabel'],
+  install_requires=required,
   classifiers = [],
 )

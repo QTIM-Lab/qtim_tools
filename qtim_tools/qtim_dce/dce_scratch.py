@@ -5,6 +5,32 @@ import nibabel as nib
 import math
 import os
 
+def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
+
+
+    suffix_exclusion_regex = []
+    for suffix in label_suffix, T1_map_suffix, AIF_label_suffix, AIF_value_suffix:
+        if suffix != []:
+            suffix_exclusion_regex += [suffix]
+    
+    volume_list = []
+    if recursive:
+        for root, dirnames, filenames in os.walk(folder):
+            for filename in fnmatch.filter(filenames, regex):
+                volume_list.append(os.path.join(root, filename))
+    else:
+        for filename in os.listdir(folder):
+            if fnmatch.fnmatch(regex):
+                volume_list.append(os.path.join(root, filename))
+    
+    for volume in volume_list:
+        for suffix in suffix_exclusion_regex:
+            if suffix_exclusion_regex not in volume:
+
+                print 'Working on volume located at... ' + volume
+
+                calc_DCE_properties_single(volume, T1_tissue, T1_blood, relaxivity, TR, TE, scan_time_seconds, hematocrit, injection_start_time_seconds, flip_angle_degrees, label_file, label_suffix, label_value, mask_value, mask_threshold, T1_map_file, T1_map_suffix, AIF_label_file,  AIF_value_data, convert_AIF_values, AIF_mode, AIF_label_suffix, AIF_label_value, label_mode, param_file, default_population_AIF, initial_fitting_function_parameters, outputs, outfile_prefix, processes, gaussian_blur, gaussian_blur_axis)
+
 def check_image(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_value=0):
 
     """ A useful utiltiy for spot checks.

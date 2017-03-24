@@ -1,2 +1,5 @@
 nibabel
 pydicom
+matplotlib
+numpy
+scipy

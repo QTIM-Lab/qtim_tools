@@ -43,6 +43,9 @@ def get_intensity_range(image_numpy, percentiles=[.25,.75]):
 
 def histogram_normalization(image_numpy, mode='uniform'):
 
+    """ Move to preprocessing at some point?
+    """
+
     return
 
 def match_array_orientation(image1, image2):
@@ -53,6 +56,8 @@ def match_array_orientation(image1, image2):
         function will do it; if not, other parameters will have to be added by the user.
         REMINDER: This will also have to change an image's origin, if that
         image has any hope of being padded correctly in a subsequent step.
+
+        I'm a bit skeptical that it works now...
     """
 
     image1_nifti = nib.load(image1)
@@ -135,15 +140,6 @@ def truncate_image(image_numpy, mask_value=0):
 
 
     return truncate_image_numpy
-
-def assert_3D(image_numpy):
-    if len(image_numpy.shape) > 3:
-        if len(image_numpy.shape) == 4 and image_numpy.shape[3] == 1:
-            image_numpy = image_numpy[:,:,:,0]
-        else:
-            return False
-
-    return True
 
 def coerce_levels(image_numpy, levels=255, method="divide", reference_image = [], reference_norm_range = [.075, 1], mask_value=0, coerce_positive=True):
 
@@ -571,6 +567,15 @@ def generate_label_outlines(label_numpy, dim=2, mask_value=0):
             outline_label_numpy += edge_image
 
     return outline_label_numpy
+
+def assert_3D(image_numpy):
+    if len(image_numpy.shape) > 3:
+        if len(image_numpy.shape) == 4 and image_numpy.shape[3] == 1:
+            image_numpy = image_numpy[:,:,:,0]
+        else:
+            return False
+
+    return True
 
 def assert_nD(array, ndim, arg_name='image'):
 
