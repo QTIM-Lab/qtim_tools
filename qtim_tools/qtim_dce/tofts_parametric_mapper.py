@@ -7,7 +7,7 @@ from __future__ import division
 # TODO Clean up these imports..
 # Import nifti_util. It only fails if this is script is not loaded as a package, which it should be.
 
-from ..qtim_utilities.nifti_util import save_numpy_2_nifti, nifti_2_numpy, check_image
+from ..qtim_utilities.nifti_util import save_numpy_2_nifti, nifti_2_numpy, check_image_2d
 from ..qtim_preprocessing.signal import gaussian_blur, create_PCA_maps
 from scipy.ndimage.filters import gaussian_filter
 
@@ -359,7 +359,7 @@ def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_sec
 
     # I am extremely skeptical about this broken masking method.
     if label_image != []:
-        contrast_image_numpy[label_image[:,:,0] == 1] = mask_value
+        contrast_image_numpy[label_image[:,:,0] != 1] = mask_value
 
     if image != []:
         contrast_image_numpy[image[...,0] <= mask_threshold] = mask_value
@@ -461,6 +461,8 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
     space_dims = contrast_image_numpy.shape[0:-1]
 
+    print 'DCE worker is processing data... This may take a few minutes.'
+
     for index in np.ndindex(space_dims):
 
         # Need to think about how to implement masking. Maybe np.ma involved. Will likely require
@@ -487,7 +489,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         ktrans = result_params[0]
         ve = result_params[1]
 
-        print [ktrans, ve, auc]
+        #print [ktrans, ve, auc]
 
         output_image[index + (0,)] = ktrans
         output_image[index + (1,)] = ve
@@ -498,6 +500,8 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
     output_image[...,2][abs(output_image[...,2]) > 1e6] = 0
     output_image[...,0][output_image[...,0] > .95*ktransmax] = 0
     # output_image[...,1][output_image[...,1] > .98] = 0
+
+    print 'DCE worker has finished processing!'
 
     return output_image
 

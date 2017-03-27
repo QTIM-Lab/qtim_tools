@@ -395,19 +395,19 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
             for masked_image in masked_images:
 
                 # nifti_util.check_tumor_histogram(masked_image, second_image_numpy=image, mask_value=mask_value, image_name = str.split(imagepath, '\\')[-1])
-                # nifti_util.check_image(masked_image, mode="maximal_slice")
+                # nifti_util.check_image_2d(masked_image, mode="maximal_slice")
 
                 unmodified_image_list += [np.copy(masked_image)]
 
                 masked_image = nifti_util.coerce_levels(masked_image, levels=levels, reference_image=image, method="divide", mask_value=mask_value)
 
-                # nifti_util.check_image(masked_image, mode="maximal_slice")
+                # nifti_util.check_image_2d(masked_image, mode="maximal_slice")
 
                 # It would be nice in the future to check if an image is too small to erode. Maybe a minimum-size parameter?
                 # Or maybe a "maximum volume reduction by erosion?" Hmm..
                 masked_image = nifti_util.erode_label(masked_image, iterations=erode)
 
-                # nifti_util.check_image(masked_image, mode="maximal_slice")
+                # nifti_util.check_image_2d(masked_image, mode="maximal_slice")
 
                 image_list += [masked_image]
 
@@ -465,7 +465,7 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
         if feature == 'GLCM':
 
             # nifti_util.check_tumor_histogram(image, mask_value)
-            # nifti_util.check_image(image, mode="maximal_slice")
+            # nifti_util.check_image_2d(image, mode="maximal_slice")
 
             glcm_image = np.copy(image)
             glcm_image = glcm_image.astype(int)

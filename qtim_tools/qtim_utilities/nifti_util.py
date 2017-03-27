@@ -184,7 +184,7 @@ def coerce_levels(image_numpy, levels=255, method="divide", reference_image = []
 
     if method == "z_score":
 
-        # check_image(image_numpy, mode="maximal_slice", mask_value=mask_value)
+        # check_image_2d(image_numpy, mode="maximal_slice", mask_value=mask_value)
 
         ## Note that this is a bad way to check this variable.
         if reference_image == []:
@@ -234,7 +234,7 @@ def coerce_levels(image_numpy, levels=255, method="divide", reference_image = []
                     if image_numpy[x,y,z] != mask_value:
                         image_numpy[x,y,z] = (np.abs(bins-z_image_numpy[x,y,z])).argmin() + 1
 
-        # check_image(image_numpy, mode="maximal_slice", mask_value=mask_value)
+        # check_image_2d(image_numpy, mode="maximal_slice", mask_value=mask_value)
     image_numpy[image_numpy == mask_value] = 0
     return image_numpy
 
@@ -305,14 +305,14 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
 
     return image_numpy
 
-def check_image(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_value=0):
+def check_image_2d(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_value=0, slice_axis="first"):
 
-    """ A useful utiltiy for spot checks.
+    """ A useful utiltiy for spot checks. TODO: Add utility for dynamic axis viewing. Also TODO: make
+        a check_image_3d
     """
 
     if second_image_numpy != []:
         for i in xrange(image_numpy.shape[0]):
-            print i
             fig = plt.figure()
             a=fig.add_subplot(1,2,1)
             imgplot = plt.imshow(image_numpy[:,:,i*step], interpolation='none', aspect='auto')
@@ -388,30 +388,6 @@ def check_tumor_histogram(image_numpy, second_image_numpy=[], mask_value=0, imag
         fig = plt.gcf()
 
         plt.show()
-
-def save_alternate_nifti(filepath, levels, reference_image=[], method="z_score", mask_value=0):
-
-    """ Consider for deletion, or scrap pile
-    """
-
-    image = nib.load(filepath)
-    image_numpy = image.get_data()
-    image_affine = image.get_affine()
-
-    if reference_image == []:
-        reference_image = np.copy(image_numpy)
-
-    image_numpy = coerce_levels(image_numpy, levels=levels, reference_image=reference_image, method=method, mask_value=mask_value)
-
-    print 'image_transformed!'
-
-    new_img = nib.Nifti1Image(image_numpy, image_affine)
-
-    print 'new_image_created!'
-
-    print 'zmapped_' + str.split(filepath, '//')[-1]
-
-    nib.save(new_img, 'zmapped_' + str.split(filepath, '//')[-1])
 
 def create_mosaic(image_numpy, label_numpy=[], generate_outline=True, mask_value=0, step=1, dim=2, cols=8, label_buffer=5, rotate_90=3, outfile='', flip=True):
 
