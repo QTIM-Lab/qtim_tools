@@ -349,9 +349,64 @@ def check_image_2d(image_numpy, second_image_numpy=[], mode="cycle", step=1, mas
             imgplot = plt.imshow(maximal[1], interpolation='none', aspect='auto')
             plt.show()
 
+def get_arbitrary_axis_slice(image_numpy, axis_notation=[':',':',0]):
+
+    """ Returns a slice of numpy array according to a custom axis notation. Often I want to
+        slice by an arbitrary, i.e. not pre-defined, axis. Unfortunately, you can't store the
+        slice ':' in a variable, and I dislike slice notation. Thus, this function replicates
+        slice notation in normal notation by letting you specify ':' with an actual string.
+    """
+
+    image_slice = []
+
+    for individual_axis in axis_notation:
+
+        if individual_axis == ':':
+            image_slice += [slice(none)]
+        elif isinstance(individual_axis, 'str'):
+            print 'Invalid slice notation for get_arbitrary_axis_slice. Returning original array.'
+            return image_numpy
+        elif not isinstance(individual_axis, 'int'):
+            if len(individual_axis) == 2:
+                image_slice += [slice(individual_axis[0], individual_axis[1])]
+            else:
+                print 'Invalid slice notation for get_arbitrary_axis_slice. Returning original array.'
+                return image_numpy
+        else:
+            image_slice += [slice(individual_axis)]
+
+    image_slice = np.squeeze(image[image_slice])
+
+def extract_maximal_slice_3d(image_numpy, label_numpy='', mode='max_intensity', axis=2):
+
+    """ Extracts one slice from a presumably 3D volume. Either take the slice whose label
+        has the greatest area (mode='max_label'), or whos sum of voxels has the greatest 
+        intensity (mode='max_intensity'), according to the provided axis variable.
+    """
+
+    sum_dimensions = range(0:image_numpy.ndim).pop(axis)
+
+    if mode == 'max_intensity':
+        flattened_image = np.sum(image_numpy, axis=sum_dimensions)
+    elif mode == 'max_label':
+        flattened_image = np.sum(label_numpy, axis=sum_dimensions)
+    else:
+        print 'Invalid mode entered to extract_maximal_slice_3d. Returning original array..'
+        return image_numpy
+
+    # TODO: Put in support for 
+    highest_slice_index = np.argmax(flattened_image)
+    highest_slice_index = highest_slice_index[0]
+
+    extract_slice = [':'] * image_numpy.ndim
+    extract_slice[axis] = highest_slice_index
+
+    return get_arbitrary_axis_slice(image_numpy, extract_slice)
+
+
 def check_tumor_histogram(image_numpy, second_image_numpy=[], mask_value=0, image_name = ''):
 
-    """ Make more general, edit out the word tumor
+    """ TODO: Make more general, edit out the word tumor
     """
 
     if second_image_numpy != []:
