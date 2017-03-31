@@ -1,4 +1,6 @@
-
+""" This is a scratch utilty folder, for idiosyncratic functions
+    that don't fit anywhere else but might want to be kept later.
+"""
 from nifti_utils import *
 import nibabel
 

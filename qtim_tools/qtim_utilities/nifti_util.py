@@ -32,6 +32,15 @@ def nifti_2_numpy(filepath):
     img = nib.load(filepath).get_data().astype(float)
     return img
 
+def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_path):
+
+    nifti_image = nib.load(reference_nifti_filepath)
+    image_affine = nifti_image.affine
+    nifti_image.header['dim'][0] = 4
+    nifti_image.header['dim'][4] = input_4d_numpy.shape[-1]
+    output_nifti = nib.Nifti1Image(input_4d_numpy, image_affine)
+    nib.save(output_nifti, output_path)
+
 def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path):
     nifti_image = nib.load(reference_nifti_filepath)
     image_affine = nifti_image.affine
@@ -58,6 +67,8 @@ def match_array_orientation(image1, image2):
         image has any hope of being padded correctly in a subsequent step.
 
         I'm a bit skeptical that it works now...
+
+        TODO this currently outputs nothing.
     """
 
     image1_nifti = nib.load(image1)
@@ -384,7 +395,7 @@ def extract_maximal_slice_3d(image_numpy, label_numpy='', mode='max_intensity', 
         intensity (mode='max_intensity'), according to the provided axis variable.
     """
 
-    sum_dimensions = range(0:image_numpy.ndim).pop(axis)
+    sum_dimensions = range(0,image_numpy.ndim).pop(axis)
 
     if mode == 'max_intensity':
         flattened_image = np.sum(image_numpy, axis=sum_dimensions)
