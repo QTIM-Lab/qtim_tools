@@ -32,7 +32,19 @@ def nifti_2_numpy(filepath):
     img = nib.load(filepath).get_data().astype(float)
     return img
 
+def generate_identity_affine():
+
+    """ A convenient function for generating an identity affine matrix. Can be
+        used for saving blank niftis.
+    """
+
+    return [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
+
 def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_path):
+
+    """ Sometimes, a reference nifti is only available in 3D form when trying to
+        generate a 4D volume. This function addresses that.
+    """
 
     nifti_image = nib.load(reference_nifti_filepath)
     image_affine = nifti_image.affine
@@ -41,11 +53,30 @@ def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_pat
     output_nifti = nib.Nifti1Image(input_4d_numpy, image_affine)
     nib.save(output_nifti, output_path)
 
-def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path):
+def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path=[]):
     nifti_image = nib.load(reference_nifti_filepath)
     image_affine = nifti_image.affine
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)
-    nib.save(output_nifti, output_path)
+
+    if output_path == []:
+        return output_nifti
+    else:
+        nib.save(output_nifti, output_path)
+
+def save_numpy_2_nifti_no_reference(image_numpy, output_path=[]):
+
+    """ This and the other save function should be combined, once I figure out how to
+        automatically replace the order of function parameters in all the rest of this
+        code. 
+    """
+
+    image_affine = generate_identity_affine()
+    output_nifti = nib.Nifti1Image(image_numpy, image_affine)
+
+    if output_path == []:
+        return output_nifti
+    else:
+        nib.save(output_nifti, output_path)
 
 def get_intensity_range(image_numpy, percentiles=[.25,.75]):
     intensity_range = [np.percentile(image_numpy, percentiles[0], interpolation="nearest"), np.percentile(image_numpy, percentiles[1], interpolation="nearest")]

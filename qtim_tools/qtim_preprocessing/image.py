@@ -14,7 +14,7 @@ from subprocess import call
 from shutil import copy
 from scipy import misc, ndimage
 
-def fill_in_convex_outline(filepath, output_file, reference_nifti=[], color_threshold_limits = [[100,300],[0,100],[0,100]] , output_label_num=1,):
+def fill_in_convex_outline(filepath, output_file=[], reference_nifti=[], color_threshold_limits = [[100,300],[0,100],[0,100]] , output_label_num=1,):
 
     """ Thresholds a jpg according to certain color parameters. Uses a hole-filling algorithm to color in
         regions of interest. TODO: Make work for non-jpgs.
@@ -32,7 +32,9 @@ def fill_in_convex_outline(filepath, output_file, reference_nifti=[], color_thre
     label_nifti = ndimage.morphology.binary_fill_holes(label_nifti[:,:,0]).astype(label_nifti.dtype)
 
     # Can save out as either a jpg or a nifti label file.
-    if reference_nifti == []:
+    if output_file == []:
+        return label_nifti
+    elif reference_nifti == []:
         misc.imsave(output_file, label_nifti*255)
     else:
         save_numpy_2_nifti(label_nifti, reference_nifti, output_file)

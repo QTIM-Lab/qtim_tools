@@ -1,6 +1,7 @@
 """ Reusable utility functions associated with DCE analysis. TODO
     clean up this file.
 """
+from __future__ import division
 
 from ..qtim_utilities import nifti_util
 
@@ -205,6 +206,7 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval):
 def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = []):
 
     # Note that this function currently has a broken section.
+    # Add functionality for a static baseline T1 i.e. reference_dat
 
     if T1_map != []:
         R1_pre = 1 / T1_map
@@ -216,6 +218,8 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
     a = np.exp(-1 * TR * R1_pre)
     relative_term = (1-a) / (1-a*np.cos(flip_angle_radians))
 
+    print [flip_angle_radians, a, relative_term]
+
     if len(reference_data_numpy.shape) == 1:
         baseline = np.mean(reference_data_numpy[0:int(np.round(injection_start_time_seconds/time_interval_seconds))])
         baseline = np.tile(baseline, reference_data_numpy.shape[-1])
@@ -223,10 +227,13 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
         baseline = np.mean(reference_data_numpy[:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=1)
         baseline = np.tile(np.reshape(baseline, (baseline.shape[0], 1)), (1,reference_data_numpy.shape[-1]))
     if len(reference_data_numpy.shape) == 3:
-        baseline = np.mean(np.mean(reference_data_numpy[:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=2))
+        baseline = np.mean(reference_data_numpy[:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=2)
+        baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1], 1)), (1,1,reference_data_numpy.shape[-1]))        
     if len(reference_data_numpy.shape) == 4:
         baseline = np.mean(reference_data_numpy[:,:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=3)
         baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1],baseline.shape[2], 1)), (1,1,1,reference_data_numpy.shape[-1]))
+
+
 
     data_numpy = np.exp(data_numpy / (-1 / (relaxivity*TR)))
     data_numpy = (data_numpy * a -1) / (data_numpy * a * np.cos(flip_angle_radians) - 1)

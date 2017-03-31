@@ -20,3 +20,8 @@ def copy_files(infolder, outfolder, name, duplicate=True):
                 copy(file, outfolder)
             else:
                 move(file, outfolder)
+
+def human_sort():
+
+    """ TODO: make alphanumeric sorting function that also sorts numbers
+    """
