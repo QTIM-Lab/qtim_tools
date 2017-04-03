@@ -404,22 +404,24 @@ def get_arbitrary_axis_slice(image_numpy, axis_notation=[':',':',0]):
     for individual_axis in axis_notation:
 
         if individual_axis == ':':
-            image_slice += [slice(none)]
-        elif isinstance(individual_axis, 'str'):
+            image_slice += [slice(None)]
+        elif isinstance(individual_axis, str):
             print 'Invalid slice notation for get_arbitrary_axis_slice. Returning original array.'
             return image_numpy
-        elif not isinstance(individual_axis, 'int'):
+        elif individual_axis is list:
             if len(individual_axis) == 2:
                 image_slice += [slice(individual_axis[0], individual_axis[1])]
             else:
                 print 'Invalid slice notation for get_arbitrary_axis_slice. Returning original array.'
                 return image_numpy
         else:
-            image_slice += [slice(individual_axis)]
+            image_slice += [individual_axis]
 
-    image_slice = np.squeeze(image[image_slice])
+    image_slice = image_numpy[image_slice]
 
-def extract_maximal_slice_3d(image_numpy, label_numpy='', mode='max_intensity', axis=2):
+    return image_slice
+
+def extract_maximal_slice_3d(image_numpy, label_numpy='', mode='max_intensity', axis=2, mask_value=0, reduce_dimension=False):
 
     """ Extracts one slice from a presumably 3D volume. Either take the slice whose label
         has the greatest area (mode='max_label'), or whos sum of voxels has the greatest 
@@ -432,13 +434,18 @@ def extract_maximal_slice_3d(image_numpy, label_numpy='', mode='max_intensity', 
         flattened_image = np.sum(image_numpy, axis=sum_dimensions)
     elif mode == 'max_label':
         flattened_image = np.sum(label_numpy, axis=sum_dimensions)
+    elif mode == 'non_mask':
+        flattened_image = (image_numpy != mask_value).sum(axis=sum_dimensions)
     else:
         print 'Invalid mode entered to extract_maximal_slice_3d. Returning original array..'
         return image_numpy
 
     # TODO: Put in support for 
     highest_slice_index = np.argmax(flattened_image)
-    highest_slice_index = highest_slice_index[0]
+    try:
+        highest_slice_index = highest_slice_index[0]
+    except:
+        pass
 
     extract_slice = [':'] * image_numpy.ndim
     extract_slice[axis] = highest_slice_index

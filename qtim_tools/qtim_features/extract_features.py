@@ -28,7 +28,7 @@ from functools import partial
 
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
 
-def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", set_label='', decisions=False, levels=255, normalize_intensities=True,mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
+def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", set_label='',  levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0,0,0], mode="whole_volume", filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
 
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -56,7 +56,7 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
                 print '\n'
                 print 'Pre-processing data...'
 
-                image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, set_label=set_label, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode)
+                image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, set_label=set_label, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode, mode=mode)
                 
                 if image_list == []:
                     if write_empty:
@@ -102,7 +102,7 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
     if return_output:
         return final_output
 
-def generate_feature_list_single(vol_filename, features=['GLCM', 'morphology', 'statistics'], labels=False, label_filename='',label_suffix="-label", decisions=False, levels=255, filenames=True, featurenames=True, outfile='', overwrite=True, write_empty=True, mask_value=0, test=False, use_labels=[-1], erode=0):
+def generate_feature_list_single(vol_filename, features=['GLCM', 'morphology', 'statistics'], labels=False, label_filename='',label_suffix="-label",  levels=255, filenames=True, featurenames=True, outfile='', overwrite=True, write_empty=True, mask_value=0, test=False, use_labels=[-1], erode=0):
     
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -125,7 +125,7 @@ def generate_feature_list_single(vol_filename, features=['GLCM', 'morphology', '
 
     return final_output
 
-def generate_feature_list_parallel(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", decisions=False, levels=255, mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False, processes=1):
+def generate_feature_list_parallel(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label",  levels=255, mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False, processes=1):
 
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -342,7 +342,7 @@ def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suff
 
     return [imagepaths, label_images]
 
-def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_label='', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0):
+def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_label='', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0, mode="whole_volume"):
 
     image_list = []
     unmodified_image_list = []
@@ -394,22 +394,19 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
 
             for masked_image in masked_images:
 
-                # nifti_util.check_tumor_histogram(masked_image, second_image_numpy=image, mask_value=mask_value, image_name = str.split(imagepath, '\\')[-1])
-                # nifti_util.check_image_2d(masked_image, mode="maximal_slice")
-
                 unmodified_image_list += [np.copy(masked_image)]
 
                 masked_image = nifti_util.coerce_levels(masked_image, levels=levels, reference_image=image, method="divide", mask_value=mask_value)
-
-                # nifti_util.check_image_2d(masked_image, mode="maximal_slice")
 
                 # It would be nice in the future to check if an image is too small to erode. Maybe a minimum-size parameter?
                 # Or maybe a "maximum volume reduction by erosion?" Hmm..
                 masked_image = nifti_util.erode_label(masked_image, iterations=erode)
 
-                # nifti_util.check_image_2d(masked_image, mode="maximal_slice")
-
-                image_list += [masked_image]
+                # This is very ineffecient. TODO: Restructure this section.
+                if mode == "maximal_slice":
+                    image_list += [nifti_util.extract_maximal_slice_3d(masked_image, mode='non_mask')[:,:,np.newaxis]]
+                else:
+                    image_list += [masked_image]
 
             if set_label == '':
                 filename = str.split(label_path, '\\')[-1]
@@ -567,7 +564,9 @@ def test():
     # If overwrite is False, then the program will try to save to the chosen filename with '_copy' appended if the chosen filename already exists.
     overwrite = True
 
-    generate_feature_list_batch(folder=test_folder, features=features, labels=labels, levels=levels, outfile=outfile, mask_value=mask_value, erode=erode, overwrite=overwrite)
+    generate_feature_list_batch(folder=test_folder, features=features, labels=labels, levels=levels, outfile=outfile, mask_value=mask_value, erode=erode, overwrite=overwrite, mode="maximal_slice")
+
+    print 'new test now'
 
 def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels = 100, mask_value = 0, erode = [0,0,0], overwrite = True, label_suffix='-label', set_label='', file_regex='*.nii*', recursive=False):
     generate_feature_list_batch(folder=folder, outfile=outfile, labels=labels, features=features, levels=levels, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix, set_label=set_label, file_regex=file_regex, recursive=recursive)
