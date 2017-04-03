@@ -5,8 +5,8 @@ from os import path
 # with open(path.join('./', 'README.md'), encoding='utf-8') as f:
     # long_description = f.read()
 
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
+#with open('requirements.txt') as f:
+#    required = f.read().splitlines()
 
 setup(
   name = 'qtim_tools',
@@ -17,8 +17,8 @@ setup(
   author = 'Andrew Beers',
   author_email = 'abeers@mgh.harvard.edu',
   url = 'https://github.com/QTIM-Lab/qtim_tools', # use the URL to the github repo
-  download_url = 'https://github.com/QTIM-Lab/qtim_tools/tarball/0.1.11', # I'll explain this in a second
+  download_url = 'https://github.com/QTIM-Lab/qtim_tools/tarball/0.1.11',
   keywords = ['neuroimaging', 'niftis', 'nifti','mri','dce','dsc','ktrans','ve','tofts','machine learning','vision','texture','learning'], # arbitrary keywords
-  install_requires=required,
+  install_requires=['nibabel','pydicom','pynrrd','matplotlib','numpy','scipy'],
   classifiers = [],
 )

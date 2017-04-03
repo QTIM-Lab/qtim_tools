@@ -8,6 +8,9 @@ before_install:
 install:
   - pip install .
 
+notifications:
+  slack: qtim:jp1UTPVP5wscM2R6eyFHJIb4
+
 # command to run tests
 script: 
   - "python ./upkeep/qtim_test_master.py"

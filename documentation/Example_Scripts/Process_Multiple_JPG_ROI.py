@@ -11,7 +11,7 @@ import glob
 import os
 import re
 
-def Convert_JPG_ROI_2_Nifti(roi_folder, original_folder, output_nifti, output_nifti_label, ROI_color_range=[[100,300],[0,100],[0,100]]):
+def Convert_JPG_ROI_2_Nifti(roi_folder, original_folder, output_nifti, output_nifti_label, ROI_color_range=[[200,300],[0,100],[0,100]]):
 
     original_dicom_dict = get_dicom_dictionary(original_folder)
 
@@ -30,10 +30,7 @@ def Convert_JPG_ROI_2_Nifti(roi_folder, original_folder, output_nifti, output_ni
     nifti_volume = save_numpy_2_nifti_no_reference(original_numpy_data)
     nifti_label = save_numpy_2_nifti_no_reference(roi_numpy_data)
 
-    print nifti_volume.header['pixdim']
-    print spacing
-    nifti_volume.header['pixdim'][1:4] = spacing
-    print nifti_volume.header['pixdim']    
+    nifti_volume.header['pixdim'][1:4] = spacing  
     nifti_label.header['pixdim'][1:4] = spacing
 
     nib.save(nifti_volume, output_nifti)
@@ -51,7 +48,7 @@ def Extract_Features_From_Folder(input_folder, input_label, output_csv):
 def Full_Pipeline(roi_folder, original_folder, output_nifti, output_nifti_label, feature_input_folder, output_features):
 
     Convert_JPG_ROI_2_Nifti(roi_folder, original_folder, output_nifti, output_nifti_label)
-    # Extract_Features_From_Folder(feature_input_folder, output_nifti_label, output_features)
+    Extract_Features_From_Folder(feature_input_folder, output_nifti_label, output_features)
 
 def sort_human(l):
     convert = lambda text: float(text) if text.isdigit() else text
@@ -61,12 +58,12 @@ def sort_human(l):
 
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("--in_roi", "--roi_folder", dest="roi_folder", help="Volume to be transformed")
-    parser.add_option("--in_original", "--original_folder", dest="original_folder", help="Transform to apply")
-    parser.add_option("--out_nifti", "--output_nifti", dest="output_nifti", help="Output File")
-    parser.add_option("--out_label", "--output_nifti_label", dest="output_nifti_label", help="Output File")
-    parser.add_option("--in_features", "--feature_folder", dest="feature_input_folder", help="Output File")
-    parser.add_option("--out_features", "--output_features_csv", dest="output_features", help="Output File")
+    parser.add_option("--in_roi", "--roi_folder", dest="roi_folder", help="Folder containing JPG Segmentations to be translated into Nifti files")
+    parser.add_option("--in_original", "--original_folder", dest="original_folder", help="Folder containing original DICOM files.")
+    parser.add_option("--out_nifti", "--output_nifti", dest="output_nifti", help="Output Nifti file converted from the original DICOM files")
+    parser.add_option("--out_label", "--output_nifti_label", dest="output_nifti_label", help="Output segmentation file converted from the JPG files")
+    parser.add_option("--in_features", "--feature_folder", dest="feature_input_folder", help="Input folder for feature extraction")
+    parser.add_option("--out_features", "--output_features_csv", dest="output_features", help="Output csv file for feature extraction")
     (options, args) = parser.parse_args()
     Full_Pipeline(options.roi_folder, options.original_folder, options.output_nifti, options.output_nifti_label, options.feature_input_folder, options.output_features)
 
