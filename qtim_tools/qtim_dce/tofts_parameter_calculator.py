@@ -8,7 +8,7 @@ from __future__ import division
 # Import nifti_util. It only fails if this is script is not loaded as a package, which it should be.
 
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti, nifti_2_numpy
-from dce_util import convert_intensity_to_concentration, parker_model_AIF
+from dce_util import convert_intensity_to_concentration, parker_model_AIF, generate_AIF
 
 from functools import partial
 import numpy as np
@@ -230,59 +230,6 @@ def preprocess_dce(image_numpy=[], gaussian_blur=0, gaussian_blur_axis=-1):
     else:
         return image_numpy
 
-def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=[], AIF_label_numpy=[], AIF_value_data=[], AIF_mode='label_average', dimension=4, AIF_label_value=1):
-
-    """ This function attempts to create AIFs both from 2D and 3D ROIs, or reroutes to population AIFs.
-    """
-
-    # It's not clear how to draw labels for 2-D DCE phantoms. For now, I assume that people draw their label at time-point zero.
-
-    if AIF_mode == 'label_average':
-        if image_numpy != []:
-            if AIF_label_numpy != []:
-
-                AIF_subregion = np.nan_to_num(np.copy(image_numpy))
-
-                if dimension == 3:
-
-                    # Acquiring label mask...
-                    label_mask = (AIF_label_numpy[:,:,0] != AIF_label_value)
-
-                    # Reshaped for array broadcasting purposes...
-                    label_mask = label_mask.reshape((AIF_label_numpy.shape[0:-1] + (1,)))
-
-                    # Making use of numpy's confusing array tiling dynamic to mask all time points with the label...
-                    masked_AIF_subregion = np.ma.array(AIF_subregion, mask=np.tile(label_mask, (1,)*(dimension-1) + (AIF_subregion.shape[-1],)))
-
-                    # Reshaping for ease of calculating the mean...
-                    masked_AIF_subregion = np.reshape(masked_AIF_subregion, (np.product(masked_AIF_subregion.shape[0:-1]), masked_AIF_subregion.shape[-1]))
-
-                    AIF = masked_AIF_subregion.mean(axis=0, dtype=np.float64)
-                    return AIF
-
-                elif dimension == 4:
-                    label_mask = (AIF_label_numpy != AIF_label_value)
-                    broadcast_label_mask = np.repeat(label_mask[:,:,:,np.newaxis], AIF_subregion.shape[-1], axis=3)
-                    masked_AIF_subregion = np.ma.masked_array(AIF_subregion, mask=broadcast_label_mask)             
-                    masked_AIF_subregion = np.reshape(masked_AIF_subregion, (np.product(masked_AIF_subregion.shape[0:-1]), masked_AIF_subregion.shape[-1]))
-                    AIF = masked_AIF_subregion.mean(axis=0, dtype=np.float64)
-                    return AIF
-                else:
-                    print 'Error: too many or too few dimensions to calculate AIF currently. Unable to calculate AIF.'
-                    return []
-            else:
-                'Error: no AIF label detected. Unable to calculate AIF.'
-                return []
-        else:
-            print 'No image provided to AIF function. Set AIF_mode to \'population\' to use a population AIF. Unable to calculate AIF.'
-            return []
-
-    if AIF_mode == 'population':
-        AIF = parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy)
-        return AIF
-
-    return []
-
 def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, image=[], label_image=[], mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve'], processes=1):
 
     """ This function sets up parallel processing. Until this function is reimplemented in Cython, paralell processing
@@ -437,6 +384,9 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
 
 
+    """ Currently non-functional, although has not been tested since original writing. Meant to process DCE images in batch.
+    """
+
     suffix_exclusion_regex = []
     for suffix in label_suffix, T1_map_suffix, AIF_label_suffix, AIF_value_suffix:
         if suffix != []:
@@ -462,8 +412,8 @@ def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000,
 
 def test_method_2d():
     # print 'hello'
-    # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
-    filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/gradient_toftsv6.nii'
+    filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
+    # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/gradient_toftsv6.nii'
     # filepath = 'C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v9_5SNR.nii'
     # filepath = 'C:/Users/abeers/Documents/GitHub/Public_QTIM/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz'
 

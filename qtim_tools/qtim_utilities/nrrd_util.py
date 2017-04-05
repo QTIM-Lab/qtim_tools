@@ -28,4 +28,5 @@ def nrrd_2_numpy(input_nrrd, return_header=False):
 	else:
 		return nrrd_data
 
-
+def save_numpy_2_nrrd(input_numpy, reference_nrrd=[], output_filepath=''):
+    return

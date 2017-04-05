@@ -4,6 +4,7 @@
 from __future__ import division
 
 from ..qtim_utilities import nifti_util
+from multiprocessing import freeze_support
 
 import numpy as np
 import nibabel as nib
@@ -167,7 +168,7 @@ def convert_intensity_to_concentration(data_numpy, T1_tissue, TR, flip_angle_deg
         output_numpy = output_numpy / (1-hematocrit)
         return output_numpy
 
-def estimate_concentration(params, contrast_AIF_numpy, time_interval):
+def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
 
     # Notation is very inexact here. Clean it up later.
 
@@ -177,18 +178,19 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval):
 
     append = estimated_concentration.append
     e = math.e
+    time_series = np.arange(0, contrast_AIF_numpy.size) / (60 / time_interval_minutes)
 
     ktrans = params[0]
     ve = params[1]
     kep = ktrans / ve
 
-    log_e = -1 * kep * time_interval
+    log_e = -1 * kep * time_interval_minutes
     capital_E = e**log_e
     log_e_2 = log_e**2
 
     block_A = (capital_E - log_e - 1)
     block_B = (capital_E - (capital_E * log_e) - 1)
-    block_ktrans = ktrans * time_interval / log_e_2
+    block_ktrans = ktrans * time_interval_minutes / log_e_2
 
     for i in xrange(1, np.size(contrast_AIF_numpy)):
         term_A = contrast_AIF_numpy[i] * block_A
@@ -197,9 +199,9 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval):
 
     # Quick, error prone convolution method
     # print estimated_concentration
-        # res = np.exp(-1*kep*time_series)
-        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
-        # estimated_concentration = estimated_concentration[0:np.size(res)]
+    # res = np.exp(-1*kep*time_series)
+    # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
+    # estimated_concentration = estimated_concentration[0:np.size(res)]
 
     return estimated_concentration
 
@@ -217,8 +219,6 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
     flip_angle_radians = flip_angle_degrees*np.pi/180
     a = np.exp(-1 * TR * R1_pre)
     relative_term = (1-a) / (1-a*np.cos(flip_angle_radians))
-
-    print [flip_angle_radians, a, relative_term]
 
     if len(reference_data_numpy.shape) == 1:
         baseline = np.mean(reference_data_numpy[0:int(np.round(injection_start_time_seconds/time_interval_seconds))])
@@ -242,6 +242,59 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
     ###
 
     return data_numpy
+
+def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=[], AIF_label_numpy=[], AIF_value_data=[], AIF_mode='label_average', dimension=4, AIF_label_value=1):
+
+    """ This function attempts to create AIFs both from 2D and 3D ROIs, or reroutes to population AIFs.
+    """
+
+    # It's not clear how to draw labels for 2-D DCE phantoms. For now, I assume that people draw their label at time-point zero.
+
+    if AIF_mode == 'label_average':
+        if image_numpy != []:
+            if AIF_label_numpy != []:
+
+                AIF_subregion = np.nan_to_num(np.copy(image_numpy))
+
+                if dimension == 3:
+
+                    # Acquiring label mask...
+                    label_mask = (AIF_label_numpy[:,:,0] != AIF_label_value)
+
+                    # Reshaped for array broadcasting purposes...
+                    label_mask = label_mask.reshape((AIF_label_numpy.shape[0:-1] + (1,)))
+
+                    # Making use of numpy's confusing array tiling dynamic to mask all time points with the label...
+                    masked_AIF_subregion = np.ma.array(AIF_subregion, mask=np.tile(label_mask, (1,)*(dimension-1) + (AIF_subregion.shape[-1],)))
+
+                    # Reshaping for ease of calculating the mean...
+                    masked_AIF_subregion = np.reshape(masked_AIF_subregion, (np.product(masked_AIF_subregion.shape[0:-1]), masked_AIF_subregion.shape[-1]))
+
+                    AIF = masked_AIF_subregion.mean(axis=0, dtype=np.float64)
+                    return AIF
+
+                elif dimension == 4:
+                    label_mask = (AIF_label_numpy != AIF_label_value)
+                    broadcast_label_mask = np.repeat(label_mask[:,:,:,np.newaxis], AIF_subregion.shape[-1], axis=3)
+                    masked_AIF_subregion = np.ma.masked_array(AIF_subregion, mask=broadcast_label_mask)             
+                    masked_AIF_subregion = np.reshape(masked_AIF_subregion, (np.product(masked_AIF_subregion.shape[0:-1]), masked_AIF_subregion.shape[-1]))
+                    AIF = masked_AIF_subregion.mean(axis=0, dtype=np.float64)
+                    return AIF
+                else:
+                    print 'Error: too many or too few dimensions to calculate AIF currently. Unable to calculate AIF.'
+                    return []
+            else:
+                'Error: no AIF label detected. Unable to calculate AIF.'
+                return []
+        else:
+            print 'No image provided to AIF function. Set AIF_mode to \'population\' to use a population AIF. Unable to calculate AIF.'
+            return []
+
+    if AIF_mode == 'population':
+        AIF = parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy)
+        return AIF
+
+    return []
 
 # def create_4d_from_3d(filepath, stacks=5):
 

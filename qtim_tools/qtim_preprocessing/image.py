@@ -1,7 +1,5 @@
-""" A series of functions created to take an ROI from a jpg of a single slice with a red outline, transform that ROI
-    into a Nifti file, and extract features from that Nifti file. Requires some manual configuration for finding the
-    slice number and orientation of the original JPG image. Requires the package qtim_tools for feature extraction --
-    install with "pip install qtim_tools". Requires the program 3D Slicer for registration of different volumes.
+""" This preprocessing module is a little vague. As currently construed, it is meant to
+    work on images received in .PNG, .JPG format, etc.
 """
 
 import numpy as np
