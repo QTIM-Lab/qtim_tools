@@ -21,7 +21,13 @@ def copy_files(infolder, outfolder, name, duplicate=True):
             else:
                 move(file, outfolder)
 
-def human_sort():
+def human_sort(l):
 
-    """ TODO: make alphanumeric sorting function that also sorts numbers
+    """ Stolen from Stack Exchange. Sorts alphabetically, but also numerically. How?
+        who knows.. Maybe it doesn't even work.
     """
+
+    convert = lambda text: float(text) if text.isdigit() else text
+    alphanum = lambda key: [ convert(c) for c in re.split('([-+]?[0-9]*\.?[0-9]*)', key) ]
+    l.sort( key=alphanum )
+    return l

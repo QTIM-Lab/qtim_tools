@@ -3,6 +3,8 @@
 	these methods.
 """
 
+import numpy as np
+
 def zero_mean_unit_variance(input_numpy=[], input_nifti=[], mask_numpy=[], mask_nifti=[], output_filename=[]):
 
     """ Normalization to zero mean and unit variance. Helpful preprocessing for deep learning
@@ -13,18 +15,19 @@ def zero_mean_unit_variance(input_numpy=[], input_nifti=[], mask_numpy=[], mask_
 
     if input_numpy == []:
         input_numpy = nifti_2_numpy(input_nifti)
-    is mask_numpy == [] and mask_nifti != []:
+    if mask_numpy == [] and mask_nifti != []:
         mask_numpy = nifti_2_numpy(mask_nifti)
 
     if mask_numpy == []:
         vol_mean = np.mean(normalize_numpy)
-        vol_std = np.std(normalize_numpy)           
+        vol_std = np.std(normalize_numpy)
+        input_numpy = (input_numpy - vol_mean) / vol_std        
     else:
+        masked_numpy = np.ma.masked_where(mask_numpy == 0, input_numpy)
+        vol_mean = np.ma.mean(masked_numpy)
+        vol_std = np.ma.std(masked_numpy)
+        input_numpy = (masked_numpy - vol_mean) / vol_std
         input_numpy[mask_numpy == 0] = 0
-        vol_mean = np.mean(input_numpy[mask_numpy > 0])
-        vol_std = np.std(input_numpy[mask_numpy > 0])
-
-    input_numpy = (input_numpy - vol_mean) / vol_std
 
     if output_filename != []:
         save_numpy_2_nifti(input_numpy, normalize_volume, output_filename)
@@ -32,4 +35,4 @@ def zero_mean_unit_variance(input_numpy=[], input_nifti=[], mask_numpy=[], mask_
         return input_numpy
 
 if __name__ == '__main__':
-	pass()
+	pass
