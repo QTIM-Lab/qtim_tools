@@ -77,12 +77,13 @@ import os
 #         Thread.join(self)
 #         return self.__output_image
 
-def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=[]):
+def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=[], timepoints=0):
 
     """ Creates and AIF of a set duration and with a set bolus arrival time using the Parker model.
     """ 
 
-    timepoints = image_numpy.shape[-1]
+    if timepoints == 0:
+        timepoints = image_numpy.shape[-1]
     AIF = np.zeros(timepoints)
 
     bolus_time = int(np.ceil((injection_start_time_seconds / scan_time_seconds) * timepoints))
@@ -205,7 +206,7 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
 
     return estimated_concentration
 
-def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = []):
+def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = [], static_baseline=-1):
 
     # Note that this function currently has a broken section.
     # Add functionality for a static baseline T1 i.e. reference_dat
@@ -220,18 +221,21 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
     a = np.exp(-1 * TR * R1_pre)
     relative_term = (1-a) / (1-a*np.cos(flip_angle_radians))
 
-    if len(reference_data_numpy.shape) == 1:
-        baseline = np.mean(reference_data_numpy[0:int(np.round(injection_start_time_seconds/time_interval_seconds))])
-        baseline = np.tile(baseline, reference_data_numpy.shape[-1])
-    if len(reference_data_numpy.shape) == 2:
-        baseline = np.mean(reference_data_numpy[:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=1)
-        baseline = np.tile(np.reshape(baseline, (baseline.shape[0], 1)), (1,reference_data_numpy.shape[-1]))
-    if len(reference_data_numpy.shape) == 3:
-        baseline = np.mean(reference_data_numpy[:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=2)
-        baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1], 1)), (1,1,reference_data_numpy.shape[-1]))        
-    if len(reference_data_numpy.shape) == 4:
-        baseline = np.mean(reference_data_numpy[:,:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=3)
-        baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1],baseline.shape[2], 1)), (1,1,1,reference_data_numpy.shape[-1]))
+    if static_baseline == -1:
+        if len(reference_data_numpy.shape) == 1:
+            baseline = np.mean(reference_data_numpy[0:int(np.round(injection_start_time_seconds/time_interval_seconds))])
+            baseline = np.tile(baseline, reference_data_numpy.shape[-1])
+        if len(reference_data_numpy.shape) == 2:
+            baseline = np.mean(reference_data_numpy[:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=1)
+            baseline = np.tile(np.reshape(baseline, (baseline.shape[0], 1)), (1,reference_data_numpy.shape[-1]))
+        if len(reference_data_numpy.shape) == 3:
+            baseline = np.mean(reference_data_numpy[:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=2)
+            baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1], 1)), (1,1,reference_data_numpy.shape[-1]))        
+        if len(reference_data_numpy.shape) == 4:
+            baseline = np.mean(reference_data_numpy[:,:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=3)
+            baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1],baseline.shape[2], 1)), (1,1,1,reference_data_numpy.shape[-1]))
+    else:
+        baseline = static_baseline
 
 
 
