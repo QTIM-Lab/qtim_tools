@@ -11,6 +11,7 @@ from ..qtim_utilities.nifti_util import nifti_2_numpy, save_numpy_2_nifti
 from subprocess import call
 from shutil import copy
 from scipy import misc, ndimage
+from skimage import measure
 
 def fill_in_convex_outline(filepath, output_file=[], reference_nifti=[], color_threshold_limits = [[100,300],[0,100],[0,100]] , output_label_num=1,):
 
@@ -36,6 +37,9 @@ def fill_in_convex_outline(filepath, output_file=[], reference_nifti=[], color_t
         misc.imsave(output_file, label_nifti*255)
     else:
         save_numpy_2_nifti(label_nifti, reference_nifti, output_file)
+
+def split_islands():
+    pass
 
 if __name__ == "__main__":
 
