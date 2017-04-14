@@ -63,5 +63,5 @@ def convert_input_2_numpy(input_data, input_format=[]):
     else:
         return input_data
 
-def save_numpy_2_file(input, output_format):
+def save_numpy_2_file(input, output_filename, reference_file=[], output_format=[]):
     return
