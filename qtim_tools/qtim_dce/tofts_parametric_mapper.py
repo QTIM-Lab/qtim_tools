@@ -361,7 +361,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         auc = trapz(observed_concentration)
 
         # with timewith('concentration estimator') as timer:
-        initial_fitting_function_parameters = [.3,.1]        
+        initial_fitting_function_parameters = [.01,.1]        
         result_params, fopt, iterations, funcalls, warnflag, allvecs = scipy.optimize.fmin(cost_function, initial_fitting_function_parameters, disp=0, ftol=1e-14, xtol=1e-8, full_output = True, retall=True)
 
         ktrans = result_params[0]
@@ -374,10 +374,10 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         output_image[index + (2,)] = auc
 
     # These masking values are arbitrary and will likely differ between AIFs. TODO: Figure out a way to reconcile that.
-    # output_image[...,1][output_image[...,0] < .05] = 0
-    # output_image[...,2][abs(output_image[...,2]) > 1e6] = 0
-    # output_image[...,0][output_image[...,0] > .95*ktransmax] = 0
-    # output_image[...,1][output_image[...,1] > .98] = 0
+    output_image[...,1][output_image[...,0] < .05] = 0
+    output_image[...,2][abs(output_image[...,2]) > 1e6] = 0
+    output_image[...,0][output_image[...,0] > .95*ktransmax] = 0
+    output_image[...,1][output_image[...,1] > .99] = 0
 
     return output_image
 

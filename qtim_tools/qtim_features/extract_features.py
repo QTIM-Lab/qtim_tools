@@ -457,6 +457,9 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
         print 'Warning: image is empty, either because it could not survive erosion or because of another error. It will be skipped.'
         return numerical_output
 
+    glcm_image = np.copy(image)
+    glcm_image = glcm_image.astype(int)
+
     for feature_idx, feature in enumerate(features):
 
         if feature == 'GLCM':
@@ -464,8 +467,6 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
             # nifti_util.check_tumor_histogram(image, mask_value)
             # nifti_util.check_image_2d(image, mode="maximal_slice")
 
-            glcm_image = np.copy(image)
-            glcm_image = glcm_image.astype(int)
             levels += 1
             print 'Calculating GLCM...'
             numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = GLCM.glcm_features(glcm_image, levels=levels)

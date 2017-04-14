@@ -1,3 +1,7 @@
+""" Various string and file utilties will be contained
+    in this module.
+"""
+
 import os
 import glob
 
@@ -24,7 +28,7 @@ def copy_files(infolder, outfolder, name, duplicate=True):
 def human_sort(l):
 
     """ Stolen from Stack Exchange. Sorts alphabetically, but also numerically. How?
-        who knows.. Maybe it doesn't even work.
+        who knows.. Maybe it doesn't even work. TODO: test it.
     """
 
     convert = lambda text: float(text) if text.isdigit() else text

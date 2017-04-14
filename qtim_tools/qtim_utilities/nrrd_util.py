@@ -20,7 +20,6 @@ def nrrd_2_numpy(input_nrrd, return_header=False):
 	nrrd_data, nrrd_options = nrrd.read(input_nrrd)
 
 	if nrrd_data.ndim == 4:
-		print nrrd_data.shape
 		nrrd_data = np.rollaxis(nrrd_data, 0, 4)
 
 	if return_header:

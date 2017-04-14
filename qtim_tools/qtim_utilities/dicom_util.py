@@ -8,6 +8,7 @@ import numpy as np
 import os
 import glob
 import re
+from file_util import human_sort
 
 def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='name'):
 
@@ -33,12 +34,6 @@ def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='n
 
     return output_dictionary
 
-def sort_human(l):
-    convert = lambda text: float(text) if text.isdigit() else text
-    alphanum = lambda key: [ convert(c) for c in re.split('([-+]?[0-9]*\.?[0-9]*)', key) ]
-    l.sort( key=alphanum )
-    return l
-
 def dcm_2_numpy(filepath):
 
     """ Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it
@@ -55,7 +50,7 @@ def dcm_2_numpy(filepath):
     else:
         dicom_files = [filepath]
 
-    dicom_files = sort_human(dicom_files)
+    dicom_files = human_sort(dicom_files)
 
     output_numpy = np.zeros((dicom.read_file(dicom_files[0]).pixel_array.shape + (len(dicom_files),)), dtype=float)
     
