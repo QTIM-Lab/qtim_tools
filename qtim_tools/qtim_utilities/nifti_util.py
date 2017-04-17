@@ -1,4 +1,7 @@
 from __future__ import division
+
+from array_util import generate_identity_affine
+
 import numpy as np
 import nibabel as nib
 import os
@@ -31,14 +34,6 @@ def nifti_2_numpy(filepath):
 
     img = nib.load(filepath).get_data().astype(float)
     return img
-
-def generate_identity_affine():
-
-    """ A convenient function for generating an identity affine matrix. Can be
-        used for saving blank niftis.
-    """
-
-    return [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
 
 def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_path):
 
@@ -77,111 +72,6 @@ def save_numpy_2_nifti_no_reference(image_numpy, output_path=[]):
         return output_nifti
     else:
         nib.save(output_nifti, output_path)
-
-def get_intensity_range(image_numpy, percentiles=[.25,.75]):
-    intensity_range = [np.percentile(image_numpy, percentiles[0], interpolation="nearest"), np.percentile(image_numpy, percentiles[1], interpolation="nearest")]
-
-def histogram_normalization(image_numpy, mode='uniform'):
-
-    """ Move to preprocessing at some point?
-    """
-
-    return
-
-def match_array_orientation(image1, image2):
-
-    """ Flipping images and labels is often necessary, but also often
-        idiosyncratic to the two images being flipped. It's an open question
-        whether the flipping can be automatically determined. If it can, this
-        function will do it; if not, other parameters will have to be added by the user.
-        REMINDER: This will also have to change an image's origin, if that
-        image has any hope of being padded correctly in a subsequent step.
-
-        I'm a bit skeptical that it works now...
-
-        TODO this currently outputs nothing.
-    """
-
-    image1_nifti = nib.load(image1)
-    image2_nifti = nib.load(image2)
-
-    image1_array = image1_nifti.get_data()
-    image2_array = image2_nifti.get_data()
-
-    image1_orientation = [image1_nifti.affine[0,0], image1_nifti.affine[1,1], image1_nifti.affine[2,2]]
-    image2_orientation = [image2_nifti.affine[0,0], image2_nifti.affine[1,1], image2_nifti.affine[2,2]]
-
-    return
-
-def pad_nifti_image(image):
-
-    """ Many people store their label maps in Niftis with dimensions smaller
-        than the corresponding image. This is also that natural output of DICOM-SEG
-        nifti conversions. Padding these arrays with empty values so that they are
-        comparable requires knowledge of that image's origin.
-    """
-
-    return
-
-def mask_nifti(image_numpy, label_numpy, label_indices, mask_value=0):
-
-    masked_images = []
-
-    for idx in label_indices[1:]:
-        masked_image = np.copy(image_numpy)
-        masked_image[label_numpy != idx] = mask_value
-        masked_image = truncate_image(masked_image, mask_value)
-        masked_images += [masked_image]
-
-    return masked_images
-
-def truncate_image(image_numpy, mask_value=0):
-
-    """ Filed To: This Is So Stupid
-        There are better ways online to do what I am attempting,
-        but so far I have not gotten any of them to work. In the meantime,
-        this long and probably ineffecient code will suffice. It is
-        meant to remove empty rows from images.
-    """
-
-    dims = image_numpy.shape
-    truncate_range_x = [0,dims[0]]
-    truncate_range_y = [0,dims[1]]
-    truncate_range_z = [0,dims[2]]
-    start_flag = True
-
-    for x in xrange(dims[0]):
-        if (image_numpy[x,:,:] == mask_value).all():
-            if start_flag:
-                truncate_range_x[0] = x + 1
-        else:
-            start_flag = False
-            truncate_range_x[1] = x + 1
-
-    start_flag = True
-
-    for y in xrange(dims[1]):
-        if (image_numpy[:,y,:] == mask_value).all():
-            if start_flag:
-                truncate_range_y[0] = y + 1
-        else:
-            start_flag = False
-            truncate_range_y[1] = y + 1
-
-    start_flag = True
-
-    for z in xrange(dims[2]):
-        if (image_numpy[:,:,z] == mask_value).all():
-            if start_flag:
-                truncate_range_z[0] = z + 1
-        else:
-            start_flag = False
-            truncate_range_z[1] = z + 1
-
-    truncate_image_numpy = image_numpy[truncate_range_x[0]:truncate_range_x[1], truncate_range_y[0]:truncate_range_y[1], truncate_range_z[0]:truncate_range_z[1]]
-
-
-    return truncate_image_numpy
 
 def coerce_levels(image_numpy, levels=255, method="divide", reference_image = [], reference_norm_range = [.075, 1], mask_value=0, coerce_positive=True):
 
@@ -390,68 +280,6 @@ def check_image_2d(image_numpy, second_image_numpy=[], mode="cycle", step=1, mas
             fig = plt.figure()
             imgplot = plt.imshow(maximal[1], interpolation='none', aspect='auto')
             plt.show()
-
-def get_arbitrary_axis_slice(image_numpy, axis_notation=[':',':',0]):
-
-    """ Returns a slice of numpy array according to a custom axis notation. Often I want to
-        slice by an arbitrary, i.e. not pre-defined, axis. Unfortunately, you can't store the
-        slice ':' in a variable, and I dislike slice notation. Thus, this function replicates
-        slice notation in normal notation by letting you specify ':' with an actual string.
-    """
-
-    image_slice = []
-
-    for individual_axis in axis_notation:
-
-        if individual_axis == ':':
-            image_slice += [slice(None)]
-        elif isinstance(individual_axis, str):
-            print 'Invalid slice notation for get_arbitrary_axis_slice. Returning original array.'
-            return image_numpy
-        elif individual_axis is list:
-            if len(individual_axis) == 2:
-                image_slice += [slice(individual_axis[0], individual_axis[1])]
-            else:
-                print 'Invalid slice notation for get_arbitrary_axis_slice. Returning original array.'
-                return image_numpy
-        else:
-            image_slice += [individual_axis]
-
-    image_slice = image_numpy[image_slice]
-
-    return image_slice
-
-def extract_maximal_slice_3d(image_numpy, label_numpy='', mode='max_intensity', axis=2, mask_value=0, reduce_dimension=False):
-
-    """ Extracts one slice from a presumably 3D volume. Either take the slice whose label
-        has the greatest area (mode='max_label'), or whos sum of voxels has the greatest 
-        intensity (mode='max_intensity'), according to the provided axis variable.
-    """
-
-    sum_dimensions = range(0,image_numpy.ndim).pop(axis)
-
-    if mode == 'max_intensity':
-        flattened_image = np.sum(image_numpy, axis=sum_dimensions)
-    elif mode == 'max_label':
-        flattened_image = np.sum(label_numpy, axis=sum_dimensions)
-    elif mode == 'non_mask':
-        flattened_image = (image_numpy != mask_value).sum(axis=sum_dimensions)
-    else:
-        print 'Invalid mode entered to extract_maximal_slice_3d. Returning original array..'
-        return image_numpy
-
-    # TODO: Put in support for 
-    highest_slice_index = np.argmax(flattened_image)
-    try:
-        highest_slice_index = highest_slice_index[0]
-    except:
-        pass
-
-    extract_slice = [':'] * image_numpy.ndim
-    extract_slice[axis] = highest_slice_index
-
-    return get_arbitrary_axis_slice(image_numpy, extract_slice)
-
 
 def check_tumor_histogram(image_numpy, second_image_numpy=[], mask_value=0, image_name = ''):
 

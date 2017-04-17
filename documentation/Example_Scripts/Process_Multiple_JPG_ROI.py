@@ -1,6 +1,7 @@
 from qtim_tools.qtim_preprocessing.image import fill_in_convex_outline
 from qtim_tools.qtim_utilities.nifti_util import replace_slice, generate_identity_affine, save_numpy_2_nifti_no_reference
 from qtim_tools.qtim_utilities.dicom_util import get_dicom_dictionary, dcm_2_numpy
+from qtim_tools.qtim_utilities.array_util import generate_identity_affine
 from qtim_tools.qtim_features import extract_features
 
 from optparse import OptionParser

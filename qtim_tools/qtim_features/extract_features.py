@@ -13,6 +13,7 @@ import statistics
 
 
 from qtim_tools.qtim_utilities import nifti_util
+from ..qtim_utilities.array_util import truncate_image, split_image, extract_maximal_slice
 
 import sys, getopt
 import glob
@@ -101,178 +102,6 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
 
     if return_output:
         return final_output
-
-def generate_feature_list_single(vol_filename, features=['GLCM', 'morphology', 'statistics'], labels=False, label_filename='',label_suffix="-label",  levels=255, filenames=True, featurenames=True, outfile='', overwrite=True, write_empty=True, mask_value=0, test=False, use_labels=[-1], erode=0):
-    
-    total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
-
-    if outfile != '':
-        outfile = determine_outfile_name(outfile, overwrite)
-
-        with open(outfile, 'ab') as writefile:
-            csvfile = csv.writer(writefile, delimiter=',')
-            csvfile.writerow(label_output[0,:])
-            
-            numerical_output = np.zeros((1, total_features), dtype=float)
-            index_output = np.zeros((1, 1), dtype=object)
-
-            final_output = write_image_method(vol_filename, label_filename, csvfile, total_features, features, feature_indexes, numerical_output, index_output, labels=False, label_suffix='-label', levels=100, mask_value=0, use_labels=[-1], erode=0, write_empty=False)
-
-    print 'Feature writing complete, writing output...'
-    print '\n'
-
-    print final_output
-
-    return final_output
-
-def generate_feature_list_parallel(folder, features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label",  levels=255, mask_value=0, use_labels=[-1], erode=[0,0,0], filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False, processes=1):
-
-    total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
-
-    if outfile != '':
-        outfile = determine_outfile_name(outfile, overwrite)
-
-        if clear_file:
-            open(outfile, 'w').close()
-
-        imagepaths, label_images = generate_filename_list(folder, labels, label_suffix, recursive)
-        
-        numerical_output = np.zeros((1, total_features), dtype=float)
-        index_output = np.zeros((1, 1), dtype=object)
-
-        subunits = []
-        sublength = np.floor(len(imagepaths) / processes)
-
-        print 'Dividing data into ' + str(processes) + ' subgroups of length.. ' + str(int(sublength)) + ' units.'
-
-        for i in xrange(processes - 1):
-            subunits += [[imagepaths[int(i*sublength):int((i+1)*sublength)], label_images[int(i*sublength):int((i+1)*sublength)]]]
-
-        subunits += [[imagepaths[int((processes - 1)*sublength):], label_images[int((processes - 1)*sublength):]]]
-
-        subprocess = partial(generate_feature_list_chunk, total_features=total_features, feature_indexes=feature_indexes, label_output=label_output, features=features, labels=labels, label_suffix=label_suffix, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode, write_empty=write_empty, filenames=filenames)
-
-        optimization_pool = Pool(processes)
-        results = optimization_pool.map(subprocess, subunits)
-
-        output_data = label_output[0,:]
-        stitch_index = 0
-        for result in results:
-            output_data = np.vstack((output_data, result))
-
-    final_output = output_data
-
-    with open(outfile, 'wb') as writefile:
-        csvfile = csv.writer(writefile, delimiter=',')
-        for row in final_output:
-            csvfile.writerow(row)
-
-    print 'Feature writing complete, writing output...'
-    print '\n'
-
-    for row in final_output:
-        print row
-
-    if return_output:
-        return final_output
-
-def generate_feature_list_chunk(data, total_features, feature_indexes, label_output, features=['GLCM', 'morphology', 'statistics'], labels=False, label_suffix="-label", levels=255, mask_value=0, use_labels=[-1], erode=[0,0,0], write_empty=True, filenames=True):
-
-    imagepaths = data[0]
-    label_images = data[1]
-
-    numerical_output = np.zeros((1, total_features), dtype=float)
-    index_output = np.zeros((1, 1), dtype=object)
-    output_data = np.zeros((1, total_features + 1), dtype=object)
-
-
-    for imagepath in imagepaths:
-
-        print '\n'
-        print 'Pre-processing data...'
-
-        image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode)
-        
-        if image_list == []:
-            if write_empty:
-                empty_output = np.zeros((1, total_features + 1), dtype=object)
-                empty_output[0,0] = imagepath
-                output_data = np.vstack(output_data, empty_output)
-                continue
-
-        print 'Pre-processing complete!'
-
-        for image_idx, image in enumerate(image_list):
-
-            print ''
-            print 'Working on image...'
-            print imagename_list[image_idx]
-            print 'Voxel sum...'
-            print np.sum(image)
-            print 'Image shape...'
-            print image.shape
-
-            if filenames:
-                index = imagename_list[image_idx]
-            else:
-                index = numerical_output.shape[0]
-
-            if numerical_output[0,0] == 0:
-                numerical_output[0, :] = generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)
-                index_output[0,:] = index
-            else:
-                numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)))
-                index_output = np.vstack((index_output, index))
-
-            output_data = np.vstack((output_data, (np.hstack((index_output[-1,:], numerical_output[-1,:])))))
-
-    return output_data
-
-def write_image_method(imagepath, label_images, csvfile, total_features, features, feature_indexes, numerical_output, index_output, labels=False, label_suffix='-label', levels=100, mask_value=0, use_labels=[-1], erode=0, write_empty=False):
-
-    # This function is a bit clumsy. So many parameters..
-
-    print '\n'
-    print 'Pre-processing data...'
-
-    image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode)
-    
-    if image_list == []:
-        if write_empty:
-            empty_output = np.zeros((1, total_features + 1), dtype=object)
-            empty_output[0,0] = imagepath
-            print 'Writing empty row in place of missing data...'
-            csvfile.writerow(empty_output[0,:])
-
-    else:
-
-        print 'Pre-processing complete!'
-
-        for image_idx, image in enumerate(image_list):
-
-            print ''
-            print 'Working on image...'
-            print imagename_list[image_idx]
-            print 'Voxel sum...'
-            print np.sum(image)
-            print 'Image shape...'
-            print image.shape
-
-            if filenames:
-                index = imagename_list[image_idx]
-            else:
-                index = numerical_output.shape[0]
-
-            if numerical_output[0,0] == 0:
-                numerical_output[0, :] = generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)
-                index_output[0,:] = index
-            else:
-                numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=0)))
-                index_output = np.vstack((index_output, index))
-
-            csvfile.writerow(np.hstack((index_output[-1,:], numerical_output[-1,:])))
-    
-    return np.hstack((index_output, numerical_output))
 
 def determine_outfile_name(outfile, overwrite=True):
     
@@ -390,7 +219,8 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
             if use_labels[0] != -1:
                 label_indices = np.array([0] + [x for x in label_indices if x in use_labels])
 
-            masked_images = nifti_util.mask_nifti(image, label_image, label_indices, mask_value=mask_value)
+            split_images = split_image(image, label_image, label_indices, mask_value=mask_value)
+            masked_images = [truncate_image(x) for x in split_images]
 
             for masked_image in masked_images:
 
@@ -404,7 +234,7 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
 
                 # This is very ineffecient. TODO: Restructure this section.
                 if mode == "maximal_slice":
-                    image_list += [nifti_util.extract_maximal_slice_3d(masked_image, mode='non_mask')[:,:,np.newaxis]]
+                    image_list += [nifti_util.extract_maximal_slice(masked_image, mode='non_mask')[:,:,np.newaxis]]
                 else:
                     image_list += [masked_image]
 

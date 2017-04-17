@@ -22,6 +22,8 @@ def load_test_file(data, return_type="filepath", retrieval_type="local"):
         filepath = os.path.abspath(os.path.join(os.path.dirname(__file__),'test_data_dce','tofts_v9-label.nii.gz'))
     elif data == "dce_tofts_v9_aif":
         filepath = os.path.abspath(os.path.join(os.path.dirname(__file__),'test_data_dce','tofts_v9-AIF-label.nii.gz'))
+    elif data == "sample_mri":
+        filepath = os.path.abspath(os.path.join(os.path.dirname(__file__),'test_data_features','MRHead.nii.gz'))
     else:
         print 'There is no test data under this name. Returning an empty string.'
         return []

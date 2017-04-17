@@ -25,6 +25,9 @@ def copy_files(infolder, outfolder, name, duplicate=True):
             else:
                 move(file, outfolder)
 
+def grab_linked_file(input_filename, prefix="", suffix="", regex="", search_folder='', recursive=False, input_format='', output_format=''):
+    return
+
 def human_sort(l):
 
     """ Stolen from Stack Exchange. Sorts alphabetically, but also numerically. How?

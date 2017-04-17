@@ -6,8 +6,6 @@
 
 import nibabel as nib
 import numpy as np
-import nrrd
-from nifti_util import nifti_2_numpy, save_numpy_2_nifti
 
 def img_2_numpy(input_image):
     

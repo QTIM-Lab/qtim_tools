@@ -38,5 +38,13 @@ def zero_mean_unit_variance(input_volume, input_mask=[], output_filename=[]):
     else:
         return output_numpy
 
+
+def histogram_normalization(image_numpy, mode='uniform'):
+
+    """ TODO
+    """
+
+    return
+
 if __name__ == '__main__':
 	pass

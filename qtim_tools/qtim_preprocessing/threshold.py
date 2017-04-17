@@ -6,6 +6,9 @@ import numpy as np
 
 def crop_with_mask(input_numpy, mask_numpy, mask_value=0, replacement_value=0):
 
+    """ The simplest method of thresholding is cropping with a pre-defined mask.
+    """
+
     input_numpy[mask_numpy == mask_value] = replacement_value
 
     return input_numpy
