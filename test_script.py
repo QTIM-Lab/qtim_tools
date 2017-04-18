@@ -5,13 +5,14 @@
 import os
 import numpy as np
 import fnmatch
-import qtim_tools
+from shutil import copy
+# import qtim_tools
 
-from qtim_tools.qtim_utilities.nifti_util import nifti_2_numpy, save_numpy_2_nifti
-from qtim_tools.qtim_preprocessing.threshold import crop_with_mask
-from qtim_tools.qtim_preprocessing.normalization import zero_mean_unit_variance
-from qtim_tools.qtim_utilities.array_util import generate_rotation_affine, apply_affine
-from qtim_tools.test_data.load import load_test_file
+# from qtim_tools.qtim_utilities.nifti_util import nifti_2_numpy, save_numpy_2_nifti
+# from qtim_tools.qtim_preprocessing.threshold import crop_with_mask
+# from qtim_tools.qtim_preprocessing.normalization import zero_mean_unit_variance
+# from qtim_tools.qtim_utilities.array_util import generate_rotation_affine, apply_affine
+# from qtim_tools.test_data.load import load_test_file
 
 # file = 'C:/Users/abeers/Documents/GitHub/Public_QTIM/qtim_tools/qtim_tools/test_data/test_data_features/MRHead.nii.gz'
 # input_numpy = nifti_2_numpy(load_test_file('sample_mri'))
@@ -47,10 +48,22 @@ from qtim_tools.test_data.load import load_test_file
 
 # calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=3.8, TE=2.1, scan_time_seconds=(3*64), hematocrit=0.45, injection_start_time_seconds=24, flip_angle_degrees=25, label_file=ROI, label_suffix='-label', label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=AIF,  AIF_value_data=[], AIF_value_suffix=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2)
 
-folder = 'C:/Users/azb22/Documents/Junk/deepMedic_test/DeepMedic_Data'
+# folder = 'C:/Users/azb22/Documents/Junk/deepMedic_test/DeepMedic_Data'
+
+
+import os
+import numpy as np
+import fnmatch
+from shutil import copy
+
+folder = '/home/administrator/projects/deep_medic_branch/DeepMedic_Data'
+
+os.mkdir('./BRATS_Masks')
 
 for root, dirnames, filenames in os.walk(folder):
     for filename in fnmatch.filter(filenames, '*'):
-        if 'pp' not in filename:
-            os.remove(os.path.join(root, filename))
+        if 'MASK' in filename:
+            print root, os.path.basename(os.path.dirname(os.path.join(root, filename))), filename
+            os.mkdir(os.path.join('./BRATS_Masks', os.path.basename(os.path.dirname(os.path.join(root, filename))))
+            copy(os.path.join(root, filename), os.path.join(os.path.join('./BRATS_Masks', os.path.basename(os.path.dirname(os.path.join(root, filename))), filename))
 

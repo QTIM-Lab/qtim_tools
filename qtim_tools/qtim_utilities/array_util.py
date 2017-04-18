@@ -168,7 +168,9 @@ def generate_identity_affine():
 def generate_rotation_affine(axis=0, rotation_degrees=1):
 
     """ This function creates an affine transformation matrix with a set rotation at a set axis.
-        Code ripped from: https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+        Code ripped from: https://www.learnopencv.com/rotation-matrix-to-euler-angles/. Needs
+        added functionality to set a center point. There is a method available in OpenCV to
+        do this, but for now I am holding off on making OpenCV a requirement for qtim_tools.
     """
      
     rotation_radians = math.radians(rotation_degrees)
@@ -199,6 +201,12 @@ def generate_rotation_affine(axis=0, rotation_degrees=1):
 
 def generate_translation_affine(axis=0, translation_distance=10):
 
+    """ This function creates an affine transformation matrix with a set translation at a set axis.
+        Code ripped from: https://www.learnopencv.com/rotation-matrix-to-euler-angles/. Needs
+        added functionality to set a center point. There is a method available in OpenCV to
+        do this, but for now I am holding off on making OpenCV a requirement for qtim_tools.
+    """
+
     if axis == 0:
         return [[1,0,0,0],[0,1,0,0],[0,0,1,0],[translation_distance,0,0,1]]
     
@@ -212,18 +220,48 @@ def generate_translation_affine(axis=0, translation_distance=10):
         print 'Error, can only accept axes 0-2 as input to axis parameter.'
         return []
 
-def apply_affine(input_volume, affine_matrix):
+def apply_affine(input_volume, affine_matrix, method="python"):
 
-    input_numpy = convert_input_2_numpy(input_volume)
+    """ Provides methods for applying an affine matrix to a 3D volume. TODO:
+        extend this past 3D volumes. Also has a method to apply the matrix in
+        Slicer, if Slice is available. Slicer will be much faster, but requires
+        a special array format.
+    """
 
-    def affine_calculation(output_coords):
-        output_coords = output_coords + (0,)
-        return tuple(np.matmul(affine_matrix, np.array(output_coords))[:-1])
+    if method == 'python':
+
+        input_numpy = convert_input_2_numpy(input_volume)
+
+        def affine_calculation(output_coords):
+            output_coords = output_coords + (0,)
+            return tuple(np.matmul(affine_matrix, np.array(output_coords))[:-1])
+
+        return geometric_transform(input_numpy, affine_calculation)
+
+    elif method == 'slicer':
 
 
-    print affine_matrix.shape
+    else:
+        print 'Invalid method parameter. Returning []'
+        return []
 
-    return geometric_transform(input_numpy, affine_calculation)
+def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
+
+    """ Saves a numpy affine matrix to ITK format for use in other programs,
+        e.g. 3D Slicer. This method is not complete - there is a lot of mapping
+        to do from 
+    """
+
+    if output_format == "itk_affine":
+        f = open(output_filename, 'w')
+        f.write('#Insight Transform File V1.0')
+        f.write('Transform: AffineTransform_double_3_3')
+Parameters: 1 0 0 0 1 0 0 0 1 0 0 0
+FixedParameters: 0 0 0
+
+    else:
+        print 'Invalid output format. Returning []'
+        return []
 
 if __name__ == '__main__':
     pass
