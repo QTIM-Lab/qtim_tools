@@ -239,7 +239,7 @@ def apply_affine(input_volume, affine_matrix, method="python"):
         return geometric_transform(input_numpy, affine_calculation)
 
     elif method == 'slicer':
-
+        pass
 
     else:
         print 'Invalid method parameter. Returning []'
@@ -256,8 +256,8 @@ def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
         f = open(output_filename, 'w')
         f.write('#Insight Transform File V1.0')
         f.write('Transform: AffineTransform_double_3_3')
-Parameters: 1 0 0 0 1 0 0 0 1 0 0 0
-FixedParameters: 0 0 0
+# Parameters: 1 0 0 0 1 0 0 0 1 0 0 0
+# FixedParameters: 0 0 0
 
     else:
         print 'Invalid output format. Returning []'
