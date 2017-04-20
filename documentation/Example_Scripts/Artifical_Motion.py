@@ -47,7 +47,14 @@ def Generate_Head_Tilt(input_numpy, timepoint, duration):
     if timepoint + duration > input_numpy.shape[-1]:
         print 'Invalid timepoint, longer the the duration of the volume'
 
-def Add_White_Noise(input_filepath, noise_params=[20, ])
+def Add_White_Noise(input_filepath, output_filepath, noise_scale=1, noise_multiplier=10):
+
+    input_numpy = convert_input_2_numpy(input_filepath)
+
+    for t in xrange(input_numpy.shape[-1]):
+        input_numpy[..., t] = input_numpy[..., t] + np.random.normal(size=input_numpy[..., t].shape).reshape(input_numpy[..., t].shape) * 10
+
+    save_numpy_2_nifti(input_numpy, input_filepath, output_filepath)
 
 def Generate_Deformable_Motion(input_dimensions = (8,8,4), output_dimensions = (256,256,16), output_filepath="/home/abeers/Projects/DCE_Motion_Phantom/Deformable_Matrix", num_matrices = 65):
 
