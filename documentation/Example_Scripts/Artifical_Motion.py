@@ -47,7 +47,9 @@ def Generate_Head_Tilt(input_numpy, timepoint, duration):
     if timepoint + duration > input_numpy.shape[-1]:
         print 'Invalid timepoint, longer the the duration of the volume'
 
-def Generate_Deformable_Motion(input_dimensions = (8,8,4), output_dimensions = (256,256,16), output_filepath="Deformable_Matrix", num_matrices = 10):
+def Add_White_Noise(input_filepath, noise_params=[20, ])
+
+def Generate_Deformable_Motion(input_dimensions = (8,8,4), output_dimensions = (256,256,16), output_filepath="/home/abeers/Projects/DCE_Motion_Phantom/Deformable_Matrix", num_matrices = 65):
 
     zoom_ratio = []
     for i in xrange(len(input_dimensions)):
@@ -55,22 +57,27 @@ def Generate_Deformable_Motion(input_dimensions = (8,8,4), output_dimensions = (
 
     Deformable_Matrix = np.zeros((input_dimensions + (3,)), dtype=float)
 
+    output_dict = {}
+
+    Final_Deformation_Matrix = np.zeros((256,256,16,3,65), dtype=float)
+
     for i in xrange(num_matrices):
-        a, b = 4.5, 5.5
+        a, b = -5, 5
         Deformable_Matrix[...,0:2] = (b - a) * np.random.sample(input_dimensions + (2,)) + a
 
-        a, b = .9, 1.1
+        a, b = -1, 1
         Deformable_Matrix[...,2] = (b - a) * np.random.sample(input_dimensions) + a
 
         Large_Deformable_Matrix = zoom(Deformable_Matrix, zoom_ratio + [1], order=1)
-        Large_Deformable_Matrix = gaussian_filter(Large_Deformable_Matrix, sigma=1, order=1)
 
-        print Large_Deformable_Matrix.shape
+        Large_Deformable_Matrix[...,0:2] = gaussian_filter(Large_Deformable_Matrix[...,0:2], sigma=1)
+        Large_Deformable_Matrix[...,2] = gaussian_filter(Large_Deformable_Matrix[...,2], sigma=1)
 
-        output_dict = {}
-        output_dict['deformation_matrix_' + str(i)] = Large_Deformable_Matrix
+        Final_Deformation_Matrix[...,i] = Large_Deformable_Matrix
 
-        savemat(output_filepath + '_' + str(i) + '.mat', output_dict)
+    output_dict['deformation_matrix'] = Final_Deformation_Matrix
+
+    savemat(output_filepath, output_dict)
 
     return
 
