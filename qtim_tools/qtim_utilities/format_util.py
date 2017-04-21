@@ -11,6 +11,8 @@ from dicom_util import dcm_2_numpy
 # from nrrd_util import nrrd_2_numpy
 from image_util import img_2_numpy
 
+import nibabel as nib
+
 # This is magic code for Python 3 compatability. Of course
 # this package isn't Python 3 compatible, but why not start now.
 try:

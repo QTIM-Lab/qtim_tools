@@ -263,5 +263,20 @@ def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
         print 'Invalid output format. Returning []'
         return []
 
+def get_jacobian_determinant(input_volume):
+
+    input_numpy = convert_input_2_numpy(input_volume)
+
+    jacobian_output = np.zeros_like(input_numpy)
+
+    temp_jacobian = np.zeros((input_numpy.shape[0:-1] + (input_numpy.shape[-1],input_numpy.shape[-1])), dtype=float)
+
+
+    for r in xrange(input_numpy.shape[-1]):
+        for c in xrange(input_numpy.shape[-1]):
+            temp_jacobian[...,r,c] = np.gradient(input_numpy[..., c])[r]
+
+    return np.linalg.det(temp_jacobian)
+
 if __name__ == '__main__':
     pass
