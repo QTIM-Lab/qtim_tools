@@ -174,6 +174,7 @@ def generate_rotation_affine(axis=0, rotation_degrees=1):
     """
      
     rotation_radians = math.radians(rotation_degrees)
+    print rotation_radians
 
     if axis == 0:
         R = np.array([[1,0,0, 0],
@@ -254,10 +255,19 @@ def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
 
     if output_format == "itk_affine":
         f = open(output_filename, 'w')
-        f.write('#Insight Transform File V1.0')
-        f.write('Transform: AffineTransform_double_3_3')
-# Parameters: 1 0 0 0 1 0 0 0 1 0 0 0
-# FixedParameters: 0 0 0
+        f.write('#Insight Transform File V1.0 \n')
+        f.write('Transform: AffineTransform_double_3_3 \n')
+        
+        rotate_string = ''
+        translate_string = ''
+
+        for row in affine_matrix:
+            rotate_string = rotate_string + " ".join(map(str, row[:-1])) + ' '
+            translate_string = translate_string + str(row[-1]) + ' '
+        translate_string = translate_string[0:-2]
+
+        f.write('Parameters: ' + rotate_string + '\n')
+        f.write('FixedParameters: ' + translate_string + '\n')
 
     else:
         print 'Invalid output format. Returning []'
@@ -265,18 +275,35 @@ def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
 
 def get_jacobian_determinant(input_volume):
 
+    """ Takes in an vector-valued space, calculates that spaces gradients and jacobian matrices,
+        and returns a scalar-valued space with the jacobian determinants
+    """
+
     input_numpy = convert_input_2_numpy(input_volume)
 
     jacobian_output = np.zeros_like(input_numpy)
 
     temp_jacobian = np.zeros((input_numpy.shape[0:-1] + (input_numpy.shape[-1],input_numpy.shape[-1])), dtype=float)
 
-
     for r in xrange(input_numpy.shape[-1]):
         for c in xrange(input_numpy.shape[-1]):
             temp_jacobian[...,r,c] = np.gradient(input_numpy[..., c])[r]
 
     return np.linalg.det(temp_jacobian)
+
+def return_jacobian_matrix(input_volume, index):
+
+    input_numpy = convert_input_2_numpy(input_volume)
+
+    jacobian_output = np.zeros_like(input_numpy)
+
+    temp_jacobian = np.zeros((input_numpy.shape[0:-1] + (input_numpy.shape[-1],input_numpy.shape[-1])), dtype=float)
+
+    for r in xrange(input_numpy.shape[-1]):
+        for c in xrange(input_numpy.shape[-1]):
+            temp_jacobian[...,r,c] = np.gradient(input_numpy[..., c])[r]
+
+    return temp_jacobian[index[0],index[1],index[2], :,:]
 
 if __name__ == '__main__':
     pass
