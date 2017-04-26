@@ -107,7 +107,12 @@ def Add_White_Noise(input_filepath, output_filepath, noise_scale=1, noise_multip
 
     save_numpy_2_nifti(input_numpy, input_filepath, output_filepath)
 
-def Generate_Deformable_Motion(input_dimensions = (3,3,4), output_dimensions = (256,256,16), output_filepath="/home/abeers/Projects/DCE_Motion_Phantom/Deformable_Matrix", time_points = 65, deformation_scale=1):
+def rescale(x,min_value,value_range):
+    min_x = np.min(x)
+    y = min_value+value_range*(x-min_x)/np.ptp(x)
+    return y
+
+def Generate_Deformable_Motion(input_dimensions = (3,3,4), output_dimensions = (100,100,16), output_filepath="/home/abeers/Projects/DCE_Motion_Phantom/Deformable_Matrix", time_points = 65, deformation_scale=1):
 
     # Set the degree to which your original matrix should be upsampled.
     # Ideally, the input_dimensions should cleanly divide the output_dimensions.
@@ -122,15 +127,20 @@ def Generate_Deformable_Motion(input_dimensions = (3,3,4), output_dimensions = (
 
         # Random Initialization of Deformations
         # Calibrates to have a maximum of +/- 1mm displacement on sample DCE-MRIs
-        a, b = -5*deformation_scale, 5*deformation_scale
+        a, b = 0*deformation_scale, 5*deformation_scale
         Deformable_Matrix[...,0:2] = (b - a) * np.random.sample(input_dimensions + (2,)) + a
 
-        c, d = -1*deformation_scale, 1*deformation_scale
+        c, d = 0*deformation_scale, 1*deformation_scale
         Deformable_Matrix[...,2] = (d - c) * np.random.sample(input_dimensions) + c
 
         # Uses a function from our utility package, qtim_tools, to get a corresponding
         # matrix of Jacobian values at distance 1.
-        Jacobian_Matrix = get_jacobian_determinant(Deformable_Matrix)
+        # Jacobian_Matrix = get_jacobian_determinant(Deformable_Matrix)
+        Jacobian_Matrix = np.gradient(np.cumsum(Deformable_Matrix[...,0], axis=0))[0]
+
+        print np.cumsum(Deformable_Matrix[...,0], axis=0).shape
+        print Jacobian_Matrix[0].shape
+        print (Jacobian_Matrix < 0).sum()
 
         while (Jacobian_Matrix < 0).sum() > 0:
 
@@ -148,7 +158,8 @@ def Generate_Deformable_Motion(input_dimensions = (3,3,4), output_dimensions = (
                 iteration = 0
                 while negative_jacobians:
 
-                    Jacobian_Matrix = get_jacobian_determinant(Deformable_Matrix)
+                    # Jacobian_Matrix = get_jacobian_determinant(Deformable_Matrix)
+                    Jacobian_Matrix = np.gradient(np.cumsum(Deformable_Matrix[...,0], axis=0))[0]
 
                     negative_jacobians = False
                     for indice in surrounding_indices:
@@ -165,12 +176,19 @@ def Generate_Deformable_Motion(input_dimensions = (3,3,4), output_dimensions = (
 
                     iteration += 1
                     if iteration == 10:
+                        print Jacobian_Matrix
+                        print index
                         break
 
             print (Jacobian_Matrix < 0).sum()
 
+        Deformable_Matrix = rescale(Deformable_Matrix, -5, 10)
+        Jacobian_Matrix = np.gradient(np.cumsum(Deformable_Matrix[...,0], axis=0))[0]
+        print (Jacobian_Matrix < 0).sum()
+
         # Upsample matrix
         Large_Deformable_Matrix = zoom(Deformable_Matrix, zoom_ratio + [1], order=1)
+        # Deformable_Matrix = Large_Deformable_Matrix 
 
         # Blur matrix
         Large_Deformable_Matrix[...,0:2] = gaussian_filter(Large_Deformable_Matrix[...,0:2], sigma=1)
@@ -178,6 +196,8 @@ def Generate_Deformable_Motion(input_dimensions = (3,3,4), output_dimensions = (
 
         print 'SAVING MATRIX TIMEPOINT ', t
         Final_Deformation_Matrix[0:Large_Deformable_Matrix.shape[0],0:Large_Deformable_Matrix.shape[1],0:Large_Deformable_Matrix.shape[2],:,t] = Large_Deformable_Matrix
+
+
 
     # Output is currently saved to Matlab, where I use imwarp to apply the deformation field (it's very fast!)
     output_dict = {}
