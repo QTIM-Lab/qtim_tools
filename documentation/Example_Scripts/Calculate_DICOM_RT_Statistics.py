@@ -63,8 +63,10 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
             output = str.split(output, '\n')
             output = [x.replace(' ', '') for x in output]
 
+            print output
+
             DICE = str.split(output[7], ':')[1]
-            HAUSDORFF = str.split(output[13], '=')[1]
+            HAUSDORFF = str.split(output[-2], '=')[1]
 
             output_array[0,output_index] = Label_Name + '_DICE'
             output_array[0,output_index + 1] = Label_Name + '_HAUSDORFF'
@@ -80,8 +82,8 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
     for key in Labels:
         output_array[0,output_index] = key + '_DICE'
         output_array[0,output_index + 1] = key + '_HAUSDORFF'
-        output_array[1,output_index] = 0
-        output_array[1,output_index + 1] = 0
+        output_array[1,output_index] = 'NA'
+        output_array[1,output_index + 1] = 'NA'
         output_index += 2
 
     # Save output.

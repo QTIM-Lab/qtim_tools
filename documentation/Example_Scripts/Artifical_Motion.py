@@ -11,9 +11,66 @@ from scipy.ndimage.filters import gaussian_filter
 
 from subprocess import call
 
-def Load_4D_NRRD(input_filepath):
+def Load_4D_DICOM_to_NRRD(directory='', Slicer_path=''):
 
-    return convert_input_2_numpy(input_filepath)
+
+import os
+import glob
+
+from optparse import OptionParser
+
+def convert_dicom(input_folder, output_filename):
+    
+    dicom_files = glob.glob(os.path.join(input_folder, '*'))
+
+    # db = slicer.dicomDatabase
+
+    if slicer.dicomDatabase == None:
+        slicer.dicomDatabase = ctk.ctkDICOMDatabase()
+        slicer.dicomDatabase.openDatabase(os.path.dirname(os.path.realpath(__file__)) + "Slicer_Dicom_Database/ctkDICOM.sql", "SLICER")
+    db = slicer.dicomDatabase
+
+    plugins = [slicer.modules.dicomPlugins['DICOMScalarVolumePlugin'](), slicer.modules.dicomPlugins['DICOMScalarVolumePlugin'](), slicer.modules.dicomPlugins['DICOMScalarVolumePlugin']()]
+
+    for plugin in plugins:
+        print plugin
+        # try:
+        if plugin:
+            loadables = plugin.examine([dicom_files])
+
+            if len(loadables) == 0:
+                print('plugin failed to interpret this series')
+            else:
+
+                patientID = db.fileValue(loadables[0].files[0],'0010,0020')
+                seriesDescription = db.fileValue(loadables[0].files[0],'0008,103e')
+                seriesDescription = "".join(x for x in seriesDescription if x.isalnum())
+                seriesDate = db.fileValue(loadables[0].files[0],'0008,0020')
+                seriesTime = db.fileValue(loadables[0].files[0],'0008,0031')
+                flipAngle = db.fileValue(loadables[0].files[0],'0018,1314')
+                echoTime = db.fileValue(loadables[0].files[0],'0018,0081')
+                repTime = db.fileValue(loadables[0].files[0],'0018,0080')
+
+                output_directory = os.path.dirname(output_filename)
+                output_filename =  os.path.join(output_directory, patientID + '_' + seriesDescription + '.nii.gz')
+
+                print output_filename
+                print os.getcwd()
+
+                volume = plugin.load(loadables[0])
+                if volume:
+                    slicer.util.saveNode(volume,output_filename)
+                    slicer.util.quit()
+                    return
+
+        else:
+            continue
+
+        # except:
+            # continue
+
+    slicer.util.quit()
+    return
 
 def Slicer_Rotate(input_numpy, reference_nifti, affine_matrix, Slicer_path="/opt/Slicer-4.5.0-1-linux-amd64/Slicer"):
 
@@ -32,7 +89,7 @@ def Slicer_PkModeling(input_nrrd, Slicer_path="Slicer"):
 
     return
 
-def Generate_Head_Jerk(input_filepath, output_filepath, timepoint, duration, rotation_peaks=[3, 3, 0], reference_nifti=''):
+def Generate_Head_Jerk(input_filepath, timepoint, duration, rotation_peaks=[3, 3, 0], input_filepath='', reference_nifti='', output_filepath=''):
 
     input_numpy = convert_input_2_numpy(input_filepath)
 
@@ -67,8 +124,7 @@ def Generate_Head_Jerk(input_filepath, output_filepath, timepoint, duration, rot
 
     return
 
-
-def Generate_Head_Tilt(input_filepath, output_filepath, timepoint, duration, rotation_peaks=[3, 3, 0], reference_nifti=''):
+def Generate_Head_Tilt(timepoint, duration, rotation_peaks=[3, 3, 0], input_filepath='', reference_nifti='', output_filepath=''):
 
     input_numpy = convert_input_2_numpy(input_filepath)
 
@@ -91,6 +147,9 @@ def Generate_Head_Tilt(input_filepath, output_filepath, timepoint, duration, rot
 
             for axis, value in enumerate(rotation_direction):
                 current_rotation_matrix = np.matmul(current_rotation_matrix, generate_rotation_affine(axis, value))
+
+            print current_rotation_matrix
+            print t
 
             input_numpy[..., t] = Slicer_Rotate(input_numpy[..., t], reference_nifti, current_rotation_matrix)
 
@@ -211,14 +270,14 @@ if __name__ == "__main__":
 
     np.set_printoptions(precision=4, suppress=True)
 
-    # # for noise_types in [['low', 5],['mid', 10],['high', 20]]:
-    #     for timepoint in [8, 15]:
+    for noise_types in [['low', 5],['mid', 10],['high', 20]]:
+        for timepoint in [8, 15]:
     #             Generate_Head_Jerk(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '.nii.gz', output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '_Head_Jerk_frame_' + str(timepoint) + '.nii.gz',  rotation_peaks=[4, 4, 0], timepoint=timepoint, duration=6, reference_nifti='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Ktrans_Map.nii.gz')
-    #             Generate_Head_Tilt(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '.nii.gz', output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '_Head_Tilt_frame_' + str(timepoint) + '.nii.gz',  rotation_peaks=[4, 4, 0], timepoint=timepoint, duration=6, reference_nifti='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Ktrans_Map.nii.gz')
+                Generate_Head_Tilt(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '.nii.gz', output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '_Head_Tilt_frame_' + str(timepoint) + '.nii.gz',  rotation_peaks=[4, 4, 0], timepoint=timepoint, duration=6, reference_nifti='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Ktrans_Map.nii.gz')
 
-    Generate_Deformable_Motion(time_points=1)
+    # Generate_Deformable_Motion(time_points=1)
 
     # for noise_types in [['low', 5],['mid', 10],['high', 20]]:
         # Add_White_Noise(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal.nii.gz', output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '.nii.gz', noise_multiplier=noise_types[1])
-    for noise_types in [['lowest', .25],['low', .5],['mid', 1],['high', 2]]:
-        Generate_Deformable_Motion(output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/Deformable_Matrix_' + noise_types[0],  deformation_scale=noise_types[1])
+    # for noise_types in [['lowest', .25],['low', .5],['mid', 1],['high', 2]]:
+        # Generate_Deformable_Motion(output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/Deformable_Matrix_' + noise_types[0],  deformation_scale=noise_types[1])
