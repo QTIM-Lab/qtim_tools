@@ -1,6 +1,6 @@
 from __future__ import division
 
-from array_util import generate_identity_affine
+from transform_util import generate_identity_affine
 
 import numpy as np
 import nibabel as nib

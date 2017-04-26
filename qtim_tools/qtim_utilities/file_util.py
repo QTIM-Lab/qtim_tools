@@ -4,6 +4,7 @@
 
 import os
 import glob
+import fnmatch
 
 def copy_files(infolder, outfolder, name, duplicate=True):
 
@@ -24,6 +25,18 @@ def copy_files(infolder, outfolder, name, duplicate=True):
                 copy(file, outfolder)
             else:
                 move(file, outfolder)
+
+def grab_files_recursive(input_directory, regex='*'):
+
+    """ A convenience wrapper around os.walk. Returns a list of all files in
+        a directory and all of its subdirectories.
+    """
+
+    output_list = []
+
+    for root, subFolders, files in os.walk(input_directory):
+        if fnmatch.fnmatch(files, regex):
+            output_list += [os.path.join(root, files)]
 
 def grab_linked_file(input_filename, prefix="", suffix="", regex="", search_folder='', recursive=False, input_format='', output_format=''):
     return

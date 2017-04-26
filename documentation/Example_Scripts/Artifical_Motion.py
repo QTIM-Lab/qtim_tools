@@ -1,9 +1,11 @@
 import numpy as np
 import os
+import glob
 
-from qtim_tools.qtim_utilities.array_util import generate_rotation_affine, save_affine, get_jacobian_determinant, return_jacobian_matrix, generate_identity_affine
-from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
-from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti, save_numpy_2_nifti_no_reference
+# from qtim_tools.qtim_utilities.array_util import get_jacobian_determinant, return_jacobian_matrix,
+# from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
+# from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti, save_numpy_2_nifti_no_reference
+from qtim_tools.qtim_utilities.file_util import grab_files_recursive
 
 from scipy.io import savemat
 from scipy.ndimage.interpolation import zoom
@@ -11,66 +13,15 @@ from scipy.ndimage.filters import gaussian_filter
 
 from subprocess import call
 
-def Load_4D_DICOM_to_NRRD(directory='', Slicer_path=''):
+def Convert_DICOM_to_NRRD(input_folder, output_folder):
 
+    for case in glob.glob(input_folder + '/*/'):
 
-import os
-import glob
+        Slicer_Command = "/opt/Slicer-4.5.0-1-linux-amd64/Slicer --no-main-window --disable-cli-modules --python-script /home/abeers/Github/qtim_tools/qtim_tools/qtim_slicer/convert_dicom.py -i \"" + case + "\" -o \"" + output_folder + "\" -p \'MultiVolumeImporterPlugin\'"
 
-from optparse import OptionParser
+        print Slicer_Command
 
-def convert_dicom(input_folder, output_filename):
-    
-    dicom_files = glob.glob(os.path.join(input_folder, '*'))
-
-    # db = slicer.dicomDatabase
-
-    if slicer.dicomDatabase == None:
-        slicer.dicomDatabase = ctk.ctkDICOMDatabase()
-        slicer.dicomDatabase.openDatabase(os.path.dirname(os.path.realpath(__file__)) + "Slicer_Dicom_Database/ctkDICOM.sql", "SLICER")
-    db = slicer.dicomDatabase
-
-    plugins = [slicer.modules.dicomPlugins['DICOMScalarVolumePlugin'](), slicer.modules.dicomPlugins['DICOMScalarVolumePlugin'](), slicer.modules.dicomPlugins['DICOMScalarVolumePlugin']()]
-
-    for plugin in plugins:
-        print plugin
-        # try:
-        if plugin:
-            loadables = plugin.examine([dicom_files])
-
-            if len(loadables) == 0:
-                print('plugin failed to interpret this series')
-            else:
-
-                patientID = db.fileValue(loadables[0].files[0],'0010,0020')
-                seriesDescription = db.fileValue(loadables[0].files[0],'0008,103e')
-                seriesDescription = "".join(x for x in seriesDescription if x.isalnum())
-                seriesDate = db.fileValue(loadables[0].files[0],'0008,0020')
-                seriesTime = db.fileValue(loadables[0].files[0],'0008,0031')
-                flipAngle = db.fileValue(loadables[0].files[0],'0018,1314')
-                echoTime = db.fileValue(loadables[0].files[0],'0018,0081')
-                repTime = db.fileValue(loadables[0].files[0],'0018,0080')
-
-                output_directory = os.path.dirname(output_filename)
-                output_filename =  os.path.join(output_directory, patientID + '_' + seriesDescription + '.nii.gz')
-
-                print output_filename
-                print os.getcwd()
-
-                volume = plugin.load(loadables[0])
-                if volume:
-                    slicer.util.saveNode(volume,output_filename)
-                    slicer.util.quit()
-                    return
-
-        else:
-            continue
-
-        # except:
-            # continue
-
-    slicer.util.quit()
-    return
+        call(Slicer_Command, shell=True)
 
 def Slicer_Rotate(input_numpy, reference_nifti, affine_matrix, Slicer_path="/opt/Slicer-4.5.0-1-linux-amd64/Slicer"):
 
@@ -83,77 +34,36 @@ def Slicer_Rotate(input_numpy, reference_nifti, affine_matrix, Slicer_path="/opt
 
     return convert_input_2_numpy('temp_out.nii.gz')
 
-def Slicer_PkModeling(input_nrrd, Slicer_path="Slicer"):
+def Slicer_PkModeling(input_folder, Slicer_path="/opt/Slicer-4.5.0-1-linux-amd64/Slicer"):
 
-    Slicer_Command = [Slicer_path, '--launch', 'PkModeling', 'temp.nii.gz', 'temp_out.nii.gz', '-f', 'temp.txt', '-i', 'bs']
+    Slicer_Command = Slicer_path + ' --launch PkModeling'
 
-    return
+    T1Blood = '--T1Blood 1440'
+    T1Tissue = '--T1Tissue 1000'
+    relaxivity = '--relaxivity .0045'
+    hematocrit = '--hematocrit .45'
+    BAT_mode = '--BATCalculationMode UseConstantBAT'
+    BAT_arrival = '--constantBAT 8'
+    aif_mask_command = '--aifMask '
+    roi_mask_command = '--roiMask '
+    t1_map_command = '--T1Map '
 
-def Generate_Head_Jerk(input_filepath, timepoint, duration, rotation_peaks=[3, 3, 0], input_filepath='', reference_nifti='', output_filepath=''):
+    image_list = glob.glob(input_folder + '/*.nrrd')
 
-    input_numpy = convert_input_2_numpy(input_filepath)
+    for nrrd_image in image_list:
 
-    if reference_nifti == '':
-        reference_nifti = input_filepath
+        output_ktrans_image = str.split(nrrd_image, '.')[0] + '_ktrans.nrrd'
+        output_ve_image = str.split(nrrd_image, '.')[0] + '_ve.nrrd'
 
-    endpoint = timepoint + duration
-    midpoint = timepoint + np.round(endpoint - timepoint)/2
-    rotation_matrix_increment = np.array([float(x)/float(timepoint-endpoint) for x in rotation_peaks])
+        output_ktrans_command = '--outputKtrans ' + output_ktrans_image
+        output_ve_command = '--outputVe ' + output_ve_image
 
-    if endpoint > input_numpy.shape[-1]:
-        print 'Invalid timepoint, longer than the duration of the volume'
+        final_command = ' '.join([Slicer_Command, T1Blood, T1Tissue, relaxivity, hematocrit, BAT_mode, BAT_arrival, output_ve_command, output_ktrans_command, nrrd_image])
+        final_command_array = str.split(final_command, ' ')
 
-    rotation_direction = np.array([0,0,0])
+        print final_command
 
-    for t in xrange(input_numpy.shape[-1]):
-        if t > timepoint and t < endpoint:
-            
-            if t > midpoint:
-                rotation_direction = rotation_direction - rotation_matrix_increment
-            if t <= midpoint:
-                rotation_direction = rotation_direction + rotation_matrix_increment
-
-            current_rotation_matrix = generate_identity_affine()
-
-            for axis, value in enumerate(rotation_direction):
-                current_rotation_matrix = np.matmul(current_rotation_matrix, generate_rotation_affine(axis, value))
-
-            input_numpy[..., t] = Slicer_Rotate(input_numpy[..., t], reference_nifti, current_rotation_matrix)
-
-    save_numpy_2_nifti(input_numpy, reference_nifti, output_filepath)
-
-    return
-
-def Generate_Head_Tilt(timepoint, duration, rotation_peaks=[3, 3, 0], input_filepath='', reference_nifti='', output_filepath=''):
-
-    input_numpy = convert_input_2_numpy(input_filepath)
-
-    if reference_nifti == '':
-        reference_nifti = input_filepath
-
-    endpoint = timepoint + duration
-    rotation_matrix_increment = np.array([float(x)/float(timepoint-endpoint) for x in rotation_peaks])
-    if endpoint > input_numpy.shape[-1]:
-        print 'Invalid timepoint, longer than the duration of the volume'
-
-    rotation_direction = np.array([0,0,0])
-
-    for t in xrange(input_numpy.shape[-1]):
-        if t > timepoint:
-            if t < endpoint:
-                rotation_direction = rotation_direction + rotation_matrix_increment
-
-            current_rotation_matrix = generate_identity_affine()
-
-            for axis, value in enumerate(rotation_direction):
-                current_rotation_matrix = np.matmul(current_rotation_matrix, generate_rotation_affine(axis, value))
-
-            print current_rotation_matrix
-            print t
-
-            input_numpy[..., t] = Slicer_Rotate(input_numpy[..., t], reference_nifti, current_rotation_matrix)
-
-    save_numpy_2_nifti(input_numpy, reference_nifti, output_filepath)
+        call(final_command_array, shell=True)
 
     return
 
@@ -270,10 +180,14 @@ if __name__ == "__main__":
 
     np.set_printoptions(precision=4, suppress=True)
 
-    for noise_types in [['low', 5],['mid', 10],['high', 20]]:
-        for timepoint in [8, 15]:
+    Slicer_PkModeling(input_folder="/home/abeers/Projects/DCE_Motion_Phantom/RIDER_DATA/")
+
+    # Convert_DICOM_to_NRRD(input_folder="/home/abeers/Projects/DCE_Motion_Phantom/RIDER_DATA/RIDER NEURO MRI", output_folder="/home/abeers/Projects/DCE_Motion_Phantom/RIDER_DATA/")
+
+    # for noise_types in [['low', 5],['mid', 10],['high', 20]]:
+        # for timepoint in [8, 15]:
     #             Generate_Head_Jerk(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '.nii.gz', output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '_Head_Jerk_frame_' + str(timepoint) + '.nii.gz',  rotation_peaks=[4, 4, 0], timepoint=timepoint, duration=6, reference_nifti='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Ktrans_Map.nii.gz')
-                Generate_Head_Tilt(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '.nii.gz', output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '_Head_Tilt_frame_' + str(timepoint) + '.nii.gz',  rotation_peaks=[4, 4, 0], timepoint=timepoint, duration=6, reference_nifti='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Ktrans_Map.nii.gz')
+                # Generate_Head_Tilt(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '.nii.gz', output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Regenerated_Signal_noise_' + noise_types[0] + '_Head_Tilt_frame_' + str(timepoint) + '.nii.gz',  rotation_peaks=[4, 4, 0], timepoint=timepoint, duration=6, reference_nifti='/home/abeers/Projects/DCE_Motion_Phantom/DCE_MRI_Phantom_Ktrans_Map.nii.gz')
 
     # Generate_Deformable_Motion(time_points=1)
 

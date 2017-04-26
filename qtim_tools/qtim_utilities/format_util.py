@@ -60,6 +60,10 @@ NUMPY_CONVERTER_LIST = {'dicom':dcm_2_numpy,
                 'nrrd': nrrd_2_numpy,
                 'image':img_2_numpy}
 
+def dicom_convert_slicer():
+
+    return
+
 def check_format(filepath):
     format_type = []
 

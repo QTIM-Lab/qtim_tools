@@ -158,7 +158,7 @@ def return_jacobian_matrix(input_volume, index):
 
     return temp_jacobian[index[0],index[1],index[2], :,:]
 
-def generate_motion_jerk(duration, timepoint=0,, rotation_peaks=[3, 3, 0] total_timepoints=-1, input_motion_array=[]):
+def generate_motion_jerk(duration, timepoint=0, rotation_peaks=[3, 3, 0], total_timepoints=-1, input_motion_array=[]):
 
     """ Generates an affine jerk that smoothly moves between an affine displacement and back again.
         TODO: Allow custom ordering of rotations. Currently all rotations go first by x, then by y,
