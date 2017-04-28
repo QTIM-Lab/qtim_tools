@@ -8,7 +8,7 @@
 """
 # from nifti_util import nifti_2_numpy
 from dicom_util import dcm_2_numpy
-# from nrrd_util import nrrd_2_numpy
+from nrrd_util import nrrd_2_numpy
 from image_util import img_2_numpy
 
 import nibabel as nib
@@ -30,23 +30,6 @@ def nifti_2_numpy(filepath):
 
     img = nib.load(filepath).get_data().astype(float)
     return img
-
-def nrrd_2_numpy(input_nrrd, return_header=False):
-    
-    """ Loads nrrd data and optionally return a nrrd header
-        in pynrrd's format. If array is 4D, swaps axes so
-        that time dimension is last to match nifti standard.
-    """
-
-    nrrd_data, nrrd_options = nrrd.read(input_nrrd)
-
-    if nrrd_data.ndim == 4:
-        nrrd_data = np.rollaxis(nrrd_data, 0, 4)
-
-    if return_header:
-        return nrrd_data, nrrd_options
-    else:
-        return nrrd_data
 
 # Consider merging these into one dictionary. Separating them
 # is easier to visaulize though.

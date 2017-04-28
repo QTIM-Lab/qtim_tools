@@ -48,9 +48,18 @@ def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_pat
     output_nifti = nib.Nifti1Image(input_4d_numpy, image_affine)
     nib.save(output_nifti, output_path)
 
-def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path=[]):
-    nifti_image = nib.load(reference_nifti_filepath)
-    image_affine = nifti_image.affine
+def save_3d_numpy_from_4d_nifti(image_numpy, reference_nifti, output_path):
+
+
+def save_numpy_2_nifti(image_numpy, reference_nifti_filepath='', output_path=[]):
+
+    if reference_nifti_filepath != '':
+        nifti_image = nib.load(reference_nifti_filepath)
+        image_affine = nifti_image.affine
+    else:
+        print 'Warning: no reference nifti file provided. Generating empty header.'
+        image_affine = generate_identity_affine()
+
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)
 
     if output_path == []:
@@ -58,20 +67,10 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath, output_path=[]):
     else:
         nib.save(output_nifti, output_path)
 
-def save_numpy_2_nifti_no_reference(image_numpy, output_path=[]):
-
-    """ This and the other save function should be combined, once I figure out how to
-        automatically replace the order of function parameters in all the rest of this
-        code. 
-    """
-
-    image_affine = generate_identity_affine()
-    output_nifti = nib.Nifti1Image(image_numpy, image_affine)
-
-    if output_path == []:
-        return output_nifti
-    else:
-        nib.save(output_nifti, output_path)
+""" All functions below will eventually be moved into other modules. They remain
+    for now, because it takes time to figure out which other functions reference
+    them.
+"""
 
 def coerce_levels(image_numpy, levels=255, method="divide", reference_image = [], reference_norm_range = [.075, 1], mask_value=0, coerce_positive=True):
 
