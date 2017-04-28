@@ -2,7 +2,6 @@ import numpy as np
 import os
 import glob
 
-# from qtim_tools.qtim_utilities.array_util import get_jacobian_determinant, return_jacobian_matrix,
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti, save_numpy_2_nifti_no_reference, create_4d_nifti_from_3d
 from qtim_tools.qtim_utilities.file_util import grab_files_recursive
@@ -169,7 +168,7 @@ def Add_White_Noise(input_folder, noise_scale=1, noise_multiplier=10):
 
         save_numpy_2_nifti(input_numpy, input_4d_nifti, str.split(input_4d_nifti, '.')[0] + '_noise_' + str(noise_multiplier) +'.nii.gz')
 
-def Add_Head_Jerks(input_folder, random_rotations=0, random_duration_range=[4,9], random_rotation_peaks=[[-4,4],[-4,4],[-4,4]], durations=7, timepoints=7, rotation_peaks=[4, 4, 0],):
+def Add_Head_Jerks(input_folder, random_rotations=5, random_duration_range=[4,9], random_rotation_peaks=[[-4,4],[-4,4],[-4,4]], durations=7, timepoints=7, rotation_peaks=[4, 4, 0],):
 
     input_niis = glob.glob(os.path.join(input_folder, '*Signal*noise'))
     input_niis = [x for x in input_niis if 'jerk' not in x]
@@ -199,13 +198,12 @@ def Add_Head_Jerks(input_folder, random_rotations=0, random_duration_range=[4,9]
 
                 output_motion_array = compose_affines(ouput_motion_array, random_motion)
 
-        apply_affine(output_motion_array, Slicer_path="C:/Users/azb22/Documents/Software/SlicerNightly/Slicer_4.6.0/Slicer.exe")
-
-
+            output_4d_numpy = apply_affine(input_4d_numpy, output_motion_array, Slicer_path="C:/Users/azb22/Documents/Software/SlicerNightly/Slicer_4.6.0/Slicer.exe")
 
         else:
+            pass
 
-        motion_array = generate_motion_jerk
+        save_numpy_2_nifti(output_4d_numpy, input_4d_nifti, str.split(input_4d_nifti, '.')[0] + '_jerk.nii.gz')
 
 
 def Slicer_Rotate(input_numpy, reference_nifti, affine_matrix, Slicer_path="/opt/Slicer-4.5.0-1-linux-amd64/Slicer"):
@@ -323,6 +321,8 @@ if __name__ == "__main__":
 
     np.set_printoptions(precision=4, suppress=True)
 
+    Add_Head_Jerks(input_folder="C:/Users/azb22/Documents/Scripting/DCE_Motion_Phantom/RIDER_DATA")
+
     # Slicer_PkModeling(input_folder="/home/abeers/Projects/DCE_Motion_Phantom/RIDER_DATA/")
     # Create_Ideal_DCE(input_folder="C:/Users/azb22/Documents/Scripting/DCE_Motion_Phantom/RIDER_DATA")
 
@@ -335,7 +335,7 @@ if __name__ == "__main__":
 
     # Generate_Deformable_Motion(time_points=1)
 
-    for noise_types in [['low', 5],['mid', 10],['high', 20]]:
-        Add_White_Noise(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/RIDER_DATA', noise_multiplier=noise_types[1])
+    # for noise_types in [['low', 5],['mid', 10],['high', 20]]:
+    #     Add_White_Noise(input_filepath='/home/abeers/Projects/DCE_Motion_Phantom/RIDER_DATA', noise_multiplier=noise_types[1])
     # for noise_types in [['lowest', .25],['low', .5],['mid', 1],['high', 2]]:
         # Generate_Deformable_Motion(output_filepath='/home/abeers/Projects/DCE_Motion_Phantom/Deformable_Matrix_' + noise_types[0],  deformation_scale=noise_types[1])

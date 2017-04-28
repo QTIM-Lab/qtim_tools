@@ -109,8 +109,7 @@ def apply_affine(input_volume, affine_matrix, method="python", Slicer_path="Slic
 
         return output_array
 
-    return convert_input_2_numpy('temp_out.nii.gz')
-        pass
+    # return convert_input_2_numpy('temp_out.nii.gz')
 
     else:
         print 'Invalid method parameter. Returning []'
@@ -261,7 +260,6 @@ def generate_motion_tilt(timepoint, duration, rotation_peaks=[3, 3, 0], input_fi
 def generate_noisy_motion():
 
     return
-
 
 def get_jacobian_determinant(input_volume):
 

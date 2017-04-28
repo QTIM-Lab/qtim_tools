@@ -50,6 +50,7 @@ def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_pat
 
 def save_3d_numpy_from_4d_nifti(image_numpy, reference_nifti, output_path):
 
+    return
 
 def save_numpy_2_nifti(image_numpy, reference_nifti_filepath='', output_path=[]):
 
