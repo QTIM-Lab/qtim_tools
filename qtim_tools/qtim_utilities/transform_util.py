@@ -23,7 +23,6 @@ def generate_rotation_affine(axis=0, rotation_degrees=1):
     """
      
     rotation_radians = math.radians(rotation_degrees)
-    print rotation_radians
 
     if axis == 0:
         R = np.array([[1,0,0, 0],
@@ -174,7 +173,7 @@ def generate_motion_jerk(duration, timepoint=0, rotation_peaks=[3, 3, 0], total_
         then by z, etc.
     """
 
-    if input_motion_array != '':
+    if input_motion_array != []:
         total_timepoints = input_motion_array.shape[-1]
 
     if total_timepoints == -1:
@@ -183,6 +182,8 @@ def generate_motion_jerk(duration, timepoint=0, rotation_peaks=[3, 3, 0], total_
     endpoint = timepoint + duration
     midpoint = timepoint + np.round(endpoint - timepoint)/2
     rotation_matrix_increment = np.array([float(x)/float(timepoint-endpoint) for x in rotation_peaks])
+
+    print timepoint, endpoint, duration, total_timepoints
 
     if endpoint > total_timepoints:
         print 'Invalid timepoint, longer than the duration of the volume'
