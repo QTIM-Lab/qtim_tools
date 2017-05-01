@@ -2,9 +2,31 @@ import numpy as np
 import math
 import os
 
+# from nifti_util import save_numpy_2_nifti
 from format_util import convert_input_2_numpy
+
 from scipy.ndimage.interpolation import affine_transform, geometric_transform
 from subprocess import call
+import nibabel as nib
+
+def save_numpy_2_nifti(image_numpy, reference_nifti_filepath='', output_path=[]):
+
+    """ Temporary duplication
+    """
+
+    if reference_nifti_filepath != '':
+        nifti_image = nib.load(reference_nifti_filepath)
+        image_affine = nifti_image.affine
+    else:
+        print 'Warning: no reference nifti file provided. Generating empty header.'
+        image_affine = generate_identity_affine()
+
+    output_nifti = nib.Nifti1Image(image_numpy, image_affine)
+
+    if output_path == []:
+        return output_nifti
+    else:
+        nib.save(output_nifti, output_path)
 
 def generate_identity_affine(timepoints=1):
 
@@ -12,7 +34,13 @@ def generate_identity_affine(timepoints=1):
         used for saving blank niftis.
     """
 
-    return np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]*timepoints)
+    # Needlessly complicated.
+
+    if timepoints == 1:
+        return np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+
+    else:
+        return np.swapaxes(np.tile(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]), (timepoints, 1,1)), 0, 2)
 
 def generate_rotation_affine(axis=0, rotation_degrees=1):
 
@@ -93,7 +121,7 @@ def apply_affine(input_volume, affine_matrix, method="python", Slicer_path="Slic
 
     elif method == 'slicer':
 
-        save_numpy_2_nifti(input_numpy, reference_nifti, 'temp.nii.gz')
+        save_numpy_2_nifti(input_numpy, reference_file, 'temp.nii.gz')
         save_affine(affine_matrix, 'temp.txt')
 
         Slicer_Command = [Slicer_path, '--launch', 'ResampleScalarVectorDWIVolume', 'temp.nii.gz', 'temp_out.nii.gz', '-f', 'temp.txt', '-i', 'bs']
@@ -120,6 +148,8 @@ def compose_affines(affine_matrix_1, affine_matrix_2):
         is component-wise. Questionable if there are use cased for 4D+ dimnesions
         but those currently do not work.
     """
+
+    affine_matrix_1, affine_matrix_2 = np.array(affine_matrix_1, dtype=float), np.array(affine_matrix_2, dtype=float)
 
     if affine_matrix_1.ndim == 2:
 

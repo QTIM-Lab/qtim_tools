@@ -243,7 +243,6 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
             else:
                 filename = imagepath
 
-
             if label_indices.size == 2:
                 imagename_list += [filename]
             else:

@@ -176,8 +176,10 @@ def Add_Head_Jerks(input_folder, random_rotations=5, random_duration_range=[4,9]
 
     for input_4d_nifti in input_niis:
 
+        print input_4d_nifti
         input_4d_numpy = convert_input_2_numpy(input_4d_nifti)
-        ouput_motion_array = generate_identity_affine(input_4d_numpy.shape[-1])
+        print input_4d_numpy.shape
+        output_motion_array = generate_identity_affine(input_4d_numpy.shape[-1])
 
         if random_rotations > 0:
 
@@ -198,10 +200,18 @@ def Add_Head_Jerks(input_folder, random_rotations=5, random_duration_range=[4,9]
                 random_motion = generate_motion_jerk(duration=random_duration, timepoint=random_timepoint, rotation_peaks=[np.random.randint(*random_rotation_peaks[0]),np.random.randint(*random_rotation_peaks[1]),np.random.randint(*random_rotation_peaks[2])], total_timepoints=input_4d_numpy.shape[-1])
 
                 print random_motion.shape
+                print output_motion_array.shape
 
-                output_motion_array = compose_affines(ouput_motion_array, random_motion)
+                for t in xrange(input_4d_numpy.shape[-1]):
+                    print output_motion_array[..., t]
 
-            output_4d_numpy = apply_affine(input_4d_numpy, output_motion_array, method='slicer', Slicer_path="C:/Users/azb22/Documents/Software/SlicerNightly/Slicer_4.6.0/Slicer.exe")
+                output_motion_array = compose_affines(output_motion_array, random_motion)
+
+            output_4d_numpy = np.zeros_like(input_4d_numpy)
+
+            for t in xrange(input_4d_numpy.shape[-1]):
+                print output_motion_array[..., t]
+                output_4d_numpy[..., t] = apply_affine(input_4d_numpy[...,t], output_motion_array[...,t], method='slicer', Slicer_path="C:/Users/azb22/Documents/Software/SlicerNightly/Slicer_4.6.0/Slicer.exe")
 
         else:
             pass
