@@ -81,15 +81,15 @@ def truncate_image(input_volume, mask_value=0):
     dims = image_numpy.shape
     truncate_ranges = [[0, x] for x in dims]
 
-    for dim in enumerate(dims):
+    for dim, _ in enumerate(dims):
         start_flag = True
         for idx in xrange(dim):
             if (get_arbitrary_axis_slice(image_numpy, dim, idx) == mask_value).all():
                 if start_flag:
                     truncate_ranges[dim][0] = idx + 1
-            else:
-                start_flag = False
-                truncate_ranges[dim][0] = idx + 1
+                else:
+                    start_flag = False
+                    truncate_ranges[dim][0] = idx + 1
 
     truncate_slices = [slice(x[0], x[1]) for x in truncate_ranges]
 
@@ -115,8 +115,9 @@ def split_image(input_volume, input_label_volume='', label_indices='', mask_valu
             label_indices = np.unique(image_numpy)
         else:
             label_indices = np.unique(label_numpy)
-        if mask_value in label_indices:
-            label_indices.remove(mask_value)
+
+    if mask_value in label_indices:
+        label_indices = np.delete(np.array(label_indices), np.argwhere(label_indices==mask_value))
 
     for idx in label_indices:
         masked_image = np.copy(image_numpy)

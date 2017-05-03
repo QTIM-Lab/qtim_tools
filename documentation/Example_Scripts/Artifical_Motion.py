@@ -3,10 +3,10 @@ import os
 import glob
 
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
-from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti, save_numpy_2_nifti_no_reference, create_4d_nifti_from_3d
+from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti, create_4d_nifti_from_3d
 from qtim_tools.qtim_utilities.file_util import grab_files_recursive
 from qtim_tools.qtim_dce.dce_util import parker_model_AIF, estimate_concentration, revert_concentration_to_intensity, generate_AIF, convert_intensity_to_concentration
-from qtim_tools.qtim_utilties.transform_util import generate_motion_jerk, generate_motion_tilt, compose_affines, generate_identity_affine, apply_affine
+from qtim_tools.qtim_utilities.transform_util import generate_motion_jerk, generate_motion_tilt, compose_affines, generate_identity_affine, apply_affine
 
 from scipy.io import savemat
 from scipy.ndimage.interpolation import zoom
@@ -170,13 +170,16 @@ def Add_White_Noise(input_folder, noise_scale=1, noise_multiplier=10):
 
 def Add_Head_Jerks(input_folder, random_rotations=5, random_duration_range=[4,9], random_rotation_peaks=[[-4,4],[-4,4],[-4,4]], durations=7, timepoints=7, rotation_peaks=[4, 4, 0],):
 
-    input_niis = glob.glob(os.path.join(input_folder, '*Signal*noise'))
+    input_niis = glob.glob(os.path.join(input_folder, '*Signal*noise*'))
+    print os.path.join(input_folder, '*Signal*noise*')
     input_niis = [x for x in input_niis if 'jerk' not in x]
 
     for input_4d_nifti in input_niis:
 
+        print input_4d_nifti
         input_4d_numpy = convert_input_2_numpy(input_4d_nifti)
-        ouput_motion_array = generate_identity_affine(input_4d_numpy.shape[0])
+        print input_4d_numpy.shape
+        output_motion_array = generate_identity_affine(input_4d_numpy.shape[-1])
 
         if random_rotations > 0:
 
@@ -187,18 +190,28 @@ def Add_Head_Jerks(input_folder, random_rotations=5, random_duration_range=[4,9]
                 # Will hang if more random_rotations are specified than can fit in available timepoints.
                 overlapping = True
                 while overlapping:
-                    random_duration = np.random.randint(random_duration_range*)
-                    random_timepoint = np.random.randint(0, input_4d_numpy.shape[0]-duration)
+                    random_duration = np.random.randint(*random_duration_range)
+                    random_timepoint = np.random.randint(0, input_4d_numpy.shape[-1]-random_duration)
                     random_jerk_window = np.arange(random_timepoint, random_timepoint + random_duration)
                     if not any(x in total_jerk_windows for x in random_jerk_window):
                         overlapping = False
                         total_jerk_windows.extend(random_jerk_window)
 
-                random_motion = generate_motion_jerk(duration=random_duration, timepoint=random_timepoint, rotation_peaks=[np.randint(random_rotation_peaks[0]*),np.randint(random_rotation_peaks[1]*),np.randint(random_rotation_peaks[2]*)])
+                random_motion = generate_motion_jerk(duration=random_duration, timepoint=random_timepoint, rotation_peaks=[np.random.randint(*random_rotation_peaks[0]),np.random.randint(*random_rotation_peaks[1]),np.random.randint(*random_rotation_peaks[2])], total_timepoints=input_4d_numpy.shape[-1])
 
-                output_motion_array = compose_affines(ouput_motion_array, random_motion)
+                print random_motion.shape
+                print output_motion_array.shape
 
-            output_4d_numpy = apply_affine(input_4d_numpy, output_motion_array, Slicer_path="C:/Users/azb22/Documents/Software/SlicerNightly/Slicer_4.6.0/Slicer.exe")
+                for t in xrange(input_4d_numpy.shape[-1]):
+                    print output_motion_array[..., t]
+
+                output_motion_array = compose_affines(output_motion_array, random_motion)
+
+            output_4d_numpy = np.zeros_like(input_4d_numpy)
+
+            for t in xrange(input_4d_numpy.shape[-1]):
+                print output_motion_array[..., t]
+                output_4d_numpy[..., t] = apply_affine(input_4d_numpy[...,t], output_motion_array[...,t], method='slicer', Slicer_path="C:/Users/azb22/Documents/Software/SlicerNightly/Slicer_4.6.0/Slicer.exe")
 
         else:
             pass
