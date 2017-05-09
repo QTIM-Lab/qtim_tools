@@ -39,6 +39,9 @@ def grab_files_recursive(input_directory, regex='*'):
             output_list += [os.path.join(root, files)]
 
 def grab_linked_file(input_filename, prefix="", suffix="", regex="", search_folder='', recursive=False, input_format='', output_format=''):
+
+    pass
+
     return
 
 def human_sort(l):
