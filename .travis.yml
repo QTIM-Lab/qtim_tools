@@ -13,4 +13,4 @@ notifications:
 
 # command to run tests
 script: 
-  - "python ./upkeep/qtim_test_master.py"
+  - "python ./tests/initial_test.py"
