@@ -1,3 +1,6 @@
+""" This is a continuously evolving test script for de-bugging purposes.
+"""
+
 from qtim_tools import qtim_features
 
 # qtim_tools.qtim_dce.tofts_parametric_mapper.test_method_2d()
