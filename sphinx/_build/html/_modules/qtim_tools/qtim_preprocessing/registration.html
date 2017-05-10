@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>qtim_tools.qtim_preprocessing.registration &mdash; qtim_tools 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for qtim_tools.qtim_preprocessing.registration</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; This is a wrapper script for BRAINSFit registration by 3D Slicer. In the future, there could be an all-Python</span>
+<span class="sd">    implementation of registration in this function. In the meantime, one will need 3D Slicer (or a Docker container</span>
+<span class="sd">    with 3DSlicer inside).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copy</span>
+
+<div class="viewcode-block" id="register_all_to_one"><a class="viewcode-back" href="../../../qtim_tools.qtim_preprocessing.html#qtim_tools.qtim_preprocessing.registration.register_all_to_one">[docs]</a><span class="k">def</span> <span class="nf">register_all_to_one</span><span class="p">(</span><span class="n">fixed_volume</span><span class="p">,</span> <span class="n">moving_volume_folder</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">output_suffix</span> <span class="o">=</span> <span class="s1">&#39;_r&#39;</span><span class="p">,</span> <span class="n">file_regex</span><span class="o">=</span><span class="s1">&#39;*.nii*&#39;</span><span class="p">,</span> <span class="n">exclusion_phrase</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">software</span><span class="o">=</span><span class="s1">&#39;slicer_brainsfit&#39;</span><span class="p">,</span><span class="n">Slicer_Path</span><span class="o">=</span><span class="s1">&#39;Slicer&#39;</span><span class="p">,</span> <span class="n">transform_type</span><span class="o">=</span><span class="s1">&#39;Rigid,ScaleVersor3D,ScaleSkewVersor3D,Affine&#39;</span><span class="p">,</span> <span class="n">transform_mode</span> <span class="o">=</span> <span class="s1">&#39;useMomentsAlign&#39;</span><span class="p">,</span> <span class="n">interpolation_mode</span> <span class="o">=</span> <span class="s1">&#39;Linear&#39;</span><span class="p">,</span> <span class="n">sampling_percentage</span> <span class="o">=</span> <span class="o">.</span><span class="mo">02</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Registers a folder of volumes to one pre-specified volumes using the BRAINSFit module in 3DSlicer. Must already have 3DSlicer installed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">output_folder</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">output_folder</span> <span class="o">=</span> <span class="n">moving_volume_folder</span>
+
+    <span class="n">BRAINSFit_base_command</span> <span class="o">=</span> <span class="p">[</span><span class="n">Slicer_Path</span><span class="p">,</span><span class="s1">&#39;--launch&#39;</span><span class="p">,</span> <span class="s1">&#39;BRAINSFit&#39;</span><span class="p">,</span> <span class="s1">&#39;--fixedVolume&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">fixed_volume</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;--transformType&#39;</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="s1">&#39;--initializeTransformMode&#39;</span><span class="p">,</span> <span class="n">transform_mode</span><span class="p">,</span> <span class="s1">&#39;--interpolationMode&#39;</span><span class="p">,</span> <span class="n">interpolation_mode</span><span class="p">,</span> <span class="s1">&#39;--samplingPercentage&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sampling_percentage</span><span class="p">)]</span>
+
+    <span class="n">moving_volumes</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">moving_volume_folder</span> <span class="o">+</span> <span class="n">file_regex</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">moving_volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s1">&#39;No nifti volumes found in provided moving volume folder. Skipping this folder: &#39;</span> <span class="o">+</span> <span class="n">moving_volume_folder</span>
+
+    <span class="k">if</span> <span class="n">exclusion_phrase</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">moving_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">moving_volumes</span> <span class="k">if</span> <span class="n">exclusion_phrase</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">moving_volume</span> <span class="ow">in</span> <span class="n">moving_volumes</span><span class="p">:</span>
+
+        <span class="n">no_path</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">moving_volume</span> <span class="p">,</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">file_prefix</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">no_path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;.nii&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s1">&#39;.nii.gz&#39;</span> <span class="ow">in</span> <span class="n">moving_volume</span><span class="p">:</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="n">output_folder</span> <span class="o">+</span> <span class="n">file_prefix</span> <span class="o">+</span> <span class="n">output_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="n">output_folder</span> <span class="o">+</span> <span class="n">file_prefix</span> <span class="o">+</span> <span class="n">output_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span>
+
+        <span class="n">BRAINSFit_specific_command</span> <span class="o">=</span> <span class="n">BRAINSFit_base_command</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;--movingVolume&#39;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">no_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span>  <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">no_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span><span class="s1">&#39;--outputVolume&#39;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">output_filename</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BRAINSFit_specific_command</span><span class="p">)</span>
+            <span class="n">call</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BRAINSFit_specific_command</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s1">&#39;Registration command failed. Did you provide the correct path to your Slicer insallation? Provided Slicer Path: &#39;</span> <span class="o">+</span> <span class="n">Slicer_Path</span>
+            <span class="k">pass</span>
+
+    <span class="k">return</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Andrew Beers (MGH).
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

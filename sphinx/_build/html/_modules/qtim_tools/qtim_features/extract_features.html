@@ -1,0 +1,496 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>qtim_tools.qtim_features.extract_features &mdash; qtim_tools 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="qtim_tools.qtim_features" href="../qtim_features.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for qtim_tools.qtim_features.extract_features</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; This &#39;learner&#39; program, perhaps wrongly named, is the my current</span>
+<span class="sd">    general utility function. It takes in a folder full of images and</span>
+<span class="sd">    labels, parses them into numpy arrays, extracts features from those</span>
+<span class="sd">    arrays, and writes them into an easily accessible .csv. As of yet,</span>
+<span class="sd">    it does not do any learning..</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># import </span>
+
+<span class="kn">import</span> <span class="nn">GLCM</span>
+<span class="kn">import</span> <span class="nn">morphology</span>
+<span class="kn">import</span> <span class="nn">statistics</span>
+
+
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities</span> <span class="kn">import</span> <span class="n">nifti_util</span>
+<span class="kn">from</span> <span class="nn">..qtim_utilities.array_util</span> <span class="kn">import</span> <span class="n">truncate_image</span><span class="p">,</span> <span class="n">split_image</span><span class="p">,</span> <span class="n">extract_maximal_slice</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">getopt</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="kn">as</span> <span class="nn">nib</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">move</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">freeze_support</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="n">feature_dictionary</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;GLCM&#39;</span><span class="p">:</span> <span class="n">GLCM</span><span class="p">,</span> <span class="s1">&#39;morphology&#39;</span><span class="p">:</span> <span class="n">morphology</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">:</span> <span class="n">statistics</span><span class="p">}</span>
+
+<div class="viewcode-block" id="generate_feature_list_batch"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.generate_feature_list_batch">[docs]</a><span class="k">def</span> <span class="nf">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">file_regex</span><span class="o">=</span><span class="s1">&#39;*.nii*&#39;</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span> <span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">],</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="s2">&quot;-label&quot;</span><span class="p">,</span> <span class="n">set_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>  <span class="n">levels</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">normalize_intensities</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">use_labels</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">erode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;whole_volume&quot;</span><span class="p">,</span> <span class="n">filenames</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">featurenames</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">clear_file</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">write_empty</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">return_output</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+    <span class="n">total_features</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">,</span> <span class="n">label_output</span> <span class="o">=</span> <span class="n">generate_feature_indices</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">featurenames</span><span class="p">)</span>
+
+    <span class="c1"># This needs to be restructured, probably with a new method to iterate through images. Currently, this will not work</span>
+    <span class="c1"># wtihout an output file. The conflict is between retaining the ability to append to files in real-time (to prevent</span>
+    <span class="c1"># catastrophic errors from wasting eons of processing time) and having a conditional &quot;outfile&quot; parameter.</span>
+
+    <span class="k">if</span> <span class="n">outfile</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">outfile</span> <span class="o">=</span> <span class="n">determine_outfile_name</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">clear_file</span><span class="p">:</span>
+            <span class="nb">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s1">&#39;ab&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writefile</span><span class="p">:</span>
+            <span class="n">csvfile</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">writefile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">csvfile</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">label_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
+
+            <span class="n">imagepaths</span><span class="p">,</span> <span class="n">label_images</span> <span class="o">=</span> <span class="n">generate_filename_list</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">file_regex</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">label_suffix</span><span class="p">,</span> <span class="n">set_label</span><span class="p">,</span> <span class="n">recursive</span><span class="p">)</span>
+            
+            <span class="n">numerical_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_features</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">index_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">imagepath</span> <span class="ow">in</span> <span class="n">imagepaths</span><span class="p">:</span>
+
+                <span class="k">print</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                <span class="k">print</span> <span class="s1">&#39;Pre-processing data...&#39;</span>
+
+                <span class="n">image_list</span><span class="p">,</span> <span class="n">unmodified_image_list</span><span class="p">,</span> <span class="n">imagename_list</span><span class="p">,</span> <span class="n">attributes_list</span> <span class="o">=</span> <span class="n">generate_numpy_images</span><span class="p">(</span><span class="n">imagepath</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="n">label_suffix</span><span class="p">,</span> <span class="n">set_label</span><span class="o">=</span><span class="n">set_label</span><span class="p">,</span> <span class="n">label_images</span><span class="o">=</span><span class="n">label_images</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">use_labels</span><span class="o">=</span><span class="n">use_labels</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="n">erode</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">image_list</span> <span class="o">==</span> <span class="p">[]:</span>
+                    <span class="k">if</span> <span class="n">write_empty</span><span class="p">:</span>
+                        <span class="n">empty_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_features</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+                        <span class="n">empty_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">imagepath</span>
+                        <span class="n">csvfile</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">empty_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
+                        <span class="k">continue</span>
+
+                <span class="k">print</span> <span class="s1">&#39;Pre-processing complete!&#39;</span>
+
+                <span class="k">for</span> <span class="n">image_idx</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_list</span><span class="p">):</span>
+
+                    <span class="k">print</span> <span class="s1">&#39;&#39;</span>
+                    <span class="k">print</span> <span class="s1">&#39;Working on image...&#39;</span>
+                    <span class="k">print</span> <span class="n">imagename_list</span><span class="p">[</span><span class="n">image_idx</span><span class="p">]</span>
+                    <span class="k">print</span> <span class="s1">&#39;Voxel sum...&#39;</span>
+                    <span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+                    <span class="k">print</span> <span class="s1">&#39;Image shape...&#39;</span>
+                    <span class="k">print</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+
+                    <span class="k">if</span> <span class="n">filenames</span><span class="p">:</span>
+                        <span class="n">index</span> <span class="o">=</span> <span class="n">imagename_list</span><span class="p">[</span><span class="n">image_idx</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">index</span> <span class="o">=</span> <span class="n">numerical_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">numerical_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">numerical_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">generate_feature_list_method</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">unmodified_image_list</span><span class="p">[</span><span class="n">image_idx</span><span class="p">],</span> <span class="n">attributes_list</span><span class="p">[</span><span class="n">image_idx</span><span class="p">],</span> <span class="n">features</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">,</span> <span class="n">total_features</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">normalize_intensities</span><span class="o">=</span><span class="n">normalize_intensities</span><span class="p">)</span>
+                        <span class="n">index_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">index</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">numerical_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">numerical_output</span><span class="p">,</span> <span class="n">generate_feature_list_method</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">unmodified_image_list</span><span class="p">[</span><span class="n">image_idx</span><span class="p">],</span> <span class="n">attributes_list</span><span class="p">[</span><span class="n">image_idx</span><span class="p">],</span> <span class="n">features</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">,</span> <span class="n">total_features</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">normalize_intensities</span><span class="o">=</span><span class="n">normalize_intensities</span><span class="p">)))</span>
+                        <span class="n">index_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">index_output</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+
+                    <span class="n">csvfile</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">index_output</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,:],</span> <span class="n">numerical_output</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,:])))</span>
+
+    <span class="n">final_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">index_output</span><span class="p">,</span> <span class="n">numerical_output</span><span class="p">))</span>
+
+    <span class="k">print</span> <span class="s1">&#39;Feature writing complete, writing output...&#39;</span>
+    <span class="k">print</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">final_output</span><span class="p">:</span>
+        <span class="k">print</span> <span class="n">row</span>
+
+    <span class="k">if</span> <span class="n">return_output</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">final_output</span></div>
+
+<div class="viewcode-block" id="determine_outfile_name"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.determine_outfile_name">[docs]</a><span class="k">def</span> <span class="nf">determine_outfile_name</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    
+    <span class="n">write_flag</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">write_flag</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outfile</span><span class="p">):</span>
+            <span class="n">write_flag</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="n">write_flag</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">split_outfile</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="k">print</span> <span class="n">split_outfile</span>
+            <span class="n">outfile</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split_outfile</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;_new.&#39;</span> <span class="o">+</span> <span class="n">split_outfile</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outfile</span><span class="p">):</span>
+                <span class="n">write_flag</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">return</span> <span class="n">outfile</span></div>
+
+<div class="viewcode-block" id="generate_feature_indices"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.generate_feature_indices">[docs]</a><span class="k">def</span> <span class="nf">generate_feature_indices</span><span class="p">(</span><span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span> <span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">],</span> <span class="n">featurenames</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+
+    <span class="n">total_features</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">feature_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+        <span class="n">total_features</span> <span class="o">+=</span> <span class="n">feature_dictionary</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">feature_count</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">feature_indexes</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">feature_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">feature_dictionary</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">feature_count</span><span class="p">()]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">feature_indexes</span> <span class="o">+=</span> <span class="p">[</span><span class="n">feature_indexes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">feature_dictionary</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">feature_count</span><span class="p">()]</span>
+    
+    <span class="k">if</span> <span class="n">featurenames</span><span class="p">:</span>
+        <span class="n">label_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_features</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">feature_idx</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">features</span><span class="p">):</span>
+            <span class="n">label_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="p">]):(</span><span class="mi">1</span><span class="o">+</span><span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="o">+</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="n">feature_dictionary</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">featurename_strings</span><span class="p">()</span>
+        <span class="n">label_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;index&#39;</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">total_features</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">,</span> <span class="n">label_output</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="generate_filename_list"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.generate_filename_list">[docs]</a><span class="k">def</span> <span class="nf">generate_filename_list</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">file_regex</span><span class="o">=</span><span class="s1">&#39;*.nii*&#39;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="s1">&#39;-label&#39;</span><span class="p">,</span> <span class="n">set_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="n">imagepaths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">file_regex</span><span class="p">):</span>
+                <span class="n">imagepaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">imagepaths</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">file_regex</span><span class="p">))</span>
+
+    <span class="c1"># A bit redundant; this step and the previous step could probably be combined.</span>
+    <span class="n">imagepaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">imagepaths</span> <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nii&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nii.gz&#39;</span><span class="p">))]</span>
+
+    <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">set_label</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">label_images</span> <span class="o">=</span> <span class="p">[</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">imagepaths</span> <span class="k">if</span> <span class="n">label_suffix</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">]</span>
+            <span class="n">imagepaths</span> <span class="o">=</span> <span class="p">[</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">imagepaths</span> <span class="k">if</span> <span class="n">label_suffix</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label_images</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">set_label</span><span class="p">)))</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">imagepaths</span><span class="p">]</span>
+            <span class="n">imagepaths</span> <span class="o">=</span> <span class="p">[</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">imagepaths</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">set_label</span><span class="p">)))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span> <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">label_images</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">imagepaths</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;There are no .nii or .nii.gz images in the provided folder.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">and</span> <span class="n">label_images</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;There are no labels with the provided suffix in this folder. If you do not want to use labels, set the </span><span class="se">\&#39;</span><span class="s2">labels</span><span class="se">\&#39;</span><span class="s2"> flag to </span><span class="se">\&#39;</span><span class="s2">False</span><span class="se">\&#39;</span><span class="s2">. If you want to change the label file suffix (default: </span><span class="se">\&#39;</span><span class="s2">-label</span><span class="se">\&#39;</span><span class="s2">), then change the </span><span class="se">\&#39;</span><span class="s2">label_suffix</span><span class="se">\&#39;</span><span class="s2"> flag.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">imagepaths</span><span class="p">,</span> <span class="n">label_images</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="generate_numpy_images"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.generate_numpy_images">[docs]</a><span class="k">def</span> <span class="nf">generate_numpy_images</span><span class="p">(</span><span class="n">imagepath</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="s1">&#39;-label&#39;</span><span class="p">,</span> <span class="n">set_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">label_images</span><span class="o">=</span><span class="p">[],</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">use_labels</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">erode</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;whole_volume&quot;</span><span class="p">):</span>
+
+    <span class="n">image_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">unmodified_image_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">imagename_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">attributes_list</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># nifti_util.save_alternate_nifti(imagepath, levels, mask_value=mask_value)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">nifti_util</span><span class="o">.</span><span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">imagepath</span><span class="p">)</span>
+
+    <span class="c1"># This is likely redundant with the basic assert function in nifti_util</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nifti_util</span><span class="o">.</span><span class="n">assert_3D</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s1">&#39;Warning: image at path &#39;</span> <span class="o">+</span> <span class="n">imagepath</span> <span class="o">+</span> <span class="s1">&#39; has multiple time points or otherwise greater than 3 dimensions, and will be skipped.&#39;</span>
+        <span class="k">return</span> <span class="p">[[],[],[],[]]</span>
+
+    <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">set_label</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">label_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">imagepath</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">set_label</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">head</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">imagepath</span><span class="p">)</span>
+            <span class="n">split_path</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">tail</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="n">label_path</span> <span class="o">=</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="n">label_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">label_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">label_path</span><span class="p">):</span>
+            <span class="n">label_image</span> <span class="o">=</span> <span class="n">nifti_util</span><span class="o">.</span><span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">label_image</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s1">&#39;Warning: image and label do not have the same dimensions. Imaging padding support has not yet been added. This image will be skipped.&#39;</span>
+                <span class="k">return</span> <span class="p">[[],[],[],[]]</span>
+
+            <span class="c1"># In the future: create an option to analyze each frame separately.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">nifti_util</span><span class="o">.</span><span class="n">assert_3D</span><span class="p">(</span><span class="n">label_image</span><span class="p">):</span>
+                <span class="k">print</span> <span class="s1">&#39;Warning: image at path &#39;</span> <span class="o">+</span> <span class="n">imagepath</span> <span class="o">+</span> <span class="s1">&#39; has multiple time points or otherwise greater than 3 dimensions, and will be skipped.&#39;</span>
+                <span class="k">return</span> <span class="p">[[],[],[],[]]</span>
+
+            <span class="n">label_image</span> <span class="o">=</span> <span class="n">label_image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">label_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">label_image</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">label_indices</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s1">&#39;Warning: image at path &#39;</span> <span class="o">+</span> <span class="n">imagepath</span> <span class="o">+</span> <span class="s1">&#39; has an empty label-map, and will be skipped.&#39;</span>
+                <span class="k">return</span><span class="p">[[],[],[],[]]</span>
+
+            <span class="c1"># Will break if someone puts in &#39;0&#39; as a label to use.</span>
+            <span class="k">if</span> <span class="n">use_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">label_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">label_indices</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">use_labels</span><span class="p">])</span>
+
+            <span class="n">split_images</span> <span class="o">=</span> <span class="n">split_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">label_image</span><span class="p">,</span> <span class="n">label_indices</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">)</span>
+            <span class="n">masked_images</span> <span class="o">=</span> <span class="p">[</span><span class="n">truncate_image</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">split_images</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">masked_image</span> <span class="ow">in</span> <span class="n">masked_images</span><span class="p">:</span>
+
+                <span class="n">unmodified_image_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">masked_image</span><span class="p">)]</span>
+
+                <span class="n">masked_image</span> <span class="o">=</span> <span class="n">nifti_util</span><span class="o">.</span><span class="n">coerce_levels</span><span class="p">(</span><span class="n">masked_image</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">reference_image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;divide&quot;</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">)</span>
+
+                <span class="c1"># It would be nice in the future to check if an image is too small to erode. Maybe a minimum-size parameter?</span>
+                <span class="c1"># Or maybe a &quot;maximum volume reduction by erosion?&quot; Hmm..</span>
+                <span class="n">masked_image</span> <span class="o">=</span> <span class="n">nifti_util</span><span class="o">.</span><span class="n">erode_label</span><span class="p">(</span><span class="n">masked_image</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="n">erode</span><span class="p">)</span>
+
+                <span class="c1"># This is very ineffecient. TODO: Restructure this section.</span>
+                <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;maximal_slice&quot;</span><span class="p">:</span>
+                    <span class="n">image_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">nifti_util</span><span class="o">.</span><span class="n">extract_maximal_slice</span><span class="p">(</span><span class="n">masked_image</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;non_mask&#39;</span><span class="p">)[:,:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">image_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">masked_image</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">set_label</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">label_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">imagepath</span>
+
+            <span class="k">if</span> <span class="n">label_indices</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">imagename_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">filename</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">split_filename</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">labelval</span> <span class="ow">in</span> <span class="n">label_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="n">split_filename</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">labelval</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">split_filename</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">imagename_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">filename</span><span class="p">]</span>
+
+            <span class="n">attributes_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">nifti_util</span><span class="o">.</span><span class="n">return_nifti_attributes</span><span class="p">(</span><span class="n">imagepath</span><span class="p">)]</span> <span class="o">*</span> <span class="p">(</span><span class="n">label_indices</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">print</span> <span class="s1">&#39;Finished... &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">imagepath</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s1">&#39;Warning: image at path &#39;</span> <span class="o">+</span> <span class="n">imagepath</span> <span class="o">+</span> <span class="s1">&#39; has no label-map, and will be skipped.&#39;</span>
+            <span class="k">return</span><span class="p">[[],[],[],[]]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">nifti_util</span><span class="o">.</span><span class="n">coerce_levels</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">reference_image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;divide&quot;</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">)</span>
+        <span class="n">image_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">image</span><span class="p">]</span>
+        <span class="n">unmodified_image_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">image</span><span class="p">]</span>
+        <span class="n">imagename_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">imagepath</span><span class="p">]</span>
+        <span class="n">attributes_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">nifti_util</span><span class="o">.</span><span class="n">return_nifti_attributes</span><span class="p">(</span><span class="n">imagepath</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">image_list</span><span class="p">,</span> <span class="n">unmodified_image_list</span><span class="p">,</span> <span class="n">imagename_list</span><span class="p">,</span> <span class="n">attributes_list</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="generate_feature_list_method"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.generate_feature_list_method">[docs]</a><span class="k">def</span> <span class="nf">generate_feature_list_method</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">unmodified_image</span><span class="p">,</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">total_features</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">levels</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">normalize_intensities</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">feature_indexes</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">total_features</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">total_features</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">feature_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">:</span>
+            <span class="n">total_features</span> <span class="o">+=</span> <span class="n">feature_dictionary</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">feature_count</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">feature_indexes</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">feature_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">feature_dictionary</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">feature_count</span><span class="p">()]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">feature_indexes</span> <span class="o">+=</span> <span class="p">[</span><span class="n">feature_indexes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">feature_dictionary</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">feature_count</span><span class="p">()]</span>
+
+    <span class="n">numerical_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_features</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">image</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s1">&#39;Warning: image is empty, either because it could not survive erosion or because of another error. It will be skipped.&#39;</span>
+        <span class="k">return</span> <span class="n">numerical_output</span>
+
+    <span class="n">glcm_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">glcm_image</span> <span class="o">=</span> <span class="n">glcm_image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">feature_idx</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">features</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">feature</span> <span class="o">==</span> <span class="s1">&#39;GLCM&#39;</span><span class="p">:</span>
+
+            <span class="c1"># nifti_util.check_tumor_histogram(image, mask_value)</span>
+            <span class="c1"># nifti_util.check_image_2d(image, mode=&quot;maximal_slice&quot;)</span>
+
+            <span class="n">levels</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">print</span> <span class="s1">&#39;Calculating GLCM...&#39;</span>
+            <span class="n">numerical_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="p">]:</span><span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">GLCM</span><span class="o">.</span><span class="n">glcm_features</span><span class="p">(</span><span class="n">glcm_image</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">feature</span> <span class="o">==</span> <span class="s1">&#39;morphology&#39;</span><span class="p">:</span>
+
+            <span class="k">print</span> <span class="s1">&#39;Calculating morphology features...&#39;</span>
+            <span class="n">numerical_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="p">]:</span><span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">morphology</span><span class="o">.</span><span class="n">morphology_features</span><span class="p">(</span><span class="n">unmodified_image</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">feature</span> <span class="o">==</span> <span class="s1">&#39;statistics&#39;</span><span class="p">:</span>
+
+            <span class="c1"># Should intensity statistics be eroded? Currently, they are not, as indicated by the &quot;unmodified image&quot; parameter.</span>
+
+            <span class="k">print</span> <span class="s1">&#39;Calculating statistical features...&#39;</span>
+            <span class="k">if</span> <span class="n">normalize_intensities</span><span class="p">:</span>
+                <span class="n">numerical_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="p">]:</span><span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">statistics_features</span><span class="p">(</span><span class="n">glcm_image</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">numerical_output</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="p">]:</span><span class="n">feature_indexes</span><span class="p">[</span><span class="n">feature_idx</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">statistics</span><span class="o">.</span><span class="n">statistics_features</span><span class="p">(</span><span class="n">unmodified_image</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+    <span class="k">return</span> <span class="n">numerical_output</span></div>
+
+<div class="viewcode-block" id="test_method"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.test_method">[docs]</a><span class="k">def</span> <span class="nf">test_method</span><span class="p">():</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;MR_Tumor_Shape&#39;</span><span class="p">))</span>
+    <span class="n">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;test_feature_results_shape.csv&#39;</span><span class="p">,</span><span class="n">test</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="test_parallel"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.test_parallel">[docs]</a><span class="k">def</span> <span class="nf">test_parallel</span><span class="p">():</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_GLCM&#39;</span><span class="p">))</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="s1">&#39;/home/administrator/data/tbData/tbType/TrainingSet&#39;</span>
+    <span class="n">generate_feature_list_parallel</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;lung_features_results_parallel_500.csv&#39;</span><span class="p">,</span><span class="n">test</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">35</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="parse_command_line"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.parse_command_line">[docs]</a><span class="k">def</span> <span class="nf">parse_command_line</span><span class="p">(</span><span class="n">argv</span><span class="p">):</span>
+
+    <span class="c1"># This code should be run from the folder above the main &quot;qtim_tools&quot; folder using the command &quot;python -m qtim_tools.qtim_features.test&quot;</span>
+
+    <span class="c1"># All niftis in this folder will be processed. The program searches for a nifti file, and then checks if there is a matching labelmap file with the suffix &#39;-label&#39;.</span>
+    <span class="c1"># It currently loads from some built in data from the qtim_tools project, but you can change the filepath below to anywhere.</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Intensity&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># If labels is set to False, the whole image will be processed. This can take a very long time for GLCM features especially, so it is best we stick to labels.</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c1"># The only available features are &#39;GLCM&#39;, &#39;morphology&#39;, and &#39;statistics&#39; for now.</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">]</span>
+
+    <span class="c1"># In order for GLCM to work correctly, an image has to be reduced to a set amount of gray-levels. Using all available levels in an image will most likely produce a useless result.</span>
+    <span class="c1"># More levels will result in more intensive computation. </span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="c1"># This will save a spreadsheet of all requested feature results.</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="s1">&#39;test_feature_results_intensity.csv&#39;</span>
+
+    <span class="c1"># If your label is for some reason masked with a value other than zero, change this parameter.</span>
+    <span class="n">mask_value</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># The erode parameter will take [x,y,z] pixels off in each dimension. On many volumes, it is not useful to erode in the z (axial) slice because of high slice thickness.</span>
+    <span class="c1"># Currently, the erode parameter only applies to GLCM. It does not apply to intensity statistic features, although maybe it should.</span>
+    <span class="n">erode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># If overwrite is False, then the program will try to save to the chosen filename with &#39;_copy&#39; appended if the chosen filename already exists.</span>
+    <span class="n">overwrite</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="n">extract_features</span><span class="o">.</span><span class="n">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">outfile</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="n">erode</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.test">[docs]</a><span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+
+    <span class="c1"># This code should be run from the folder above the main &quot;qtim_tools&quot; folder using the command &quot;python -m qtim_tools.qtim_features.test&quot;</span>
+
+    <span class="c1"># All niftis in this folder will be processed. The program searches for a nifti file, and then checks if there is a matching labelmap file with the suffix &#39;-label&#39;.</span>
+    <span class="c1"># It currently loads from some built in data from the qtim_tools project, but you can change the filepath below to anywhere.</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Intensity&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># If labels is set to False, the whole image will be processed. This can take a very long time for GLCM features especially, so it is best we stick to labels.</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c1"># The only available features are &#39;GLCM&#39;, &#39;morphology&#39;, and &#39;statistics&#39; for now.</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">]</span>
+
+    <span class="c1"># In order for GLCM to work correctly, an image has to be reduced to a set amount of gray-levels. Using all available levels in an image will most likely produce a useless result.</span>
+    <span class="c1"># More levels will result in more intensive computation. </span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="c1"># This will save a spreadsheet of all requested feature results.</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="s1">&#39;test_feature_results_intensity.csv&#39;</span>
+
+    <span class="c1"># If your label is for some reason masked with a value other than zero, change this parameter.</span>
+    <span class="n">mask_value</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># The erode parameter will take [x,y,z] pixels off in each dimension. On many volumes, it is not useful to erode in the z (axial) slice because of high slice thickness.</span>
+    <span class="c1"># Currently, the erode parameter only applies to GLCM. It does not apply to intensity statistic features, although maybe it should.</span>
+    <span class="n">erode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># If overwrite is False, then the program will try to save to the chosen filename with &#39;_copy&#39; appended if the chosen filename already exists.</span>
+    <span class="n">overwrite</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="n">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">outfile</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="n">erode</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;maximal_slice&quot;</span><span class="p">)</span>
+
+    <span class="k">print</span> <span class="s1">&#39;new test now&#39;</span></div>
+
+<div class="viewcode-block" id="extract_features"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.extract_features.extract_features">[docs]</a><span class="k">def</span> <span class="nf">extract_features</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">],</span> <span class="n">levels</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">mask_value</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">erode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="s1">&#39;-label&#39;</span><span class="p">,</span> <span class="n">set_label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">file_regex</span><span class="o">=</span><span class="s1">&#39;*.nii*&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="n">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">folder</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">outfile</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">features</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="n">erode</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="n">label_suffix</span><span class="p">,</span> <span class="n">set_label</span><span class="o">=</span><span class="n">set_label</span><span class="p">,</span> <span class="n">file_regex</span><span class="o">=</span><span class="n">file_regex</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">)</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="c1"># test_method()</span>
+    <span class="n">test_parallel</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  <li><a href="../qtim_features.html">qtim_tools.qtim_features</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Andrew Beers (MGH).
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

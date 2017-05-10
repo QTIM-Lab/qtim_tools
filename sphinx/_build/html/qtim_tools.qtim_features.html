@@ -1,0 +1,592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>qtim_tools.qtim_features package &mdash; qtim_tools 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="index.html" />
+    <link rel="next" title="qtim_tools.qtim_dce package" href="qtim_tools.qtim_dce.html" />
+    <link rel="prev" title="qtim_tools Package" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="qtim-tools-qtim-features-package">
+<h1>qtim_tools.qtim_features package<a class="headerlink" href="#qtim-tools-qtim-features-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qtim_tools.qtim_features.GLCM">
+<span id="qtim-tools-qtim-features-glcm-module"></span><h2>qtim_tools.qtim_features.GLCM module<a class="headerlink" href="#module-qtim_tools.qtim_features.GLCM" title="Permalink to this headline">¶</a></h2>
+<p>This is the beginning of a program meant to calculate GLCM features on 3D
+arrays generated from NIFTI images. It is based off of the greycomatrix,
+greycoprops and other GLCM utility code lifted straight from scikit-image.
+Goals for this program: generalize sci-kit&#8217;s 2D GLCM to 3D, optimize 3D
+GLCM calculation, figure out a way to aggregate 2D calculations into a 
+useful measure within 3D images, and make a GLCM properties filtered image
+from smaller GLCM calculations in subregions of the original image. No matter
+what, this function could use a lot of cleaning.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.GLCM.feature_count">
+<code class="descclassname">qtim_tools.qtim_features.GLCM.</code><code class="descname">feature_count</code><span class="sig-paren">(</span><em>distances=[1, 2, 3, 4, 5], angles=[0, 0.7853981633974483, 1.5707963267948966, 2.356194490192345], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'correlation']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/GLCM.html#feature_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.GLCM.feature_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.GLCM.featurename_strings">
+<code class="descclassname">qtim_tools.qtim_features.GLCM.</code><code class="descname">featurename_strings</code><span class="sig-paren">(</span><em>distances=[1, 2, 3, 4, 5], angles=[0, 0.7853981633974483, 1.5707963267948966, 2.356194490192345], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'correlation']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/GLCM.html#featurename_strings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.GLCM.featurename_strings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.GLCM.glcm_2d">
+<code class="descclassname">qtim_tools.qtim_features.GLCM.</code><code class="descname">glcm_2d</code><span class="sig-paren">(</span><em>image</em>, <em>distances</em>, <em>angles</em>, <em>levels=None</em>, <em>symmetric=False</em>, <em>normed=True</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/GLCM.html#glcm_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.GLCM.glcm_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the grey-level co-occurrence matrix.
+A grey level co-occurrence matrix is a histogram of co-occurring
+greyscale values at a given offset over an image.
+Parameters
+&#8212;&#8212;&#8212;-
+image : array_like</p>
+<blockquote>
+<div>Integer typed input image. Only positive valued images are supported.
+If type is other than uint8, the argument <cite>levels</cite> needs to be set.</div></blockquote>
+<dl class="docutils">
+<dt>distances <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd>List of pixel pair distance offsets.</dd>
+<dt>angles <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span></dt>
+<dd>List of pixel pair angles in radians.</dd>
+<dt>levels <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd>The input image should contain integers in [0, <cite>levels</cite>-1],
+where levels indicate the number of grey-levels counted
+(typically 256 for an 8-bit image). This argument is required for
+16-bit images or higher and is typically the maximum of the image.
+As the output matrix is at least <cite>levels</cite> x <cite>levels</cite>, it might
+be preferable to use binning of the input image rather than
+large values for <cite>levels</cite>.</dd>
+<dt>symmetric <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd>If True, the output matrix <cite>P[:, :, d, theta]</cite> is symmetric. This
+is accomplished by ignoring the order of value pairs, so both
+(i, j) and (j, i) are accumulated when (i, j) is encountered
+for a given offset. The default is False.</dd>
+<dt>normed <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd>If True, normalize each matrix <cite>P[:, :, d, theta]</cite> by dividing
+by the total number of accumulated co-occurrences for the given
+offset. The elements of the resulting matrix sum to 1. The
+default is False.</dd>
+</dl>
+<dl class="docutils">
+<dt>P <span class="classifier-delimiter">:</span> <span class="classifier">4-D ndarray</span></dt>
+<dd>The grey-level co-occurrence histogram. The value
+<cite>P[i,j,d,theta]</cite> is the number of times that grey-level <cite>j</cite>
+occurs at a distance <cite>d</cite> and at an angle <cite>theta</cite> from
+grey-level <cite>i</cite>. If <cite>normed</cite> is <cite>False</cite>, the output is of
+type uint32, otherwise it is float64. The dimensions are:
+levels x levels x number of distances x number of angles.</dd>
+</dl>
+<table class="docutils citation" frame="void" id="r1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R1]</td><td>The GLCM Tutorial Home Page,
+<a class="reference external" href="http://www.fp.ucalgary.ca/mhallbey/tutorial.htm">http://www.fp.ucalgary.ca/mhallbey/tutorial.htm</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R2]</td><td>Pattern Recognition Engineering, Morton Nadler &amp; Eric P.
+Smith</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R3]</td><td>Wikipedia, <a class="reference external" href="http://en.wikipedia.org/wiki/Co-occurrence_matrix">http://en.wikipedia.org/wiki/Co-occurrence_matrix</a></td></tr>
+</tbody>
+</table>
+<p>Compute 2 GLCMs: One for a 1-pixel offset to the right, and one
+for a 1-pixel offset upwards.
+&gt;&gt;&gt; image = np.array([[0, 0, 1, 1],
+...                   [0, 0, 1, 1],
+...                   [0, 2, 2, 2],
+...                   [2, 2, 3, 3]], dtype=np.uint8)
+&gt;&gt;&gt; result = greycomatrix(image, [1], [0, np.pi/4, np.pi/2, 3*np.pi/4],
+...                       levels=4)
+&gt;&gt;&gt; result[:, :, 0, 0]
+array([[2, 2, 1, 0],</p>
+<blockquote>
+<div>[0, 2, 0, 0],
+[0, 0, 3, 1],
+[0, 0, 0, 1]], dtype=uint32)</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="go">array([[1, 1, 3, 0],</span>
+<span class="go">       [0, 1, 1, 0],</span>
+<span class="go">       [0, 0, 0, 2],</span>
+<span class="go">       [0, 0, 0, 0]], dtype=uint32)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="go">array([[3, 0, 2, 0],</span>
+<span class="go">       [0, 2, 2, 0],</span>
+<span class="go">       [0, 0, 1, 2],</span>
+<span class="go">       [0, 0, 0, 0]], dtype=uint32)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="go">array([[2, 0, 0, 0],</span>
+<span class="go">       [1, 1, 2, 0],</span>
+<span class="go">       [0, 0, 2, 1],</span>
+<span class="go">       [0, 0, 0, 0]], dtype=uint32)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.GLCM.glcm_2d_aggregate">
+<code class="descclassname">qtim_tools.qtim_features.GLCM.</code><code class="descname">glcm_2d_aggregate</code><span class="sig-paren">(</span><em>image</em>, <em>distances</em>, <em>angles</em>, <em>levels=None</em>, <em>symmetric=False</em>, <em>normed=True</em>, <em>aggregate_axis=2</em>, <em>method='sum'</em>, <em>masked=True</em>, <em>mask_value=0</em>, <em>test=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/GLCM.html#glcm_2d_aggregate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.GLCM.glcm_2d_aggregate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.GLCM.glcm_features">
+<code class="descclassname">qtim_tools.qtim_features.GLCM.</code><code class="descname">glcm_features</code><span class="sig-paren">(</span><em>image, distances=[1, 2, 3, 4, 5], angles=[0, 0.7853981633974483, 1.5707963267948966, 2.356194490192345], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'correlation'], levels=None, symmetric=False, normed=True, aggregate_axis=2, method='sum', masked=True, mask_value=0, out='list', return_level_array=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/GLCM.html#glcm_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.GLCM.glcm_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.GLCM.glcm_features_calc">
+<code class="descclassname">qtim_tools.qtim_features.GLCM.</code><code class="descname">glcm_features_calc</code><span class="sig-paren">(</span><em>P, props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'correlation'], distances=None, angles=None, out='list'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/GLCM.html#glcm_features_calc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.GLCM.glcm_features_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate texture properties of a GLCM.
+Compute a feature of a grey level co-occurrence matrix to serve as
+a compact summary of the matrix. The properties are computed as
+follows:
+- &#8216;contrast&#8217;: <span class="math">\sum_{i,j=0}^{levels-1} P_{i,j}(i-j)^2</span>
+- &#8216;dissimilarity&#8217;: <span class="math">\sum_{i,j=0}^{levels-1}P_{i,j}|i-j|</span>
+- &#8216;homogeneity&#8217;: <span class="math">\sum_{i,j=0}^{levels-1}\frac{P_{i,j}}{1+(i-j)^2}</span>
+- &#8216;ASM&#8217;: <span class="math">\sum_{i,j=0}^{levels-1} P_{i,j}^2</span>
+- &#8216;energy&#8217;: <span class="math">\sqrt{ASM}</span>
+- &#8216;correlation&#8217;:</p>
+<blockquote>
+<div><div class="math">
+<p><span class="math">\sum_{i,j=0}^{levels-1} P_{i,j}\left[\frac{(i-\mu_i) \
+(j-\mu_j)}{\sqrt{(\sigma_i^2)(\sigma_j^2)}}\right]</span></p>
+</div></div></blockquote>
+<dl class="docutils">
+<dt>P <span class="classifier-delimiter">:</span> <span class="classifier">ndarray</span></dt>
+<dd>Input array. <cite>P</cite> is the grey-level co-occurrence histogram
+for which to compute the specified property. The value
+<cite>P[i,j,d,theta]</cite> is the number of times that grey-level j
+occurs at a distance d and at an angle theta from
+grey-level i.</dd>
+<dt>prop <span class="classifier-delimiter">:</span> <span class="classifier">[&#8216;contrast&#8217;, &#8216;dissimilarity&#8217;, &#8216;homogeneity&#8217;, &#8216;energy&#8217;,             &#8216;correlation&#8217;, &#8216;ASM&#8217;], optional</span></dt>
+<dd>A string array of properties for the GLCM to compute. The default is all properties.</dd>
+</dl>
+<dl class="docutils">
+<dt>results <span class="classifier-delimiter">:</span> <span class="classifier">2-D ndarray</span></dt>
+<dd>2-dimensional array. <cite>results[d, a]</cite> is the property &#8216;prop&#8217; for
+the d&#8217;th distance and the a&#8217;th angle.</dd>
+</dl>
+<table class="docutils citation" frame="void" id="r4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R4]</td><td>The GLCM Tutorial Home Page,
+<a class="reference external" href="http://www.fp.ucalgary.ca/mhallbey/tutorial.htm">http://www.fp.ucalgary.ca/mhallbey/tutorial.htm</a></td></tr>
+</tbody>
+</table>
+<p>Compute the contrast for GLCMs with distances [1, 2] and angles
+[0 degrees, 90 degrees]
+&gt;&gt;&gt; image = np.array([[0, 0, 1, 1],
+...                   [0, 0, 1, 1],
+...                   [0, 2, 2, 2],
+...                   [2, 2, 3, 3]], dtype=np.uint8)
+&gt;&gt;&gt; g = greycomatrix(image, [1, 2], [0, np.pi/2], levels=4,
+...                  normed=True, symmetric=True)
+&gt;&gt;&gt; contrast = greycoprops(g, &#8216;contrast&#8217;)
+&gt;&gt;&gt; contrast
+array([[ 0.58333333,  1.        ],</p>
+<blockquote>
+<div>[ 1.25      ,  2.75      ]])</div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_features.document_test">
+<span id="qtim-tools-qtim-features-document-test-module"></span><h2>qtim_tools.qtim_features.document_test module<a class="headerlink" href="#module-qtim_tools.qtim_features.document_test" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.document_test.main">
+<code class="descclassname">qtim_tools.qtim_features.document_test.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/document_test.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.document_test.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the entry point of the application!
+:raises: <code class="xref py py-class docutils literal"><span class="pre">KeyboardInterrupt</span></code>, <code class="xref py py-class docutils literal"><span class="pre">SystemExit</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_features.extract_features">
+<span id="qtim-tools-qtim-features-extract-features-module"></span><h2>qtim_tools.qtim_features.extract_features module<a class="headerlink" href="#module-qtim_tools.qtim_features.extract_features" title="Permalink to this headline">¶</a></h2>
+<p>This &#8216;learner&#8217; program, perhaps wrongly named, is the my current
+general utility function. It takes in a folder full of images and
+labels, parses them into numpy arrays, extracts features from those
+arrays, and writes them into an easily accessible .csv. As of yet,
+it does not do any learning..</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.determine_outfile_name">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">determine_outfile_name</code><span class="sig-paren">(</span><em>outfile</em>, <em>overwrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#determine_outfile_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.determine_outfile_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.extract_features">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">extract_features</code><span class="sig-paren">(</span><em>folder, outfile, labels=True, features=['GLCM', 'morphology', 'statistics'], levels=100, mask_value=0, erode=[0, 0, 0], overwrite=True, label_suffix='-label', set_label='', file_regex='*.nii*', recursive=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#extract_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.extract_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.generate_feature_indices">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">generate_feature_indices</code><span class="sig-paren">(</span><em>features=['GLCM', 'morphology', 'statistics'], featurenames=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#generate_feature_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.generate_feature_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.generate_feature_list_batch">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">generate_feature_list_batch</code><span class="sig-paren">(</span><em>folder, file_regex='*.nii*', features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix='-label', set_label='', levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0, 0, 0], mode='whole_volume', filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#generate_feature_list_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.generate_feature_list_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.generate_feature_list_method">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">generate_feature_list_method</code><span class="sig-paren">(</span><em>image</em>, <em>unmodified_image</em>, <em>attributes</em>, <em>features</em>, <em>feature_indexes=''</em>, <em>total_features=''</em>, <em>levels=-1</em>, <em>mask_value=0</em>, <em>normalize_intensities=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#generate_feature_list_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.generate_feature_list_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.generate_filename_list">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">generate_filename_list</code><span class="sig-paren">(</span><em>folder</em>, <em>file_regex='*.nii*'</em>, <em>labels=False</em>, <em>label_suffix='-label'</em>, <em>set_label=''</em>, <em>recursive=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#generate_filename_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.generate_filename_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.generate_numpy_images">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">generate_numpy_images</code><span class="sig-paren">(</span><em>imagepath, labels=False, label_suffix='-label', set_label='', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0, mode='whole_volume'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#generate_numpy_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.generate_numpy_images" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.parse_command_line">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">parse_command_line</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#parse_command_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.parse_command_line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.test">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.test_method">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">test_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#test_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.test_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.extract_features.test_parallel">
+<code class="descclassname">qtim_tools.qtim_features.extract_features.</code><code class="descname">test_parallel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/extract_features.html#test_parallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.extract_features.test_parallel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_features.morphology">
+<span id="qtim-tools-qtim-features-morphology-module"></span><h2>qtim_tools.qtim_features.morphology module<a class="headerlink" href="#module-qtim_tools.qtim_features.morphology" title="Permalink to this headline">¶</a></h2>
+<p>All features as of yet have been copied from the &#8220;shape-based
+features&#8221; list in the HeterogeneityCad module in Slicer. All of
+these will need to be tested against ground-truth soon.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.calc_surface_area">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">calc_surface_area</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>pixdims</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#calc_surface_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.calc_surface_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reminder: Verify on real-world data.
+Also, some of the binarization feels clumsy/ineffecient.
+Also, this will over-estimate surface area, because
+it is counting cubes instead of, say, triangular
+surfaces</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.calc_volume">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">calc_volume</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>pixdims</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#calc_volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.calc_volume" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.calc_voxel_count">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">calc_voxel_count</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#calc_voxel_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.calc_voxel_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.compactness">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">compactness</code><span class="sig-paren">(</span><em>surface_area</em>, <em>volume</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#compactness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.compactness" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.compactness_alternate">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">compactness_alternate</code><span class="sig-paren">(</span><em>surface_area</em>, <em>volume</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#compactness_alternate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.compactness_alternate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.convolve_3d">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">convolve_3d</code><span class="sig-paren">(</span><em>image</em>, <em>kernel</em>, <em>skip_zero=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#convolve_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.convolve_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently only works for 3x3 kernels.
+Also, as usual, there must be a better
+way to do this.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.feature_count">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">feature_count</code><span class="sig-paren">(</span><em>features=['voxel_count', 'volume', 'surface_area', 'volume_surface_area_ratio', 'compactness', 'compactness_alternate', 'spherical_disproportion', 'sphericity']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#feature_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.feature_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.featurename_strings">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">featurename_strings</code><span class="sig-paren">(</span><em>features=['voxel_count', 'volume', 'surface_area', 'volume_surface_area_ratio', 'compactness', 'compactness_alternate', 'spherical_disproportion', 'sphericity']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#featurename_strings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.featurename_strings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.morphology_features">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">morphology_features</code><span class="sig-paren">(</span><em>image, attributes, features=['voxel_count', 'volume', 'surface_area', 'volume_surface_area_ratio', 'compactness', 'compactness_alternate', 'spherical_disproportion', 'sphericity'], mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#morphology_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.morphology_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.spherical_disproportion">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">spherical_disproportion</code><span class="sig-paren">(</span><em>surface_area</em>, <em>volume</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#spherical_disproportion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.spherical_disproportion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.sphericity">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">sphericity</code><span class="sig-paren">(</span><em>surface_area</em>, <em>volume</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#sphericity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.sphericity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.morphology.surface_area_vol_ratio">
+<code class="descclassname">qtim_tools.qtim_features.morphology.</code><code class="descname">surface_area_vol_ratio</code><span class="sig-paren">(</span><em>surface_area</em>, <em>volume</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/morphology.html#surface_area_vol_ratio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.morphology.surface_area_vol_ratio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_features.phantoms">
+<span id="qtim-tools-qtim-features-phantoms-module"></span><h2>qtim_tools.qtim_features.phantoms module<a class="headerlink" href="#module-qtim_tools.qtim_features.phantoms" title="Permalink to this headline">¶</a></h2>
+<p>This program is meant to generate phantom data for testing purposes.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.phantoms.get_phantom_filepath">
+<code class="descclassname">qtim_tools.qtim_features.phantoms.</code><code class="descname">get_phantom_filepath</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/phantoms.html#get_phantom_filepath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.phantoms.get_phantom_filepath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.phantoms.glcm_cube_phantom">
+<code class="descclassname">qtim_tools.qtim_features.phantoms.</code><code class="descname">glcm_cube_phantom</code><span class="sig-paren">(</span><em>reference_image</em>, <em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/phantoms.html#glcm_cube_phantom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.phantoms.glcm_cube_phantom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.phantoms.intensity_cube_phantom">
+<code class="descclassname">qtim_tools.qtim_features.phantoms.</code><code class="descname">intensity_cube_phantom</code><span class="sig-paren">(</span><em>reference_image</em>, <em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/phantoms.html#intensity_cube_phantom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.phantoms.intensity_cube_phantom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.phantoms.size_cube_phantom">
+<code class="descclassname">qtim_tools.qtim_features.phantoms.</code><code class="descname">size_cube_phantom</code><span class="sig-paren">(</span><em>reference_image</em>, <em>output_folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/phantoms.html#size_cube_phantom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.phantoms.size_cube_phantom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an input image and outputs</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.phantoms.test_method">
+<code class="descclassname">qtim_tools.qtim_features.phantoms.</code><code class="descname">test_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/phantoms.html#test_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.phantoms.test_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_features.statistics">
+<span id="qtim-tools-qtim-features-statistics-module"></span><h2>qtim_tools.qtim_features.statistics module<a class="headerlink" href="#module-qtim_tools.qtim_features.statistics" title="Permalink to this headline">¶</a></h2>
+<p>This feature set calculates basic matrix-wise statistics. I&#8217;m considering
+letting other feature sets import this function, but it might
+add needless complexitly down the road.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_COV">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_COV</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_COV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_COV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_energy">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_energy</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_entropy">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_entropy</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_entropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_entropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Note this silly solution to deal with log(0)
+Surely there must be a better way.
+Also I am not sure if entropy is valid for negative
+numbers in general..</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_intensity_histogram">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_intensity_histogram</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>bins</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_intensity_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_intensity_histogram" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_kurtosis">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_kurtosis</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_kurtosis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_kurtosis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_max">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_max</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_max"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_max" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_mean">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_mean</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_mean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_median">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_median</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_median"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_median" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_min">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_min</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_min"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_min" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_range">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_range</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_skewness">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_skewness</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_skewness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_skewness" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_std">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_std</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_variance">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_variance</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_variance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_variance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.calc_voxel_count">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">calc_voxel_count</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#calc_voxel_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.calc_voxel_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.feature_count">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">feature_count</code><span class="sig-paren">(</span><em>features=['mean', 'min', 'max', 'median', 'range', 'standard_deviation', 'variance', 'energy', 'entropy', 'kurtosis', 'skewness', 'COV', 'histogram_percent_-inf_-1000', 'histogram_percent_-1000_-950', 'histogram_percent_-950_-650', 'histogram_percent_-650_-300', 'histogram_percent_-300_0', 'histogram_percent_0_100', 'histogram_percent_100_600', 'histogram_percent_600_inf']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#feature_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.feature_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.featurename_strings">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">featurename_strings</code><span class="sig-paren">(</span><em>features=['mean', 'min', 'max', 'median', 'range', 'standard_deviation', 'variance', 'energy', 'entropy', 'kurtosis', 'skewness', 'COV', 'histogram_percent_-inf_-1000', 'histogram_percent_-1000_-950', 'histogram_percent_-950_-650', 'histogram_percent_-650_-300', 'histogram_percent_-300_0', 'histogram_percent_0_100', 'histogram_percent_100_600', 'histogram_percent_600_inf']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#featurename_strings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.featurename_strings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_features.statistics.statistics_features">
+<code class="descclassname">qtim_tools.qtim_features.statistics.</code><code class="descname">statistics_features</code><span class="sig-paren">(</span><em>image, features=['mean', 'min', 'max', 'median', 'range', 'standard_deviation', 'variance', 'energy', 'entropy', 'kurtosis', 'skewness', 'COV', 'histogram_percent_-inf_-1000', 'histogram_percent_-1000_-950', 'histogram_percent_-950_-650', 'histogram_percent_-650_-300', 'histogram_percent_-300_0', 'histogram_percent_0_100', 'histogram_percent_100_600', 'histogram_percent_600_inf'], mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/statistics.html#statistics_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.statistics.statistics_features" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_features.test">
+<span id="qtim-tools-qtim-features-test-module"></span><h2>qtim_tools.qtim_features.test module<a class="headerlink" href="#module-qtim_tools.qtim_features.test" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.test.test">
+<code class="descclassname">qtim_tools.qtim_features.test.</code><code class="descname">test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features/test.html#test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.test.test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_features">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qtim_tools.qtim_features" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="qtim_tools.qtim_features.main">
+<code class="descclassname">qtim_tools.qtim_features.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_features.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_features.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the entry point of the application!
+:raises: <code class="xref py py-class docutils literal"><span class="pre">KeyboardInterrupt</span></code>, <code class="xref py py-class docutils literal"><span class="pre">SystemExit</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">qtim_tools.qtim_features package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features.GLCM">qtim_tools.qtim_features.GLCM module</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features.document_test">qtim_tools.qtim_features.document_test module</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features.extract_features">qtim_tools.qtim_features.extract_features module</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features.morphology">qtim_tools.qtim_features.morphology module</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features.phantoms">qtim_tools.qtim_features.phantoms module</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features.statistics">qtim_tools.qtim_features.statistics module</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features.test">qtim_tools.qtim_features.test module</a></li>
+<li><a class="reference internal" href="#module-qtim_tools.qtim_features">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter"><code class="docutils literal"><span class="pre">qtim_tools</span></code> Package</a></li>
+      <li>Next: <a href="qtim_tools.qtim_dce.html" title="next chapter">qtim_tools.qtim_dce package</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qtim_tools.qtim_features.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Andrew Beers (MGH).
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/qtim_tools.qtim_features.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

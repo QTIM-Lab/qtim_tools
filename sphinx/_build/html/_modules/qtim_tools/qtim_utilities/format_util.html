@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>qtim_tools.qtim_utilities.format_util &mdash; qtim_tools 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for qtim_tools.qtim_utilities.format_util</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; This will be a broader utility for interchanging between</span>
+<span class="sd">    medical imaging (and perhaps other) formats.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot; One might consider making a class for format converters for</span>
+<span class="sd">    the future. Classes obfuscate the code a bit for new users,</span>
+<span class="sd">    however, so for now we&#39;ll maek it a TODO.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># from nifti_util import nifti_2_numpy</span>
+<span class="kn">from</span> <span class="nn">dicom_util</span> <span class="kn">import</span> <span class="n">dcm_2_numpy</span>
+<span class="kn">from</span> <span class="nn">nrrd_util</span> <span class="kn">import</span> <span class="n">nrrd_2_numpy</span>
+<span class="kn">from</span> <span class="nn">image_util</span> <span class="kn">import</span> <span class="n">img_2_numpy</span>
+
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="kn">as</span> <span class="nn">nib</span>
+
+<span class="c1"># This is magic code for Python 3 compatability. Of course</span>
+<span class="c1"># this package isn&#39;t Python 3 compatible, but why not start now.</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="nb">basestring</span>
+<span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+  <span class="nb">basestring</span> <span class="o">=</span> <span class="nb">str</span>
+
+<div class="viewcode-block" id="nifti_2_numpy"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.format_util.nifti_2_numpy">[docs]</a><span class="k">def</span> <span class="nf">nifti_2_numpy</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; There are a lot of repetitive conversions in the current iteration</span>
+<span class="sd">        of this program. Another option would be to always pass the nibabel</span>
+<span class="sd">        numpy class, which contains image and attributes. But not everyone</span>
+<span class="sd">        knows how to use that class, so it may be more difficult to troubleshoot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">img</span></div>
+
+<span class="c1"># Consider merging these into one dictionary. Separating them</span>
+<span class="c1"># is easier to visaulize though.</span>
+<span class="n">FORMAT_LIST</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dicom&#39;</span><span class="p">:(</span><span class="s1">&#39;.dcm&#39;</span><span class="p">,</span><span class="s1">&#39;.ima&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;nifti&#39;</span><span class="p">:(</span><span class="s1">&#39;.nii&#39;</span><span class="p">,</span><span class="s1">&#39;.nii.gz&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;nrrd&#39;</span><span class="p">:(</span><span class="s1">&#39;.nrrd&#39;</span><span class="p">,</span><span class="s1">&#39;.nhdr&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;image&#39;</span><span class="p">:(</span><span class="s1">&#39;.jpg&#39;</span><span class="p">,</span><span class="s1">&#39;.png&#39;</span><span class="p">)}</span>
+
+<span class="n">NUMPY_CONVERTER_LIST</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dicom&#39;</span><span class="p">:</span><span class="n">dcm_2_numpy</span><span class="p">,</span>
+                <span class="s1">&#39;nifti&#39;</span><span class="p">:</span><span class="n">nifti_2_numpy</span><span class="p">,</span>
+                <span class="s1">&#39;nrrd&#39;</span><span class="p">:</span> <span class="n">nrrd_2_numpy</span><span class="p">,</span>
+                <span class="s1">&#39;image&#39;</span><span class="p">:</span><span class="n">img_2_numpy</span><span class="p">}</span>
+
+<div class="viewcode-block" id="dicom_convert_slicer"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.format_util.dicom_convert_slicer">[docs]</a><span class="k">def</span> <span class="nf">dicom_convert_slicer</span><span class="p">():</span>
+
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="check_format"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.format_util.check_format">[docs]</a><span class="k">def</span> <span class="nf">check_format</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="n">format_type</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">data_type</span> <span class="ow">in</span> <span class="n">FORMAT_LIST</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">FORMAT_LIST</span><span class="p">[</span><span class="n">data_type</span><span class="p">]):</span>
+            <span class="n">format_type</span> <span class="o">=</span> <span class="n">data_type</span>
+        <span class="k">if</span> <span class="n">format_type</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">format_type</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">print</span> <span class="s1">&#39;Error! Input file extension is not supported by qtim_tools. Returning [].&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">format_type</span></div>
+
+<div class="viewcode-block" id="convert_input_2_numpy"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.format_util.convert_input_2_numpy">[docs]</a><span class="k">def</span> <span class="nf">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">input_format</span><span class="o">=</span><span class="p">[]):</span>
+    
+    <span class="sd">&quot;&quot;&quot; This function is meant to take in any normal imaging file </span>
+<span class="sd">        format and convert it into numpy. Numpy is supposed from</span>
+<span class="sd">        now on to be the lingua franca of qtim_tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">input_format</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">input_format</span> <span class="o">=</span> <span class="n">check_format</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">input_format</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">return</span> <span class="n">NUMPY_CONVERTER_LIST</span><span class="p">[</span><span class="n">input_format</span><span class="p">](</span><span class="n">input_data</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">input_data</span></div>
+
+<div class="viewcode-block" id="save_numpy_2_file"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.format_util.save_numpy_2_file">[docs]</a><span class="k">def</span> <span class="nf">save_numpy_2_file</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span> <span class="n">reference_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">output_format</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="k">return</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Andrew Beers (MGH).
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
