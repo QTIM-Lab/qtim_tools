@@ -1,41 +1,148 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>qtim_tools.qtim_dce package &mdash; qtim_tools 0.2 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="qtim_tools 0.2 documentation" href="index.html" />
-    <link rel="prev" title="qtim_tools.qtim_features package" href="qtim_tools.qtim_features.html" />
-   
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_dce package &mdash; qtim_tools 0.2 documentation</title>
+  
 
-  </head>
-  <body role="document">  
+  
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="qtim_tools 0.2 documentation" href="index.html"/>
+        <link rel="next" title="qtim_tools.qtim_features package" href="qtim_tools.qtim_features.html"/>
+        <link rel="prev" title="qtim_tools package" href="qtim_tools.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">qtim_tools.qtim_dce package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_dce.dce_util">qtim_tools.qtim_dce.dce_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_dce.help">qtim_tools.qtim_dce.help module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_dce.process_dce_file">qtim_tools.qtim_dce.process_dce_file module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_dce.tofts_parameter_calculator">qtim_tools.qtim_dce.tofts_parameter_calculator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_dce.tofts_parametric_mapper">qtim_tools.qtim_dce.tofts_parametric_mapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_dce.tofts_worker">qtim_tools.qtim_dce.tofts_worker module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_dce">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="qtim_tools.html">qtim_tools</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="qtim_tools.html">Docs</a> &raquo;</li>
+      
+    <li>qtim_tools.qtim_dce package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/qtim_tools.qtim_dce.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="qtim-tools-qtim-dce-package">
 <h1>qtim_tools.qtim_dce package<a class="headerlink" href="#qtim-tools-qtim-dce-package" title="Permalink to this headline">¶</a></h1>
@@ -95,19 +202,19 @@ clean up this file.</p>
 <p>TODO: Fill in docstring (sorry...)</p>
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.calc_DCE_properties_batch">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">calc_DCE_properties_batch</code><span class="sig-paren">(</span><em>folder, regex='', recursive=False, T1_tissue=1000, T1_blood=1440, relaxivity=0.0045, TR=5, TE=2.1, scan_time_seconds=660, hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[], AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[0.01, 0.1], outputs=['ktrans', 've', 'auc'], outfile_prefix='', processes=1, gaussian_blur=0.65, gaussian_blur_axis=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#calc_DCE_properties_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.calc_DCE_properties_batch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">calc_DCE_properties_batch</code><span class="sig-paren">(</span><em>folder, regex='', recursive=False, T1_tissue=1000, T1_blood=1440, relaxivity=0.0045, TR=5, TE=2.1, scan_time_seconds=660, hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[], AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[0.01, 0.1], outputs=['ktrans', 've', 'auc'], outfile_prefix='', processes=1, gaussian_blur=0.65, gaussian_blur_axis=2</em><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.calc_DCE_properties_batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Currently non-functional, although has not been tested since original writing. Meant to process DCE images in batch.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.calc_DCE_properties_single">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">calc_DCE_properties_single</code><span class="sig-paren">(</span><em>filepath, T1_tissue=1000, T1_blood=1440, relaxivity=0.0045, TR=5, TE=2.1, scan_time_seconds=660, hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[], AIF_value_data=[], AIF_value_suffix=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[0.01, 0.1], outputs=['ktrans', 've', 'auc'], outfile_prefix='', processes=1, gaussian_blur=0.65, gaussian_blur_axis=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#calc_DCE_properties_single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.calc_DCE_properties_single" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">calc_DCE_properties_single</code><span class="sig-paren">(</span><em>filepath, T1_tissue=1000, T1_blood=1440, relaxivity=0.0045, TR=5, TE=2.1, scan_time_seconds=660, hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[], AIF_value_data=[], AIF_value_suffix=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[0.01, 0.1], outputs=['ktrans', 've', 'auc'], outfile_prefix='', processes=1, gaussian_blur=0.65, gaussian_blur_axis=2</em><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.calc_DCE_properties_single" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a master function that creates ktrans, ve, and auc values from raw intensity 1D-4D volumes.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.preprocess_dce">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">preprocess_dce</code><span class="sig-paren">(</span><em>image_numpy=[]</em>, <em>gaussian_blur=0</em>, <em>gaussian_blur_axis=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#preprocess_dce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.preprocess_dce" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">preprocess_dce</code><span class="sig-paren">(</span><em>image_numpy=[]</em>, <em>gaussian_blur=0</em>, <em>gaussian_blur_axis=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.preprocess_dce" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply pre-processing methods to incoming DCE data. Currently, only gaussian blurring is available, although
 other methods might be available in the future. Gaussian blurring greatly improves fitting performance on
 phantom data and increases repeatability on patient data.</p>
@@ -115,30 +222,30 @@ phantom data and increases repeatability on patient data.</p>
 
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.retreive_data_from_files">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">retreive_data_from_files</code><span class="sig-paren">(</span><em>filepath</em>, <em>label_file</em>, <em>label_mode</em>, <em>label_suffix</em>, <em>label_value</em>, <em>AIF_label_file</em>, <em>AIF_label_value</em>, <em>AIF_mode</em>, <em>AIF_label_suffix</em>, <em>T1_map_file</em>, <em>T1_map_suffix</em>, <em>AIF_value_data</em>, <em>AIF_value_suffix</em>, <em>image=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#retreive_data_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.retreive_data_from_files" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">retreive_data_from_files</code><span class="sig-paren">(</span><em>filepath</em>, <em>label_file</em>, <em>label_mode</em>, <em>label_suffix</em>, <em>label_value</em>, <em>AIF_label_file</em>, <em>AIF_label_value</em>, <em>AIF_mode</em>, <em>AIF_label_suffix</em>, <em>T1_map_file</em>, <em>T1_map_suffix</em>, <em>AIF_value_data</em>, <em>AIF_value_suffix</em>, <em>image=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.retreive_data_from_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check for associated data relevant to DCE calculation either via provided filenames or provided filename suffixes (e.g. &#8216;-T1map&#8217;)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.simplex_optimize">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">simplex_optimize</code><span class="sig-paren">(</span><em>contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, image=[], label_image=[], mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[0.01, 0.1], outputs=['ktrans', 've'], processes=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#simplex_optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.simplex_optimize" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">simplex_optimize</code><span class="sig-paren">(</span><em>contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, image=[], label_image=[], mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[0.01, 0.1], outputs=['ktrans', 've'], processes=1</em><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.simplex_optimize" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function sets up parallel processing. Until this function is reimplemented in Cython, paralell processing
 may be required to get semi-normal processing speeds.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.simplex_optimize_loop">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">simplex_optimize_loop</code><span class="sig-paren">(</span><em>contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[1, 1]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#simplex_optimize_loop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.simplex_optimize_loop" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">simplex_optimize_loop</code><span class="sig-paren">(</span><em>contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value=0, mask_threshold=0, initial_fitting_function_parameters=[1, 1]</em><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.simplex_optimize_loop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.test_method_2d">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">test_method_2d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#test_method_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.test_method_2d" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">test_method_2d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.test_method_2d" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="qtim_tools.qtim_dce.tofts_parameter_calculator.test_method_3d">
-<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">test_method_3d</code><span class="sig-paren">(</span><em>filepath=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_dce/tofts_parameter_calculator.html#test_method_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.test_method_3d" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">qtim_tools.qtim_dce.tofts_parameter_calculator.</code><code class="descname">test_method_3d</code><span class="sig-paren">(</span><em>filepath=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#qtim_tools.qtim_dce.tofts_parameter_calculator.test_method_3d" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -213,71 +320,71 @@ may be required to get semi-normal processing speeds.</p>
 </div>
 
 
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">qtim_tools.qtim_dce package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-qtim_tools.qtim_dce.dce_util">qtim_tools.qtim_dce.dce_util module</a></li>
-<li><a class="reference internal" href="#module-qtim_tools.qtim_dce.help">qtim_tools.qtim_dce.help module</a></li>
-<li><a class="reference internal" href="#module-qtim_tools.qtim_dce.process_dce_file">qtim_tools.qtim_dce.process_dce_file module</a></li>
-<li><a class="reference internal" href="#module-qtim_tools.qtim_dce.tofts_parameter_calculator">qtim_tools.qtim_dce.tofts_parameter_calculator module</a></li>
-<li><a class="reference internal" href="#module-qtim_tools.qtim_dce.tofts_parametric_mapper">qtim_tools.qtim_dce.tofts_parametric_mapper module</a></li>
-<li><a class="reference internal" href="#module-qtim_tools.qtim_dce.tofts_worker">qtim_tools.qtim_dce.tofts_worker module</a></li>
-<li><a class="reference internal" href="#module-qtim_tools.qtim_dce">Module contents</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="qtim_tools.qtim_features.html" title="previous chapter">qtim_tools.qtim_features package</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/qtim_tools.qtim_dce.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="qtim_tools.qtim_features.html" class="btn btn-neutral float-right" title="qtim_tools.qtim_features package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="qtim_tools.html" class="btn btn-neutral" title="qtim_tools package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2017, Andrew Beers (MGH).
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
-      
-      |
-      <a href="_sources/qtim_tools.qtim_dce.txt"
-          rel="nofollow">Page source</a>
-    </div>
 
-    
+    </section>
 
-    
-  </body>
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>
