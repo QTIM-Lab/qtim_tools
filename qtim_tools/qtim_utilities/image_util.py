@@ -6,6 +6,7 @@
 
 import nibabel as nib
 import numpy as np
+import scipy.misc
 
 def img_2_numpy(input_image):
     
@@ -16,3 +17,13 @@ def img_2_numpy(input_image):
     """
 
     return
+
+def save_numpy_2_img(input_numpy, output_filename, output_dimensions=[], rescale=0):
+
+    if output_dimensions:
+        input_numpy = scipy.misc.imresize(input_numpy, output_dimensions)
+
+    elif rescale > 0:
+        input_numpy = scipy.mis.imresize(input_numpy, rescale)
+
+    scipy.misc.imsave(output_filename, input_numpy)

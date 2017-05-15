@@ -1,15 +1,15 @@
 """ This is a continuously evolving test script for de-bugging purposes.
 """
 
-from qtim_tools import qtim_features
-
-# qtim_tools.qtim_dce.tofts_parametric_mapper.test_method_2d()
+import qtim_tools
 
 import os
 import numpy as np
 import fnmatch
 from shutil import copy
 
-intensity_squares_filepath = qtim_features.phantoms.get_phantom_filepath('intensity_square')
+# glcm_filepath = qtim_tools.qtim_features.phantoms.get_phantom_filepath('glcm_square')
 
-qtim_features.generate_feature_list_batch(intensity_squares_filepath, outfile='intensity_square_phantom.csv', labels=True)
+# qtim_tools.qtim_features.generate_feature_list_batch(glcm_filepath, outfile='visualization_test.csv', labels=True)
+
+qtim_tools.qtim_visualization.d3_models.labeled_scatter(input_data='visualization_test.csv', html_directory='/home/anderff/Documents/MGH/Visualizations/qtim_tools_test_dir', labels=True, dimensions=[200,200])

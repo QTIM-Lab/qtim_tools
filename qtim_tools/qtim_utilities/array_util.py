@@ -59,7 +59,7 @@ def get_arbitrary_axis_slice(input_volume, axis, slice_num):
             if slice_num is list:
                 image_slice += [slice(slice_num[0], slice_num[1])]
             else:
-                image_slice += [slice(slice_num)]
+                image_slice += [slice(slice_num, slice_num+1)]
         else:
             image_slice += [slice(None)]
 
@@ -69,33 +69,51 @@ def truncate_image(input_volume, mask_value=0):
 
     """ There are better ways online to do what I am attempting,
         but so far I have not gotten any of them to work. In the meantime,
-        this long and probably ineffecient code will suffice. It is
-        meant to remove empty rows from images. Currently only works with
-        3D images.
+        this probably ineffecient code will suffice. It is
+        meant to remove empty rows from images.
 
-        TODO: Condense code.
+        BUG: Currently seems to fail on axes with length 1.
+        TODO: Truncate only on some axes.
+
+        Parameters
+        ----------
+
+        input_volume: N-dimensional array
+            The volume to be truncated. Will be truncated in every axis.
+        mask_value: int or float
+            Vectors in an axis that are composed entirely of mask_value will be truncated.
     """
 
     image_numpy = convert_input_2_numpy(input_volume)
 
     dims = image_numpy.shape
-    truncate_ranges = [[0, x] for x in dims]
+    truncate_ranges = [[0, 0] for x in dims]
 
-    for dim, _ in enumerate(dims):
+    for axis, axis_length in enumerate(dims):
         start_flag = True
-        for idx in xrange(dim):
-            if (get_arbitrary_axis_slice(image_numpy, dim, idx) == mask_value).all():
+        for idx in range(axis_length):
+            if (get_arbitrary_axis_slice(image_numpy, axis, idx) == mask_value).all():
                 if start_flag:
-                    truncate_ranges[dim][0] = idx + 1
-                else:
-                    start_flag = False
-                    truncate_ranges[dim][0] = idx + 1
+                    truncate_ranges[axis][0] = idx + 1
+            else:
+                start_flag = False
+                truncate_ranges[axis][1] = idx + 1
 
     truncate_slices = [slice(x[0], x[1]) for x in truncate_ranges]
 
     truncate_image_numpy = image_numpy[truncate_slices]
 
     return truncate_image_numpy
+
+def truncate_to_maximum_image(input_volume_list, mask_value=0):
+
+    """ Finds the smallest bounding-box which will fit all images.
+        For now
+
+        UNIMPLEMENTED
+    """
+
+    return
 
 def split_image(input_volume, input_label_volume='', label_indices='', mask_value=0):
 
@@ -126,7 +144,7 @@ def split_image(input_volume, input_label_volume='', label_indices='', mask_valu
 
     return masked_images
 
-def extract_maximal_slice(input_volume, input_label_volume='', mode='max_intensity', axis=2, mask_value=0):
+def extract_maximal_slice(input_volume, input_label_volume='', mode='max_intensity', axis=2, mask_value=0, return_index=False):
 
     """ Extracts one slice from a presumably 3D volume. Either take the slice whose label
         has the greatest area (mode='max_label'), or whos sum of voxels has the greatest 
@@ -134,14 +152,13 @@ def extract_maximal_slice(input_volume, input_label_volume='', mode='max_intensi
     """
 
     image_numpy = convert_input_2_numpy(input_volume)
-    if input_label_volume != '':
-        label_numpy = convert_input_2_numpy(input_label_volume)
 
-    sum_dimensions = range(0,image_numpy.ndim).pop(axis)
+    sum_dimensions = tuple([int(x) for x in range(0,image_numpy.ndim) if x != axis])
 
     if mode == 'max_intensity':
         flattened_image = np.sum(image_numpy, axis=sum_dimensions)
     elif mode == 'max_label':
+        label_numpy = convert_input_2_numpy(input_label_volume)
         flattened_image = np.sum(label_numpy, axis=sum_dimensions)
     elif mode == 'non_mask':
         flattened_image = (image_numpy != mask_value).sum(axis=sum_dimensions)
@@ -155,6 +172,9 @@ def extract_maximal_slice(input_volume, input_label_volume='', mode='max_intensi
         highest_slice_index = highest_slice_index[0]
     except:
         pass
+
+    if return_index:
+        return get_arbitrary_axis_slice(image_numpy, axis, highest_slice_index), highest_slice_index
 
     return get_arbitrary_axis_slice(image_numpy, axis, highest_slice_index)
 
