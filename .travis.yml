@@ -14,3 +14,7 @@ notifications:
 # command to run tests
 script: 
   - "python ./tests/initial_test.py"
+  - travis-sphinx build --source=sphinx build
+    
+after_success:
+  - travis-sphinx deploy
