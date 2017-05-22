@@ -28,7 +28,7 @@ def match_array_orientation(image1, image2):
     """
     return
 
-def pad_image_segment(image, reference_image):
+def pad_image_segment(image, reference_image=''):
 
     """ Many people store their label maps in Niftis with dimensions smaller
         than the corresponding image. This is also that natural output of DICOM-SEG
@@ -67,13 +67,13 @@ def get_arbitrary_axis_slice(input_volume, axis, slice_num):
 
 def truncate_image(input_volume, mask_value=0):
 
-    """ There are better ways online to do what I am attempting,
-        but so far I have not gotten any of them to work. In the meantime,
-        this probably ineffecient code will suffice. It is
-        meant to remove empty rows from images.
+    """ This function takes in an N-dimensional array and truncates all rows/columns/etc
+        that contain only mask values. Useful for reducing computation time on functions
+        whose running time scales exponentially with dimensions size.
 
         BUG: Currently seems to fail on axes with length 1.
         TODO: Truncate only on some axes.
+        TODO: Add the option to add buffer pixels to meet output_dimensions.
 
         Parameters
         ----------

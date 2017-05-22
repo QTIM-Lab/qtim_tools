@@ -28,21 +28,108 @@ def copy_files(infolder, outfolder, name, duplicate=True):
 
 def grab_files_recursive(input_directory, regex='*'):
 
-    """ A convenience wrapper around os.walk. Returns a list of all files in
-        a directory and all of its subdirectories.
+    """ Returns all files recursively in a directory. Essentially a convenience wrapper 
+        around os.walk.
+
+        Parameters
+        ----------
+
+        input_directory: str
+            The folder to search.
+        regex: str
+            A linux-style pattern to match.        
     """
 
     output_list = []
 
     for root, subFolders, files in os.walk(input_directory):
-        if fnmatch.fnmatch(files, regex):
-            output_list += [os.path.join(root, files)]
+        for file in files:
+            if fnmatch.fnmatch(file, regex):
+                output_list += [os.path.join(root, file)]
 
-def grab_linked_file(input_filename, prefix="", suffix="", regex="", search_folder='', recursive=False, input_format='', output_format=''):
+    return output_list
 
-    pass
+def grab_linked_file(input_filename, prefix="", suffix="", includes="", regex="", linux_regex="", search_folder="", recursive=False, return_multiple=False):
 
-    return
+    """ Takes an input filename and returns some output file(s) that match certain
+        criteria relative to the input file. Useful for constructing pipelines.
+
+        TODO: Make functional for lists of str.
+
+        Parameters
+        ----------
+
+        input_filename: str
+            The original file, which will be referenced to find a linked file(s).
+        prefix: str or list of str
+            A string prefix or prefixes that the linked file must contain.
+        suffix: str or list of str
+            A string suffix or suffixes that the linked file must contian.
+        includes: str or list of str
+            String(s) that must be included in linked file. Linked files are
+            those which contain any linked string.
+        linux_regex: str
+            A linux-style search pattern which must be matched to return
+            linked files. Will search on the whole filepath.
+        search_folder: str
+            Where to look for linked files. Same folder as original file by
+            default.
+        recursive: bool
+            Whether or not to descend down into subfolders when searching.
+        return_multiple: bool
+            Whether or not to return multiple files if matched. If False,
+            will only return the first file and print a warning if multiple
+            files are found.
+    """
+
+    if search_folder == "":
+        search_folder = os.path.abspath(os.path.dirname(input_filename))
+
+    if recursive:
+        file_list = grab_files_recursive(search_folder)
+    else:
+        file_list = glob.glob(os.path.join(search_folder, '*'))
+
+    output = []
+
+    for file in file_list:
+
+        match = False
+
+        file_basename = os.path.basename(file)
+
+        if prefix != "":
+            if file_basename.startswith(prefix):
+                match = True
+
+        if suffix != "":
+            if file_basename.endswith(suffix):
+                match = True
+            else:
+                match = False
+
+        if includes != "":
+            if includes in file_basename:
+                match = True
+            else:
+                match = False
+
+        if linux_regex != "":
+            if fnmatch.fnmatch(file, linux_regex):
+                match = True
+            else:
+                match = False
+
+        if match:
+            output += [file]
+
+    if len(output) == 1:
+        return output[0]
+    elif output == [] or return_multiple:
+        return output
+    else:
+        print 'Warning: multiple files found. return_multiple is set to False, so only the first file will be returned.'
+        return output[0]
 
 def human_sort(l):
 
@@ -54,3 +141,9 @@ def human_sort(l):
     alphanum = lambda key: [ convert(c) for c in re.split('([-+]?[0-9]*\.?[0-9]*)', key) ]
     l.sort( key=alphanum )
     return l
+
+def run_test():
+    return
+
+if __name__ == '__main__':
+    run_test()
