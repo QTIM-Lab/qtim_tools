@@ -5,7 +5,7 @@
 
 import numpy as np
 import math
-from format_util import convert_input_2_numpy
+from .format_util import convert_input_2_numpy
 from scipy.ndimage.interpolation import affine_transform, geometric_transform
 
 def get_intensity_range(input_volume, percentiles=[.25,.75]):
