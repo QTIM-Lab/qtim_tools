@@ -3,7 +3,7 @@ import os
 import glob
 import csv
 
-from shutil import copy
+from shutil import copy, move
 
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 
@@ -13,15 +13,11 @@ PCA = ['pca_' + x for x in ['0','1','2','3','4']]
 THRESHOLD = ['threshold_' + x for x in ['-1', '0.01']]
 ALGORITHM = ['simplex', 'lm']
 INTEGRATION = ['recursive','conv']
-
-
-# Binary
-AIF = ['autoAIF']
-SAME_AIF = ['sameAIF']
-T1MAP = ['t1map']
+AIF = ['autoAIF', 'popAIF', 'sameAutoAIF']
+T1MAP = ['t1map','t1static']
 
 # All
-ALL_VARS = [BLUR, PCA, THRESHOLD, ALGORITHM, INTEGRATION, AIF, SAME_AIF, T1MAP]
+ALL_VARS = [BLUR, PCA, THRESHOLD, ALGORITHM, INTEGRATION, AIF, T1MAP]
 
 def Copy_SameAIF_Visit1_Tumors(input_directory):
 
@@ -65,39 +61,112 @@ def Delete_Extra_Files(data_directory):
 
     return
 
-def Create_ROI_Directory(CED_directory, NHX_directory, output_folder):
+def Recode_With_Binary_Labels(data_directory):
 
-    """ Move all ROIs for the DCE script from their idiosyncratic locations
+    file_database = glob.glob(os.path.join(data_directory, '*.nii*'))
+
+    for filename in file_database:
+
+        if 'autoAIF' not in filename:
+            split_file = str.split(filename, 'VISIT_0')
+            new_filename = split_file[0] + 'VISIT_0' + split_file[1][0] + '_popAIF_' + split_file[1][2:]
+            print new_filename
+            move(filename, new_filename)
+            filename = new_filename
+
+        if 't1map' not in filename:
+            split_file = str.split(filename, 'VISIT_0')
+            new_filename = split_file[0] + 'VISIT_0' + split_file[1][0] + '_t1static_' + split_file[1][2:]
+            print new_filename
+            move(filename, new_filename)
+            filename = new_filename
+
+        if 'sameAIF__autoAIF' in filename:
+            new_filename = filename.replace('sameAIF__autoAIF', 'sameAutoAIF')
+            print filename
+            print new_filename
+            move(filename, new_filename)
+            filename = new_filename
+
+        if 'threshold_-1' in filename:
+            new_filename = filename.replace('threshold_-1', 'threshold_none')
+            move(filename, new_filename)
+            print new_filename
+            filename = new_filename
+
+        if 'threshold_0.01' in filename:
+            new_filename = filename.replace('threshold_0.01', 'threshold_PCA')
+            move(filename, new_filename)
+            print new_filename
+            filename = new_filename
+
+    return
+
+def Create_Resource_Directories(CED_directory, NHX_directory, ROI_folder, AIF_folder, T1MAP_folder):
+
+    """ Move all ROIs/AIFs/T1MAPs for the DCE script from their idiosyncratic locations
         to a set folder.
     """
 
-    if not os.path.exists(output_folder):
-        os.mkdir(output_folder)
+    output_folders = [ROI_folder, AIF_folder, T1MAP_folder]
 
-    # print 
+    for output_folder in output_folders:
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
 
-    NHX_dirs = glob.glob(os.path.join(NHX_directory, 'NHX*/'))
-    CED_dirs = glob.glob(os.path.join(CED_directory, 'CED*/'))
+    NHX_CED_dirs = glob.glob(os.path.join(CED_directory, 'CED*/')) + glob.glob(os.path.join(NHX_directory, 'NHX*/'))
 
     visits = ['VISIT_01', 'VISIT_02']
 
     for visit in visits:
 
-        for NHX_dir in NHX_dirs:
+        for subdir in NHX_CED_dirs:
 
-            ROI = os.path.join(NHX_dir, visit, 'ROISTATS', 'T1AxialPost', 'rT1AxialPostROI.nii')
-            output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(NHX_dir)) + '_' + visit + '_ROI.nii')
+            ROI = os.path.join(subdir, visit, 'ROISTATS', 'T1AxialPost', 'rT1AxialPostROI.nii')
+            output_path = os.path.join(ROI_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_ROI.nii')
             if os.path.exists(ROI):
                 print output_path
                 copy(ROI, output_path)
 
-        for CED_dir in CED_dirs:
-
-            ROI = os.path.join(CED_dir, visit, 'ROISTATS', 'T1AxialPost', 'rT1AxialPostROI.nii')
-            output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(CED_dir)) + '_' + visit + '_ROI.nii')
-            if os.path.exists(ROI):
+            AIF = os.path.join(subdir, visit, 'MAPS', 'NORDIC_ICE_AIF.txt')
+            output_path = os.path.join(AIF_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_AIF.txt')
+            if os.path.exists(AIF):
                 print output_path
-                copy(ROI, output_path)
+                copy(AIF, output_path)
+
+            T1MAP = os.path.join(subdir, visit, 'MAPS', 'T1inDCE.nii')
+            output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_T1inDCE.nii')
+            if os.path.exists(T1MAP):
+                print output_path
+                copy(T1MAP, output_path)
+
+def Create_Study_AIF(AIF_directory, output_AIF):
+
+    """ Average all AIFs into one AIF.
+    """
+
+    AIF_list = glob.glob(os.path.join(AIF_directory, '*VISIT*.txt'))
+
+    AIF_numpy_list = [[np.loadtxt(AIF, delimiter=';', dtype=object), AIF] for AIF in AIF_list]
+
+    AIF_array = np.zeros((len(AIF_numpy_list), 60), dtype=object)
+
+    for row_idx, row in enumerate(AIF_array):
+        print len(AIF_numpy_list[row_idx][0])
+        print AIF_numpy_list[row_idx][1]
+        print AIF_numpy_list[row_idx][0]
+        AIF_array[row_idx, :] = AIF_numpy_list[row_idx][0][0:60]
+
+    np.set_printoptions(suppress=True)
+
+    AIF_array = AIF_array.astype(float)
+    print AIF_array.shape
+    print np.mean(AIF_array, axis=0)
+    print np.mean(AIF_array, axis=0).T.shape
+
+    np.savetxt(output_AIF, np.mean(AIF_array, axis=0)[None], fmt='%2.5f', delimiter=';')
+
+    return
 
 def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
 
@@ -257,6 +326,8 @@ if __name__ == '__main__':
     NHX_directory = '/qtim2/users/data/NHX/ANALYSIS/DCE/'
     CED_directory = '/qtim/users/data/CED/ANALYSIS/DCE/PREPARATION_FILES/'
     ROI_directory = '/home/abeers/Data/DCE_Package/Test_Results/ROIs'
+    AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/AIFs'
+    T1MAP_directory = '/home/abeers/Data/DCE_Package/Test_Results/T1Maps'
 
     output_csv = 'DCE_Assay.csv'
     reshaped_output_csv = 'DCE_Assay_Split.csv'
@@ -267,12 +338,14 @@ if __name__ == '__main__':
 
     # Rename_LM_Files(data_directory)
     # Copy_SameAIF_Visit1_Tumors(data_directory)
-    # Create_ROI_Directory(CED_directory, NHX_directory, ROI_directory)
+    # Create_Resource_Directories(CED_directory, NHX_directory, ROI_directory, AIF_directory, T1MAP_directory)
+    Create_Study_AIF(AIF_directory, '/home/abeers/Data/DCE_Package/Test_Results/AIFs/Study_AIF.txt')
     # Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
     # Reshape_Statisticts_Worksheet(output_csv, reshaped_output_csv, ROI_directory)
     # Delete_Extra_Files(data_directory)
     # Paired_Visits_Worksheet(output_csv, paired_csv)
     # Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
-    Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
+    # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
+    # Recode_With_Binary_Labels(data_directory)
 
     pass
