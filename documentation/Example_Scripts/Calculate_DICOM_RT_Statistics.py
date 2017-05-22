@@ -17,7 +17,7 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
     InputGroundTruth_Base = os.path.basename(os.path.normpath(InputGroundTruth)).replace(" ", "")
     InputVolume_Base = os.path.basename(os.path.normpath(InputVolume)).replace(" ", "")
 
-    mount_path = os.path.abspath('./input_dicom')
+    mount_path = os.path.abspath('./output_dicom')
 
     # Create required mount folder for Plastimatch Docker
     if os.path.isdir(mount_path):
@@ -41,7 +41,7 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
 
     # Start by recording all of the labels available in Ground Truth Data
     Labels = {}
-    for label_idx, Ground_Truth_Label in enumerate(glob.glob('./input_dicom/' + str.split(InputGroundTruth_Base, '.')[0] + '_split/*')):
+    for label_idx, Ground_Truth_Label in enumerate(glob.glob('./output_dicom/' + str.split(InputGroundTruth_Base, '.')[0] + '_split/*')):
         Label_Name = str.split(os.path.basename(os.path.normpath(Ground_Truth_Label)), '.')[0]
         Labels[Label_Name] = label_idx
 
@@ -52,7 +52,7 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
 
     # Grab matching labels from the test segmentation, and compute label statistics
     output_index = 1
-    for Segmentation_Label in glob.glob('./input_dicom/' + str.split(InputSeg_Base, '.')[0] + '_split/*'):
+    for Segmentation_Label in glob.glob('./output_dicom/' + str.split(InputSeg_Base, '.')[0] + '_split/*'):
 
         Label_Name = str.split(os.path.basename(os.path.normpath(Segmentation_Label)), '.')[0]
 
