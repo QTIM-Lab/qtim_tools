@@ -30,9 +30,10 @@ The following commands are available:
         parser = argparse.ArgumentParser(
             description='Generate label statistics from a QTIM study and a given ROI.')
 
-        parser.add_argument('-study_name')
-        parser.add_argument('-label_name')
-        parser.add_argument('-output_csv')
+        parser.add_argument('study_name', type=str)
+        parser.add_argument('label_name', type=str)
+        parser.add_argument('output_csv', type=str)
+        parser.add_argument('-base_directory', type=str)        
 
         args = parser.parse_args(sys.argv[2:])
         print 'Running label statistics on study directory... %s' % args.study_name

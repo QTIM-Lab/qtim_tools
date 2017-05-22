@@ -22,6 +22,6 @@ setup(
   url = 'https://github.com/QTIM-Lab/qtim_tools', # use the URL to the github repo
   download_url = 'https://github.com/QTIM-Lab/qtim_tools/tarball/0.1.12',
   keywords = ['neuroimaging', 'niftis', 'nifti','mri','dce','dsc','ktrans','ve','tofts','machine learning','vision','texture','learning'], # arbitrary keywords
-  install_requires=['nibabel','pydicom','pynrrd','matplotlib','numpy','scipy','scikit-image'],
+  install_requires=['nibabel','nipype','pydicom','pynrrd','matplotlib','numpy','scipy','scikit-image'],
   classifiers = [],
 )

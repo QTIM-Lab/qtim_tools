@@ -5,10 +5,12 @@
 
 from __future__ import division
 
-from ..qtim_utilities import nifti_util
-
 import numpy as np
 from scipy import stats
+
+from ..qtim_utilities import nifti_util
+from ..qtim_utilities.format_util import convert_input_2_numpy
+from ..qtim_preprocessing.threshold import crop_with_mask
 
 standard_bins = [[-np.inf, -1000],[-1000, -950],[-950, -650],[-650, -300],[-300, 0],[0, 100],[100,600],[600, np.inf]]
 standard_bin_labels = []
@@ -54,10 +56,10 @@ def calc_entropy(image_numpy):
     return np.sum(entropy_image * -1 * (np.log(entropy_image)))
 
 def calc_kurtosis(image_numpy):
-    return stats.kurtosis(image_numpy)
+    return stats.kurtosis(image_numpy, axis=None)
 
 def calc_skewness(image_numpy):
-    return stats.skew(image_numpy)
+    return stats.skew(image_numpy, axis=None)
 
 def calc_COV(image_numpy):
     return np.std(image_numpy) / np.mean(image_numpy)
@@ -76,14 +78,57 @@ def calc_intensity_histogram(image_numpy, bins, mask_value=0):
 
     return histo_counts
 
-def statistics_features(image, features=standard_features, mask_value=0):
+statistics_dict = { 'mean': calc_mean,
+                    'min': calc_min,
+                    'max': calc_max,
+                    'median': calc_median,
+                    'range': calc_range,
+                    'standard_deviation': calc_std,
+                    'variance': calc_variance,
+                    'energy': calc_energy,
+                    'entropy': calc_entropy,
+                    'kurtosis': calc_kurtosis,
+                    'skewness': calc_skewness,
+                    'COV': calc_COV,
+                    'histogram_percent': calc_intensity_histogram
+                    }
+
+def qtim_statistic(input_data, statistics, label_data='', mask_value=0, additional_parameters=''):
+
+    """ TODO: Documentation. This should replace the existing statistics function for the feature extractor.
+    """
+
+    outputs = []
+    if isinstance(statistics, basestring):
+        statistics = [statistics,]
+
+    input_numpy = convert_input_2_numpy(input_data)
+
+    if label_data != '':
+        input_numpy = crop_with_mask(input_numpy, label_data, mask_value=mask_value)
+
+    stats_numpy = np.ravel(input_numpy[input_numpy > mask_value])
+
+    for statistic in statistics:
+
+        if statistics_dict[statistic] == []:
+            print 'No statistics by that keyword. Returning blank...'
+            outputs += ['']
+
+        try:
+            outputs += [statistics_dict[statistic](stats_numpy)]
+        except:
+            outputs += ['NA']
+
+    return outputs
+
+def statistics_features(image, features=standard_features, label_file='', mask_value=0):
 
     if isinstance(features, basestring):
         features = [features,]
 
     results = np.zeros(len(features), dtype=float)
     stats_image = np.ravel(image[image != mask_value])
-    # nifti_util.check_image(image)
 
     for f_idx, current_feature in enumerate(features):
 
