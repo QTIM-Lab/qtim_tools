@@ -11,8 +11,8 @@ class qtim_commands(object):
             usage='''git <command> [<args>]
 
 The following commands are available:
-   commit     Record changes to the repository
-   fetch      Download objects and refs from another repository
+   dti_conversion      Generate DTI volumes from RAWDATA.
+   label_statistics    Generate label statistics from the COREGISTRATION folder.
 ''')
 
         parser.add_argument('command', help='Subcommand to run')
@@ -39,6 +39,19 @@ The following commands are available:
         print 'Running label statistics on study directory... %s' % args.study_name
 
         qtim_tools.qtim_pipelines.label_statistics.qtim_study_statistics(args.study_name, args.label_name, args.output_csv)
+
+    def dti_conversion(self):
+        parser = argparse.ArgumentParser(
+            description='Generate DTI modalities from QTIM study raw data.')
+
+        parser.add_argument('study_name', type=str)
+        parser.add_argument('-output_modalities', type=str)
+        parser.add_argument('-base_directory', type=str)        
+
+        args = parser.parse_args(sys.argv[2:])
+        print 'Running DTI conversion on study directory... %s' % args.study_name
+
+        qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(args.study_name)
 
     # def fetch(self):
     #     parser = argparse.ArgumentParser(
