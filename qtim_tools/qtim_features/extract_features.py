@@ -103,68 +103,6 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
     if return_output:
         return final_output
 
-def determine_outfile_name(outfile, overwrite=True):
-    
-    write_flag = False
-    while not write_flag:
-        if not os.path.isfile(outfile):
-            write_flag = True
-            continue
-        if overwrite:
-            write_flag = True
-        else:
-            split_outfile = str.split(outfile,'.')
-            print split_outfile
-            outfile = '.'.join(split_outfile[0:-1]) + '_new.' + split_outfile[-1]
-            if not os.path.isfile(outfile):
-                write_flag = True
-
-    return outfile
-
-def generate_feature_indices(features=['GLCM', 'morphology', 'statistics'], featurenames=True):
-
-    total_features = 0
-    feature_indexes = [0]
-
-    for feature in features:
-        total_features += feature_dictionary[feature].feature_count()
-        if feature_indexes == [0]:
-            feature_indexes = [0, feature_dictionary[feature].feature_count()]
-        else:
-            feature_indexes += [feature_indexes[-1] + feature_dictionary[feature].feature_count()]
-    
-    if featurenames:
-        label_output = np.zeros((1, total_features+1), dtype=object)
-        for feature_idx, feature in enumerate(features):
-            label_output[0, (1+feature_indexes[feature_idx]):(1+feature_indexes[feature_idx+1])] = feature_dictionary[feature].featurename_strings()
-        label_output[0,0] = 'index'
-
-    return [total_features, feature_indexes, label_output]
-
-def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suffix='-label', set_label='', recursive=False):
-
-    if recursive:
-        imagepaths = grab_files_recursive(folder, file_regex)
-    else:
-        imagepaths = glob.glob(os.path.join(folder, file_regex))
-
-    if labels:
-        if set_label == '':
-            label_images = [ x for x in imagepaths if label_suffix in x ]
-            imagepaths = [ x for x in imagepaths if label_suffix not in x ]
-        else:
-            label_images = [os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) if os.path.exists(x) else '' for x in imagepaths]
-            imagepaths = [ x for x in imagepaths if os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) not in x ]
-    else:
-        label_images = []
-
-    if imagepaths == []:
-        raise ValueError("There are no .nii or .nii.gz images in the provided folder.")
-    if labels and label_images == []:
-        raise ValueError("There are no labels with the provided suffix in this folder. If you do not want to use labels, set the \'labels\' flag to \'False\'. If you want to change the label file suffix (default: \'-label\'), then change the \'label_suffix\' flag.")
-
-    return [imagepaths, label_images]
-
 def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_label='', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0, mode="whole_volume"):
 
     image_list = []
@@ -309,6 +247,70 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
     print '\n'
 
     return numerical_output
+
+def generate_feature_indices(features=['GLCM', 'morphology', 'statistics'], featurenames=True):
+
+    total_features = 0
+    feature_indexes = [0]
+
+    for feature in features:
+        total_features += feature_dictionary[feature].feature_count()
+        if feature_indexes == [0]:
+            feature_indexes = [0, feature_dictionary[feature].feature_count()]
+        else:
+            feature_indexes += [feature_indexes[-1] + feature_dictionary[feature].feature_count()]
+    
+    if featurenames:
+        label_output = np.zeros((1, total_features+1), dtype=object)
+        for feature_idx, feature in enumerate(features):
+            label_output[0, (1+feature_indexes[feature_idx]):(1+feature_indexes[feature_idx+1])] = feature_dictionary[feature].featurename_strings()
+        label_output[0,0] = 'index'
+
+    return [total_features, feature_indexes, label_output]
+
+def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suffix='-label', set_label='', recursive=False):
+
+    if recursive:
+        imagepaths = grab_files_recursive(folder, file_regex)
+    else:
+        imagepaths = glob.glob(os.path.join(folder, file_regex))
+
+    if labels:
+        if set_label == '':
+            label_images = [ x for x in imagepaths if label_suffix in x ]
+            imagepaths = [ x for x in imagepaths if label_suffix not in x ]
+        else:
+            label_images = [os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) if os.path.exists(x) else '' for x in imagepaths]
+            imagepaths = [ x for x in imagepaths if os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) not in x ]
+    else:
+        label_images = []
+
+    if imagepaths == []:
+        raise ValueError("There are no .nii or .nii.gz images in the provided folder.")
+    if labels and label_images == []:
+        raise ValueError("There are no labels with the provided suffix in this folder. If you do not want to use labels, set the \'labels\' flag to \'False\'. If you want to change the label file suffix (default: \'-label\'), then change the \'label_suffix\' flag.")
+
+    return [imagepaths, label_images]
+
+
+def determine_outfile_name(outfile, overwrite=True):
+    
+    write_flag = False
+    while not write_flag:
+        if not os.path.isfile(outfile):
+            write_flag = True
+            continue
+        if overwrite:
+            write_flag = True
+        else:
+            split_outfile = str.split(outfile,'.')
+            print split_outfile
+            outfile = '.'.join(split_outfile[0:-1]) + '_new.' + split_outfile[-1]
+            if not os.path.isfile(outfile):
+                write_flag = True
+
+    return outfile
+
 
 def test_method():
     test_folder = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','MR_Tumor_Shape'))

@@ -46,7 +46,7 @@ def Rename_LM_Files(data_directory):
         print filename
 
         # copy(filename, new_filename)
-        os.remove(filename)
+        # os.remove(filename)
 
     return
 
@@ -67,16 +67,26 @@ def Recode_With_Binary_Labels(data_directory):
 
     for filename in file_database:
 
-        if 'autoAIF' not in filename:
+
+        if 'autoAIF' not in filename and 'studyAIF' not in filename and 'same' not in filename and '_popAIF' not in filename:
+            print filename
             split_file = str.split(filename, 'VISIT_0')
             new_filename = split_file[0] + 'VISIT_0' + split_file[1][0] + '_popAIF_' + split_file[1][2:]
+            print new_filename
+            # move(filename, new_filename)
+            filename = new_filename
+
+
+        if 't1map' not in filename and 't1static' not in filename:
+            split_file = str.split(filename, 'VISIT_0')
+            new_filename = split_file[0] + 'VISIT_0' + split_file[1][0] + '_t1static_' + split_file[1][2:]
             print new_filename
             move(filename, new_filename)
             filename = new_filename
 
-        if 't1map' not in filename:
-            split_file = str.split(filename, 'VISIT_0')
-            new_filename = split_file[0] + 'VISIT_0' + split_file[1][0] + '_t1static_' + split_file[1][2:]
+        if 't1static_t1static_' in filename:
+            new_filename = filename.replace('t1static_t1static_', 't1static_')
+            print filename
             print new_filename
             move(filename, new_filename)
             filename = new_filename
@@ -85,7 +95,7 @@ def Recode_With_Binary_Labels(data_directory):
             new_filename = filename.replace('sameAIF__autoAIF', 'sameAutoAIF')
             print filename
             print new_filename
-            move(filename, new_filename)
+            # move(filename, new_filename)
             filename = new_filename
 
         if 'threshold_-1' in filename:
@@ -167,6 +177,24 @@ def Create_Study_AIF(AIF_directory, output_AIF):
     np.savetxt(output_AIF, np.mean(AIF_array, axis=0)[None], fmt='%2.5f', delimiter=';')
 
     return
+
+def Store_Unneeded_Codes(data_directory, storage_directory):
+
+    file_database = glob.glob(os.path.join(storage_directory, '*.nii*'))
+
+    if not os.path.exists(storage_directory):
+        os.mkdir(storage_directory)
+
+    i = 0
+    for file in file_database:
+
+        if 'pca_0' in file and ('blur_0.8' in file or 'blur_0_' in file) and ('threshold_-1' in file or 'threshold_none' in file):
+            # print os.path.basename(file)
+            move(file, os.path.join(data_directory, os.path.basename(file)))
+
+
+    print i
+
 
 def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
 
@@ -323,8 +351,11 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 if __name__ == '__main__':
 
     data_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1'
+    storage_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1/Storage'
+
     NHX_directory = '/qtim2/users/data/NHX/ANALYSIS/DCE/'
     CED_directory = '/qtim/users/data/CED/ANALYSIS/DCE/PREPARATION_FILES/'
+    
     ROI_directory = '/home/abeers/Data/DCE_Package/Test_Results/ROIs'
     AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/AIFs'
     T1MAP_directory = '/home/abeers/Data/DCE_Package/Test_Results/T1Maps'
@@ -339,12 +370,13 @@ if __name__ == '__main__':
     # Rename_LM_Files(data_directory)
     # Copy_SameAIF_Visit1_Tumors(data_directory)
     # Create_Resource_Directories(CED_directory, NHX_directory, ROI_directory, AIF_directory, T1MAP_directory)
-    Create_Study_AIF(AIF_directory, '/home/abeers/Data/DCE_Package/Test_Results/AIFs/Study_AIF.txt')
-    # Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
+    # Create_Study_AIF(AIF_directory, '/home/abeers/Data/DCE_Package/Test_Results/AIFs/Study_AIF.txt')
+    # Store_Unneeded_Codes(data_directory, storage_directory)
+    Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
     # Reshape_Statisticts_Worksheet(output_csv, reshaped_output_csv, ROI_directory)
     # Delete_Extra_Files(data_directory)
-    # Paired_Visits_Worksheet(output_csv, paired_csv)
-    # Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
+    Paired_Visits_Worksheet(output_csv, paired_csv)
+    Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
     # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
     # Recode_With_Binary_Labels(data_directory)
 

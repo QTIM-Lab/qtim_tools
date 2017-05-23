@@ -22,12 +22,14 @@ def qtim_study_statistics(study_name, label_file, output_csv, base_directory='/q
     results = study_files.run().outputs.outfiles
 
     outputs_without_labels = [study_file for study_file in results if label_file not in study_file]
-    output_numpy = np.zeros((1+len(outputs_without_labels), 1+len(features_calculated)), dtype=object)
+    output_numpy = np.full((1+len(outputs_without_labels), 1+len(features_calculated)), 'NA', dtype=object)
 
     for return_idx, return_file in enumerate(outputs_without_labels):
 
         directory = os.path.dirname(return_file)
         visit_label = glob.glob(os.path.join(directory, '*' + label_file + '*'))
+
+        output_numpy[return_idx+1, 0] = return_file
 
         if visit_label:
 
@@ -36,7 +38,6 @@ def qtim_study_statistics(study_name, label_file, output_csv, base_directory='/q
 
             print return_file
 
-            output_numpy[return_idx+1, 0] = return_file
             output_numpy[return_idx+1, 1:] = qtim_statistic(return_file, features_calculated, visit_label[0])
 
     output_numpy[0,:] = ['filename'] + features_calculated
