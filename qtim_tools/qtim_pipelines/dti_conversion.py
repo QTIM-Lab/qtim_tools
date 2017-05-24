@@ -15,6 +15,32 @@ import re
 
 def qtim_dti_conversion(study_name, base_directory='/qtim2/users/data/'):
 
+    """ This script is meant for members of the QTIM lab at MGH. It takes in one of our study names,
+        a text-identifier for a label volume (e.g. "FLAIR-label"), and an output file, and computes
+        a list of label statistics for every file in the "COREGISTRATION" folder. This function can
+        also be called with the command-line utility "qtim label_statistics".
+
+        The following statistics are currently computed: mean, min, max, median, range, standard deviation,
+        variance, energy, entropy, kurtosis, skewness, COV
+
+        TODO: Make this function more customizable.
+
+        Parameters
+        ----------
+        study_name: str
+            A QTIM study name code, usually three letters.
+        label_file: str
+            A phrase that specifically indicates the label to generate statistics from.
+            For example, 'FLAIR-label', 'T1POST-label'. If multiple labels are returned,
+            a warning will be raised an only one will be calculated.
+        output_csv: str
+            The full path to the output csv file. This file will contain label statistics
+        base_directory: str
+            The full path to the directory from which to search for studies. The study directory
+            should be contained in this directory.
+
+    """
+
     # NiPype is not very necessary here, but I want to get used to it.
     study_files = nio.DataGrabber()
     study_files.inputs.base_directory = base_directory
@@ -33,6 +59,8 @@ def qtim_dti_conversion(study_name, base_directory='/qtim2/users/data/'):
     for volume in original_volumes:
 
         split_path = os.path.normpath(volume).split(os.sep)
+
+        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DTI')
 
         print split_path
 

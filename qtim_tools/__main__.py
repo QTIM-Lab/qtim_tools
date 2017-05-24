@@ -33,12 +33,12 @@ The following commands are available:
         parser.add_argument('study_name', type=str)
         parser.add_argument('label_name', type=str)
         parser.add_argument('output_csv', type=str)
-        parser.add_argument('-base_directory', type=str)        
+        parser.add_argument('base_directory', type=str)        
 
         args = parser.parse_args(sys.argv[2:])
         print 'Running label statistics on study directory... %s' % args.study_name
 
-        qtim_tools.qtim_pipelines.label_statistics.qtim_study_statistics(args.study_name, args.label_name, args.output_csv)
+        qtim_tools.qtim_pipelines.label_statistics.qtim_study_statistics(args.study_name, args.label_name, args.output_csv, args.base_directory)
 
     def dti_conversion(self):
         parser = argparse.ArgumentParser(
