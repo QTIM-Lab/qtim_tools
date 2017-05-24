@@ -6,14 +6,15 @@ import numpy as np
 import nipype.interfaces.io as nio
 import glob
 import os
-
 import subprocess
 import dicom
 import shutil
 import sys
 import re
 
-def qtim_dti_conversion(study_name, base_directory='/qtim2/users/data/'):
+from ..qtim_preprocessing.motion_correction import motion_correction
+
+def qtim_dti_conversion(study_name, base_directory, output_modalities=[]):
 
     """ This script is meant for members of the QTIM lab at MGH. It takes in one of our study names,
         a text-identifier for a label volume (e.g. "FLAIR-label"), and an output file, and computes
@@ -29,70 +30,150 @@ def qtim_dti_conversion(study_name, base_directory='/qtim2/users/data/'):
         ----------
         study_name: str
             A QTIM study name code, usually three letters.
-        label_file: str
-            A phrase that specifically indicates the label to generate statistics from.
-            For example, 'FLAIR-label', 'T1POST-label'. If multiple labels are returned,
-            a warning will be raised an only one will be calculated.
-        output_csv: str
-            The full path to the output csv file. This file will contain label statistics
         base_directory: str
             The full path to the directory from which to search for studies. The study directory
             should be contained in this directory.
+        output_modalities: str or list of str
+            All of the parameter maps to be outputted by the DTI conversion process.
 
     """
 
-    # NiPype is not very necessary here, but I want to get used to it.
+    # NiPype is not very necessary here, but I want to get used to it. DataGrabber is a utility for
+    # for recursively getting files that match a pattern.
     study_files = nio.DataGrabber()
     study_files.inputs.base_directory = base_directory
     study_files.inputs.template = os.path.join(study_name, 'RAWDATA', study_name + '*', 'VISIT_*', 'ep2d*/', '*/')
     study_files.inputs.sort_filelist = True
     results = study_files.run().outputs.outfiles
 
-    precomputed_list = ['DFC', 'ADC', 'FA', 'TENSOR', 'TRACEW', 'saraadj']
+    # Because of inconsistent naming within QTIM, there are many directories we need to filter out.
+    # I create an original_volumes list to hopefully contain only the raw DTI data.
+    filter_out_list = ['DFC', 'ADC', 'FA', 'TENSOR', 'TRACEW', 'saraadj']
     original_volumes = []
-
     for output in results:
-        if any(phrase in output for phrase in precomputed_list):
+        if any(filter_out in output for filter_out in filter_out_list):
             continue
         original_volumes += [output]
 
+    # Each volume is iterated through...
     for volume in original_volumes:
 
+        # Find the output folder
+        # TODO: Do this with nipype DataSink instead.
+        # Also TODO: Make this easier to change in case directory structure changes.
         split_path = os.path.normpath(volume).split(os.sep)
+        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DTI', split_path[-4], split_path[-3], 'NEW_DTI')
 
-        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DTI')
+        # Create or delete/create the output folder.
+        if os.path.exists(output_folder):
+            shutil.rmtree(output_folder)    
+        os.mkdir(output_folder)
 
-        print split_path
+        # Convert from DICOM
+        output_file_prefix = os.path.join(output_folder, split_path[-4] + '-' + split_path[-3]) + '-DTI_diff'
+        bval, bvec, diff = convert_DTI_nifti(volume, output_folder, output_file_prefix)
 
-    # output_numpy = np.full((1+len(outputs_without_labels), 1+len(features_calculated)), 'NA', dtype=object)
+        # Motion Correction
+        output_motion_file = os.path.splitext(diff)[0] + '_mc' + os.path.splitext(diff)[-1]
+        motion_correction(diff, output_motion_file)
 
-    # for return_idx, return_file in enumerate(outputs_without_labels):
+        # 1s_tool.py transpose
+        output_bvec_file = os.path.splitext(bvec)[0] + '_mc' + os.path.splitext(diff)[-1]
+        motion_correction(diff, output_motion_file)
 
-    #     directory = os.path.dirname(return_file)
-    #     visit_label = glob.glob(os.path.join(directory, '*' + label_file + '*'))
-
-    #     output_numpy[return_idx+1, 0] = return_file
-
-    #     if visit_label:
-
-    #         if len(visit_label) != 1:
-    #             print 'WARNING! Multiple labels found. Going with... ' + visit_label[0]
-
-    #         print return_file
-
-    #         output_numpy[return_idx+1, 1:] = qtim_statistic(return_file, features_calculated, visit_label[0])
-
-    # output_numpy[0,:] = ['filename'] + features_calculated
-
-    # save_numpy_2_csv(output_numpy, output_csv)
+        fd = dg
 
     return
 
+def run_1dtool(input_bvec, output_bvec)
+
+def convert_DTI_nifti(volume, output_folder, output_file_prefix):
+
+    # Grab all dicom files in a directory. Try to find a usable reference DICOM among them.
+    dicom_list = glob.glob(os.path.join(volume, '*'))
+    reference_dicom = []
+    for dicom_file in dicom_list:
+        try:
+            reference_dicom = dicom.read_file(dicom_file)
+            break
+        except:
+            continue       
+
+    # If we can't find any DICOMs in these folders, skip this volume.
+    if not reference_dicom:
+        print 'No DICOMs found! Skipping folder... ', volume
+        return False
+
+    # Attempt to mine sequence, protocol, bvalue data from the reference DICOM.
+    # The following code is courtesy Karl's group.
+    sequence, protocol, bval = [], '', ''
+
+    #####GENERAL SEQUENCE####
+    try:
+        sequence.append(reference_dicom[0x18,0x24].value)
+    except:
+        pass
+    try:
+        sequence.append(reference_dicom[0x18,0x20].value)
+    except:
+        pass
+
+    #####GENERAL PROTOCOL#####
+    try:
+        protocol = reference_dicom[0x18,0x1030].value
+    except:
+        pass
+
+    try:
+        bval = reference_dicom[0x18,0x9087].value
+    except:
+        pass
+
+    ####SIEMENS Specific Private Tags####
+    if reference_dicom.Manufacturer == 'SIEMENS':
+        if bval == '':
+            try:
+                bval = reference_dicom[0x19,0x100C].value
+            except:
+                pass
+
+    #####GE Specific Private Tags####### 
+    elif reference_dicom.Manufacturer == 'GE MEDICAL SYSTEMS':
+        try:
+            sequence.append([0x19,0x109C].value)
+        except:
+            pass
+        if bval == '':
+            try:
+                bval = reference_dicom[0x43,0x1039].value
+            except:
+                pass
+
+    # Check if the sequence/protocol/bvalue information is as expected. If so, convert nifti.
+    DTI = check_DTI(sequence, str(protocol), str(bval))
+    if DTI == True:
+        subprocess.call(['dcm2nii', '-d', 'N', '-i', 'N', '-p', 'N', '-o', output_folder, volume])
+
+    # Rename Output Files. TODO: Use split_file constructions less.
+    output_files = sorted(glob.glob(os.path.join(output_folder, '*')))
+    renamed_output_files = []
+
+    for output_file in output_files:
+        renamed_file = os.path.join(output_folder, output_file_prefix + '.' + '.'.join(str.split(os.path.basename(output_file), '.')[1:]))
+        renamed_output_files += [renamed_file]
+        shutil.move(output_file, renamed_file)
+
+    return renamed_output_files
+
 def check_DTI(sequence, protocol, bval):
+
+    """ This script is courtesy Karl's group. Documentation to come.
+    """
+
     DTI = False
 
     # if none of the elements of sequence match any of the given values
-    if False not in [x not in ["tof", "fl3d", "memp", "fse", "grass", "3-Plane", "gre" ] for x in sequence]:
+    if not any([x in ["tof", "fl3d", "memp", "fse", "grass", "3-Plane", "gre" ] for x in sequence]):
         if re.search('(ep2)|b|(ep_)', str(sequence), re.IGNORECASE):
             DTI = True
         elif re.search('(1000)|(directional)',bval, re.IGNORECASE):
@@ -122,58 +203,58 @@ if __name__ == '__main__':
 #                             if any(mm.endswith('.dcm') for mm in os.listdir(rooti+sub)):
 #                 if os.path.exists(nifti+sub+'/'+run) == False:
 #                     os.mkdir(nifti+sub+'/'+run)
-#                                     sequence = []
-#                                     protocol, bval = '',''
-#                                     f = os.listdir(root+sub+'/'+run)[0]
-#                                     try:
-#                                             ds = dicom.read_file(root+sub+'/'+run+'/'+f)
-#                                     except:
-#                                             f = os.listdir(root+sub+'/'+run)[1]
-#                                             ds = dicom.read_file(root+sub+'/'+run+'/'+f)
+                                    # sequence = []
+                                    # protocol, bval = '',''
+                                    # f = os.listdir(root+sub+'/'+run)[0]
+                                    # try:
+                                    #         ds = dicom.read_file(root+sub+'/'+run+'/'+f)
+                                    # except:
+                                    #         f = os.listdir(root+sub+'/'+run)[1]
+                                    #         ds = dicom.read_file(root+sub+'/'+run+'/'+f)
 
-#                                     #####GENERAL SEQUENCE####
-#                                     try:
-#                                             sequence.append(ds[0x18,0x24].value)
-#                                     except:
-#                                             pass
-#                                     try:
-#                                             sequence.append(ds[0x18,0x20].value)
-#                                     except:
-#                                             pass
+                                    # #####GENERAL SEQUENCE####
+                                    # try:
+                                    #         sequence.append(ds[0x18,0x24].value)
+                                    # except:
+                                    #         pass
+                                    # try:
+                                    #         sequence.append(ds[0x18,0x20].value)
+                                    # except:
+                                    #         pass
 
-#                                     #####GENERAL PROTOCOL#####
-#                                     try:
-#                                             protocol = ds[0x18,0x1030].value
-#                                     except:
-#                                             pass
+                                    # #####GENERAL PROTOCOL#####
+                                    # try:
+                                    #         protocol = ds[0x18,0x1030].value
+                                    # except:
+                                    #         pass
 
-#                                     try:
-#                                             bval = ds[0x18,0x9087].value
-#                                     except:
-#                                             pass
+                                    # try:
+                                    #         bval = ds[0x18,0x9087].value
+                                    # except:
+                                    #         pass
 
-#                                     ####SIEMENS Specific Private Tags####
-#                                     if ds.Manufacturer == 'SIEMENS':
-#                                                     if bval == '':
-#                                                             try:
-#                                                                     bval = ds[0x19,0x100C].value
-#                                                             except:
-#                                                                     pass
+                                    # ####SIEMENS Specific Private Tags####
+                                    # if ds.Manufacturer == 'SIEMENS':
+                                    #                 if bval == '':
+                                    #                         try:
+                                    #                                 bval = ds[0x19,0x100C].value
+                                    #                         except:
+                                    #                                 pass
 
-#                                     #####GE Specific Private Tags####### 
-#                                     elif ds.Manufacturer == 'GE MEDICAL SYSTEMS':
-#                                             try:
-#                                                     sequence.append([0x19,0x109C].value)
-#                                             except:
-#                                                     pass
-#                                             if bval == '':
-#                                                     try:
-#                                                             bval = ds[0x43,0x1039].value
-#                                                     except:
-#                                                             pass
-#                                     else:
-#                                             pass
+                                    # #####GE Specific Private Tags####### 
+                                    # elif ds.Manufacturer == 'GE MEDICAL SYSTEMS':
+                                    #         try:
+                                    #                 sequence.append([0x19,0x109C].value)
+                                    #         except:
+                                    #                 pass
+                                    #         if bval == '':
+                                    #                 try:
+                                    #                         bval = ds[0x43,0x1039].value
+                                    #                 except:
+                                    #                         pass
+                                    # else:
+                                    #         pass
 
-#                                     DTI = checkIfDTI(sequence, str(protocol), str(bval))
-#                                     if DTI == True:
+                                    # DTI = checkIfDTI(sequence, str(protocol), str(bval))
+                                    # if DTI == True:
 #                                             subprocess.call(['dcm2nii', '-d', 'N', '-i', 'N', '-p', 'N', '-o', nifti+sub+'/'+run, root+sub+'/'+run])

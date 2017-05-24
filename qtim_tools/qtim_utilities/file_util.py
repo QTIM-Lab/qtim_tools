@@ -49,6 +49,25 @@ def grab_files_recursive(input_directory, regex='*'):
 
     return output_list
 
+def nifti_splitext(input_filepath):
+
+    """ os.path.splitext splits a filename into the part before the LAST
+        period and the part after the LAST period. This will screw one up
+        if working with, say, .nii.gz files, which should be split at the
+        FIRST period. This function performs an alternate version of splitext
+        which does just that.
+
+        Parameters
+        ----------
+        input_filepath: str
+            The filepath to split.
+
+    """
+
+    return
+    
+
+
 def grab_linked_file(input_filename, prefix="", suffix="", includes="", regex="", linux_regex="", search_folder="", recursive=False, return_multiple=False):
 
     """ Takes an input filename and returns some output file(s) that match certain

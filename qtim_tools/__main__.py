@@ -45,21 +45,13 @@ The following commands are available:
             description='Generate DTI modalities from QTIM study raw data.')
 
         parser.add_argument('study_name', type=str)
+        parser.add_argument('base_directory', type=str)        
         parser.add_argument('-output_modalities', type=str)
-        parser.add_argument('-base_directory', type=str)        
 
         args = parser.parse_args(sys.argv[2:])
         print 'Running DTI conversion on study directory... %s' % args.study_name
 
-        qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(args.study_name)
-
-    # def fetch(self):
-    #     parser = argparse.ArgumentParser(
-    #         description='Download objects and refs from another repository')
-    #     # NOT prefixing the argument with -- means it's not optional
-    #     parser.add_argument('repository')
-    #     args = parser.parse_args(sys.argv[2:])
-    #     print 'Running git fetch, repository=%s' % args.repository
+        qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(args.study_name, args.base_directory, args.output_modalities)
 
 def main():
     qtim_commands()

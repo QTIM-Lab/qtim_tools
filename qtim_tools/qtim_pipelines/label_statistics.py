@@ -73,7 +73,7 @@ def qtim_study_statistics(study_name, label_file, output_csv, base_directory):
             output_numpy[return_idx+1, 1:] = qtim_statistic(return_file, features_calculated, visit_label[0])
 
         else:
-            print 'Warning! No label found in the same directory as... ' return_file
+            print 'Warning! No label found in the same directory as... ', return_file
 
     # Create CSV headers.
     output_numpy[0,:] = ['filename'] + features_calculated
