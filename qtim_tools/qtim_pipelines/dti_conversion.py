@@ -13,8 +13,9 @@ import sys
 import re
 
 from ..qtim_preprocessing.motion_correction import motion_correction
+from ..qtim_utilities.file_util import nifti_splitext
 
-def qtim_dti_conversion(study_name, base_directory, output_modalities=[]):
+def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwrite=False):
 
     """ This script is meant for members of the QTIM lab at MGH. It takes in one of our study names,
         a text-identifier for a label volume (e.g. "FLAIR-label"), and an output file, and computes
@@ -65,27 +66,58 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[]):
         output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DTI', split_path[-4], split_path[-3], 'NEW_DTI')
 
         # Create or delete/create the output folder.
-        if os.path.exists(output_folder):
-            shutil.rmtree(output_folder)    
-        os.mkdir(output_folder)
+        # if os.path.exists(output_folder):
+            # shutil.rmtree(output_folder)    
+        # os.mkdir(output_folder)
 
         # Convert from DICOM
         output_file_prefix = os.path.join(output_folder, split_path[-4] + '-' + split_path[-3]) + '-DTI_diff'
-        bval, bvec, diff = convert_DTI_nifti(volume, output_folder, output_file_prefix)
+        
+        print split_path
+
+        # Don't overwrite if possible.
+        if not overwrite and os.path.exists(output_file_prefix + '.bval') and os.path.exists(output_file_prefix + '.bvec') and os.path.exists(output_file_prefix + '.nii.gz'):
+            bval, bvec, diff = [output_file_prefix + '.bval', output_file_prefix + '.bvec',output_file_prefix + '.nii.gz']
+        else:
+            bval, bvec, diff = convert_DTI_nifti(volume, output_folder, output_file_prefix)
+
+        print [bval, bvec, diff]
 
         # Motion Correction
-        output_motion_file = os.path.splitext(diff)[0] + '_mc' + os.path.splitext(diff)[-1]
-        motion_correction(diff, output_motion_file)
+        output_motion_file = nifti_splitext(diff)[0] + '_mc.' + nifti_splitext(diff)[-1]
+        print output_motion_file
+        if not overwrite and os.path.exists(output_motion_file):
+            pass
+        else:
+            fd=gd
+            motion_correction(diff, output_motion_file)
 
-        # 1s_tool.py transpose
-        output_bvec_file = os.path.splitext(bvec)[0] + '_mc' + os.path.splitext(diff)[-1]
-        motion_correction(diff, output_motion_file)
+        # 1d_tool.py transpose
+        output_bvec_file = os.path.splitext(bvec)[0] + '_t' + os.path.splitext(bvec)[-1]
+        run_1dtool(bvec, output_bvec_file)
 
-        fd = dg
+        # Rotate bvecs
+        output_rotated_bvec_file = os.path.splitext(output_bvec_file)[0] + '_rotated' + os.path.splitext(output_bvec_file)[-1]
+        input_motion_file = nifti_splitext(diff)[0] + '_mc.ecclog'
+        run_fdt_rotate_bvecs(output_bvec_file, output_rotated_bvec_file, input_motion_file)
 
     return
 
-def run_1dtool(input_bvec, output_bvec)
+def run_fdt_rotate_bvecs(input_bvec, output_bvec, input_motion):
+
+    script_location = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','external','fdt_rotate_bvecs.sh'))
+
+    print ' '.join([script_location, input_bvec, output_bvec, input_motion])
+
+    subprocess.call([script_location, input_bvec, output_bvec, input_motion])
+
+def run_1dtool(input_bvec, output_bvec):
+
+    print input_bvec, output_bvec
+    print ' '.join(['1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
+    subprocess.call(['1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
+
+    return
 
 def convert_DTI_nifti(volume, output_folder, output_file_prefix):
 
