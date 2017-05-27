@@ -74,7 +74,7 @@ def nifti_splitext(input_filepath):
     if len(split_filepath) <= 1:
         return split_filepath
     else:
-        return [split_filepath[0], '.'.join(split_filepath[1:])]
+        return [split_filepath[0], '.' + '.'.join(split_filepath[1:])]
 
 def grab_linked_file(input_filename, prefix="", suffix="", includes="", regex="", linux_regex="", search_folder="", recursive=False, return_multiple=False):
 

@@ -1,23 +1,25 @@
-import subprocess
-import os
+""" This module should be used for functions that null out values in an array
+    based on a condition. Primarily used for masking.
+"""
 
-from ..qtim_utilities.nifti_util import save_numpy_2_nifti
+import numpy as np
+
 from ..qtim_utilities.format_util import convert_input_2_numpy
+from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
-def skull_strip(input_data, output_filename='', output_mask_filename='', method="bet", command="bet2", temp_dir='./'):
+def resample(input_data, output_filename='', input_transform_file, method="slicer", command="Slicer", temp_dir='./', param_dict={}):
 
-    """ A catch-all function for skull-stripping. Will perform skull-stripping on an input volume
-        depending on the 'method' and 'command' inputted. Will output a binary skull-mask to
-        output_mask_filename if provided.
+    """ A catch-all function for resampling. Will resample a 3D volume to given dimensions according
+        to the method provided.
+
+        TODO: Add resampling for 4D volumes.
 
         Parameters
         ----------
         input_data: str or array
             Can be a 3D volume or a filename.
         output_filename: str
-            Location to save output data to.
-        output_mask_filename: str
-            Location to save binary skull mask to.
+            Location to save output data to. If left as '', will return numpy array.
         method: str
             Will perform motion correction according to the provided method.
             Currently available: ['fsl']
@@ -28,20 +30,20 @@ def skull_strip(input_data, output_filename='', output_mask_filename='', method=
 
         Returns
         -------
-        output: array, array
+        output: array
             Output data, only if output_filename is left as ''.
     """
 
-    skull_strip_methods = ['bet']
+    skull_strip_methods = ['slicer']
     if method not in skull_strip_methods:
         print 'Input \"method\" parameter is not available. Available methods: ', skull_strip_methods
         return
 
-    if method == 'bet':
+    if method == 'slicer':
 
         # A good reason to have a Class for qtim methods is to cut through all of this extra code.
 
-        temp_input, temp_output, temp_mask_output = False, False, False
+        temp_input, temp_output = False, False
 
         if not isinstance(input_data, basestring):
             input_filename = os.path.join(temp_dir, 'temp.nii.gz')
@@ -54,10 +56,6 @@ def skull_strip(input_data, output_filename='', output_mask_filename='', method=
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        if output_mask_filename == '':
-            temp_mask_output = True
-            output_mask_filename = os.path.join(temp_dir, 'temp_mask_out.nii.gz')
-
         # TODO: Figure out what last parameter, reference number, means.
         print ' '.join([command, input_filename, output_filename, '0'])
         subprocess.call([command, input_filename, output_filename, '0'])
@@ -66,13 +64,10 @@ def skull_strip(input_data, output_filename='', output_mask_filename='', method=
             os.remove(input_filename)
             pass
 
-        if temp_output or temp_mask_output:
-            output, output_mask = convert_input_2_numpy(output_filename), convert_input_2_numpy(output_mask_filename)
+        if temp_output:
+            output = convert_input_2_numpy(output_filename)
             os.remove(output_filename)
-            os.remove(output_mask_filename)
-            return output, output_mask
-
-
+            return output
 
 def run_test():
     return

@@ -9,10 +9,27 @@ import numpy as np
 
 def zero_mean_unit_variance(input_volume, input_mask=[], output_filename=[]):
 
-    """ Normalization to zero mean and unit variance. Helpful preprocessing for deep learning
-        applications. TODO: This function is our first function to take in both numpy and nifti
-        files. Maybe make some sort of general function that serves as an interchange between the
-        two in the utilities folder. Similar notes for output in nifti or numpy format.
+    """ Normalizes an image by subtracting its mean and dividing by its standard
+        deviation. If provided a mask, the normalization will only occur within the
+        mask.
+
+        TODO: Add support for not-equal-to masking.
+        TODO: Add support for other replacement_values, a-la scikit-learn.
+
+        Parameters
+        ----------
+
+        input_data: N-dimensional array or str
+            The volume to be normalized. Can be filename or numpy array.
+        input_mask: N-dimensional array or str
+            A label mask. Must be the same size as input_data
+        output_filename: str
+            Optional, save output to filename.
+
+        Returns
+        -------
+        input_numpy: array
+            Transformed input array.
     """
 
     input_numpy = convert_input_2_numpy(input_volume)

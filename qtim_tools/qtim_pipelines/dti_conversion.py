@@ -84,7 +84,7 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwr
         print [bval, bvec, diff]
 
         # Motion Correction
-        output_motion_file = nifti_splitext(diff)[0] + '_mc.' + nifti_splitext(diff)[-1]
+        output_motion_file = nifti_splitext(diff)[0] + '_mc' + nifti_splitext(diff)[-1]
         print output_motion_file
         if not overwrite and os.path.exists(output_motion_file):
             pass

@@ -1,5 +1,7 @@
 from ..qtim_preprocessing.motion_correction import motion_correction
 from ..qtim_preprocessing.threshold import crop_with_mask
+from ..qtim_preprocessing.resample import resample
+from ..qtim_preprocessing.normalization import zero_mean_unit_variance
 from ..qtim_utilities.file_util import nifti_splitext
 
 def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_modalities=[]):
@@ -32,8 +34,8 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_
     study_files = nio.DataGrabber()
     study_files.inputs.base_directory = base_directory
     # Temporary for working at home..
-    study_files.inputs.template = os.path.join(study_name, 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.nii.gz')
-    # study_files.inputs.template = os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.nii.gz')
+    # study_files.inputs.template = os.path.join(study_name, 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.nii.gz')
+    study_files.inputs.template = os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.nii.gz')
     study_files.inputs.sort_filelist = True
     results = study_files.run().outputs.outfiles
 
@@ -62,7 +64,7 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_
 
         # If skull-stripping has not yet been performed, perform it.
         skull_strip_mask = os.path.join(output_folder, split_path[-4] + '-' split_path[-3] + '-' + 'SKULL_STRIP_MASK.nii.gz')
-        skull_strip_output = os.path.join(output_folder, nifti_splitext(skull_strip_volume)[0] + '_ss.' + nifti_splitext(skull_strip_volume)[-1])
+        skull_strip_output = os.path.join(output_folder, nifti_splitext(skull_strip_volume)[0] + '_ss' + nifti_splitext(skull_strip_volume)[-1])
         if not os.path.exists(skull_strip_mask):
             skull_strip(skull_strip_volume, skull_strip_output, skull_strip_mask)
 
@@ -79,14 +81,21 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_
             continue
 
         # Use existing mask to skull-strip if necessary.
-        skull_strip_output = os.path.join(output_folder, nifti_splitext(skull_strip_volume)[0] + '_ss.' + nifti_splitext(skull_strip_volume)[-1])
+        skull_strip_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_ss' + nifti_splitext(dl_volume)[-1])
         if not os.path.exists(skull_strip_output):
             crop_with_mask(dl_volume, skull_strip_mask, output_filename=skull_strip_output)
 
+        # Resample and remove previous file.
+        resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
+        if not os.path.exists(skull_strip_output):
+            resample(skull_strip_output, resample_output, output_filename=skull_strip_output)
+        os.remove(skull_strip_output)
 
-
-
-
+        # Mean normalize and remove previous file.
+        normalize_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_DL' + nifti_splitext(dl_volume)[-1])
+        if not os.path.exists(skull_strip_output):
+            zero_mean_unit_variance(resample_output, normalize_output, output_filename=skull_strip_output)
+        os.remove(resample_output)
 
     return
 
