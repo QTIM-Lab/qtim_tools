@@ -4,10 +4,11 @@ import os
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def motion_correction(input_data, output_filename='', method="fsl", command="fsl4.1-eddy_correct", temp_dir='./'):
+def skull_strip(input_data, output_filename='', output_mask_file='', method="bet", command="bet2", temp_dir='./'):
 
-    """ A catch-all function for motion correction. Will perform motion correction on an input volume
-        depending on the 'method' and 'command' inputted.
+    """ A catch-all function for skull-stripping. Will perform skull-stripping on an input volume
+        depending on the 'method' and 'command' inputted. Will output a binary skull-mask to
+        output_mask_file if available.
 
         Parameters
         ----------
@@ -29,12 +30,12 @@ def motion_correction(input_data, output_filename='', method="fsl", command="fsl
             Output data, only if output_filename is left as ''.
     """
 
-    motion_correction_methods = ['fsl']
-    if method not in motion_correction_methods:
-        print 'Input \"method\" parameter is not available. Available methods: ', motion_correction_methods
+    skull_strip_methods = ['bet']
+    if method not in skull_strip_methods:
+        print 'Input \"method\" parameter is not available. Available methods: ', skull_strip_methods
         return
 
-    if method == 'fsl':
+    if method == 'bet':
 
         # A good reason to have a Class for qtim methods is to cut through all of this extra code.
 
