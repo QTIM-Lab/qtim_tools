@@ -4,7 +4,7 @@ import os
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def motion_correction(input_data, output_filename='', method="ants", command="N4BiasFieldCorrection", temp_dir='./'):
+def bias_correction(input_data, output_filename='', mask_filename='', method="ants", command="/home/abeers/Software/ANTS/ANTs.2.1.0.Debian-Ubuntu_X64/N4BiasFieldCorrection", temp_dir='./'):
 
     """ A catch-all function for motion correction. Will perform motion correction on an input volume
         depending on the 'method' and 'command' inputted.
@@ -51,9 +51,11 @@ def motion_correction(input_data, output_filename='', method="ants", command="N4
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        # TODO: Figure out what last parameter, reference number, means.
-        print ' '.join([command, '-i', input_filename, '-o', output_filename])
-        subprocess.call([command, '-i', input_filename, '-o', output_filename])
+        print ' '.join([command, '-i', input_filename, '-o', output_filename, '-x', mask_filename])
+        if mask_filename != '':
+            subprocess.call([command, '-i', input_filename, '-o', output_filename, '-x', mask_filename])
+        else:
+            subprocess.call([command, '-i', input_filename, '-o', output_filename])
 
         if temp_input:
             os.remove(input_filename)

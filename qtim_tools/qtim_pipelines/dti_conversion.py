@@ -102,7 +102,10 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwr
         run_fdt_rotate_bvecs(output_bvec_file, output_rotated_bvec_file, input_motion_file)
 
         # Run Skull-Stripping
-        
+        skull_strip_mask = nifti_splitext(output_motion_file)[0] + '_ss_mask.' + nifti_splitext(output_motion_file)[-1]
+        skull_strip_output = nifti_splitext(output_motion_file)[0] + '_ss.' + nifti_splitext(output_motion_file)[-1]
+        if not os.path.exists(skull_strip_mask):
+            skull_strip(output_motion_file, skull_strip_output, skull_strip_mask)
 
     return
 

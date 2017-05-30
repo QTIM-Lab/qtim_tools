@@ -4,6 +4,7 @@
 """
 
 from ..qtim_utilities.format_util import convert_input_2_numpy
+from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
 import numpy as np
 
@@ -51,7 +52,10 @@ def zero_mean_unit_variance(input_volume, input_mask=[], output_filename=[]):
         output_numpy[mask_numpy == 0] = 0
 
     if output_filename != []:
-        save_numpy_2_nifti(output_numpy, normalize_volume, output_filename)
+        if isinstance(input_volume, basestring):
+            save_numpy_2_nifti(output_numpy, input_volume, output_filename)
+        else:
+            save_numpy_2_nifti(output_numpy, '', output_filename)
     else:
         return output_numpy
 

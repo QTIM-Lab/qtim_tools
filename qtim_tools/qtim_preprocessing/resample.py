@@ -2,12 +2,14 @@
     based on a condition. Primarily used for masking.
 """
 
+import subprocess
+import os
 import numpy as np
 
 from ..qtim_utilities.format_util import convert_input_2_numpy
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
-def resample(input_data, output_filename='', input_transform_file='', method="slicer", command="Slicer", temp_dir='./', param_dict={}):
+def resample(input_data, output_filename='', input_transform_file='', method="slicer", command="/opt/Slicer-4.5.0-1-linux-amd64/Slicer", temp_dir='./', param_dict={}):
 
     """ A catch-all function for resampling. Will resample a 3D volume to given dimensions according
         to the method provided.
@@ -59,13 +61,8 @@ def resample(input_data, output_filename='', input_transform_file='', method="sl
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        ResampleVolume_base_command = ['Slicer', '--launch', 'ResampleScalarVolume', '-i', interpolation_mode]
-        ResampleVolume_base_command += ['-s', str(dimensions).strip('[]').replace(' ', '')]
-        ResampleVolume_specific_command = ResampleVolume_base_command + [resample_volume, output_filename]
-
-        # TODO: Figure out what last parameter, reference number, means.
-        print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', 's', '1,1,1', input_filename, output_filename])
-        subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', 's', '1,1,1', input_filename, output_filename])
+        print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', '-s', '1,1,1', input_filename, output_filename])
+        subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', '-s', '1,1,1', input_filename, output_filename])
 
         if temp_input:
             os.remove(input_filename)

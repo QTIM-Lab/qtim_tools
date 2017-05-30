@@ -1,11 +1,17 @@
+import numpy as np
+import nipype.interfaces.io as nio
+import glob
+import os
+
 from ..qtim_preprocessing.motion_correction import motion_correction
 from ..qtim_preprocessing.threshold import crop_with_mask
 from ..qtim_preprocessing.resample import resample
 from ..qtim_preprocessing.normalization import zero_mean_unit_variance
 from ..qtim_preprocessing.bias_correction import bias_correction
+from ..qtim_preprocessing.skull_strip import skull_strip
 from ..qtim_utilities.file_util import nifti_splitext
 
-def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2', skip_modalities=[]):
+def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SPACE', skip_modalities=[]):
 
     """ This script is meant for members of the QTIM lab at MGH. It takes in one of our study names, finds the
         COREGISTRATION folder, presumed to have been created in an earlier part of the pipeline, and applies
@@ -57,35 +63,42 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2',
         # Find the output folder
         # TODO: Do this with nipype DataSink instead.
         # Also TODO: Make this easier to change in case directory structure changes.
-        split_path = os.path.normpath(volume).split(os.sep)
-        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DEEPLEARNING', split_path[-4], split_path[-3])
+        split_path = os.path.normpath(skull_strip_volume).split(os.sep)
+        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DEEPLEARNING', split_path[-3], split_path[-2])
 
         # Make the output directory if it does not exist.
         if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
+            os.makedirs(output_folder)
 
         # If skull-stripping has not yet been performed, perform it.
-        skull_strip_mask = os.path.join(output_folder, split_path[-4] + '-' split_path[-3] + '-' + 'SKULL_STRIP_MASK.nii.gz')
-        skull_strip_output = os.path.join(output_folder, nifti_splitext(skull_strip_volume)[0] + '_ss' + nifti_splitext(skull_strip_volume)[-1])
+        skull_strip_mask = os.path.join(output_folder, split_path[-3] + '-' + split_path[-2] + '-' + 'SKULL_STRIP_MASK.nii.gz')
+        skull_strip_output = os.path.join(output_folder, nifti_splitext(os.path.basename(skull_strip_volume))[0] + '_ss' + nifti_splitext(skull_strip_volume)[-1])
         if not os.path.exists(skull_strip_mask):
             skull_strip(skull_strip_volume, skull_strip_output, skull_strip_mask)
 
     # Skull-Strip, Resample, and Normalize the rest. 
     for dl_volume in dl_volumes:
 
-        split_path = os.path.normpath(volume).split(os.sep)
-        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DEEPLEARNING', split_path[-4], split_path[-3])
+        split_path = os.path.normpath(dl_volume).split(os.sep)
+        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DEEPLEARNING', split_path[-3], split_path[-2])
+        deep_learning_output = os.path.join(output_folder, nifti_splitext(os.path.basename(dl_volume))[0] + '_DL' + nifti_splitext(dl_volume)[-1])
+
+        if os.path.exists(deep_learning_output):
+            continue
+
+        print output_folder
 
         # Make sure a mask was created in the previous step.
-        skull_strip_mask = os.path.join(output_folder, split_path[-4] + '-' split_path[-3] + '-' + 'SKULL_STRIP_MASK.nii.gz')
+        skull_strip_mask = os.path.join(output_folder, split_path[-3] + '-' + split_path[-2] + '-' + 'SKULL_STRIP_MASK.nii.gz')
         if not os.path.exists(skull_strip_mask):
-            print 'No skull-stripping mask created, skipping this volume!'
+            print 'No skull-stripping mask created, skipping volume ', dl_volume
             continue
 
         # Use existing mask to skull-strip if necessary.
-        n4_bias_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_n4' + nifti_splitext(dl_volume)[-1])
-        if not os.path.exists(skull_strip_output):
-            bias_correction(dl_volume, output_filename=n4_bias_output)
+        n4_bias_output = os.path.join(output_folder, nifti_splitext(os.path.basename(dl_volume))[0] + '_n4' + nifti_splitext(dl_volume)[-1])
+        print n4_bias_output
+        if not os.path.exists(n4_bias_output):
+            bias_correction(dl_volume, output_filename=n4_bias_output, mask_filename=skull_strip_mask)
 
         # Use existing mask to skull-strip if necessary.
         skull_strip_output = os.path.join(output_folder, nifti_splitext(n4_bias_output)[0] + '_ss' + nifti_splitext(n4_bias_output)[-1])
@@ -95,14 +108,14 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2',
 
         # Resample and remove previous file.
         resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
-        if not os.path.exists(skull_strip_output):
+        print resample_output
+        if not os.path.exists(resample_output):
             resample(skull_strip_output, output_filename=resample_output)
         os.remove(skull_strip_output)
 
         # Mean normalize and remove previous file.
-        normalize_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_DL' + nifti_splitext(dl_volume)[-1])
-        if not os.path.exists(skull_strip_output):
-            zero_mean_unit_variance(resample_output, output_filename=normalize_output)
+        if not os.path.exists(deep_learning_output):
+            zero_mean_unit_variance(resample_output, output_filename=deep_learning_output)
         os.remove(resample_output)
 
     return

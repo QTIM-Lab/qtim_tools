@@ -1,10 +1,12 @@
 import subprocess
 import os
 
+from shutil import move
+
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def skull_strip(input_data, output_filename='', output_mask_filename='', method="bet", command="bet2", temp_dir='./'):
+def skull_strip(input_data, output_filename='', output_mask_filename='', method="bet", command="fsl4.1-bet2", temp_dir='./'):
 
     """ A catch-all function for skull-stripping. Will perform skull-stripping on an input volume
         depending on the 'method' and 'command' inputted. Will output a binary skull-mask to
@@ -58,9 +60,11 @@ def skull_strip(input_data, output_filename='', output_mask_filename='', method=
             temp_mask_output = True
             output_mask_filename = os.path.join(temp_dir, 'temp_mask_out.nii.gz')
 
-        # TODO: Figure out what last parameter, reference number, means.
-        print ' '.join([command, input_filename, output_filename, '0'])
-        subprocess.call([command, input_filename, output_filename, '0'])
+        print ' '.join([command, input_filename, output_filename, '-f', '.5', '-g', '0', '-m'])
+        subprocess.call([command, input_filename, output_filename, '-f', '.5', '-g', '0', '-m'])
+
+        if output_mask_filename != '':
+            move(output_filename + '_mask.nii.gz', output_mask_filename)
 
         if temp_input:
             os.remove(input_filename)

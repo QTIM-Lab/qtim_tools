@@ -54,7 +54,7 @@ The following commands are available:
         args = parser.parse_args(sys.argv[2:])
         print 'Preprocessing for deep learning in study directory... %s' % args.study_name
 
-        qtim_tools.qtim_pipelines.deep_learning.deep_learning_preprocess(args.study_name, args.label_name, args.base_directory)
+        qtim_tools.qtim_pipelines.deep_learning.deep_learning_preprocess(args.study_name, args.base_directory)
 
     def dti_conversion(self):
         parser = argparse.ArgumentParser(

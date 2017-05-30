@@ -51,7 +51,6 @@ def motion_correction(input_data, output_filename='', method="fsl", command="fsl
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        # TODO: Figure out what last parameter, reference number, means.
         print ' '.join([command, input_filename, output_filename, '0'])
         subprocess.call([command, input_filename, output_filename, '0'])
 

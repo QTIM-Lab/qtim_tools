@@ -47,7 +47,7 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', con
                 continue
 
             # Make sure a mask was created in the previous step.
-            skull_strip_mask = os.path.join(output_folder, split_path[-4] + '-' split_path[-3] + '-' + 'SKULL_STRIP_MASK.nii.gz')
+            skull_strip_mask = os.path.join(output_folder, split_path[-4] + '-' + split_path[-3] + '-' + 'SKULL_STRIP_MASK.nii.gz')
             if not os.path.exists(skull_strip_mask):
                 print 'No skull-stripping mask created, skipping this volume!'
                 continue
