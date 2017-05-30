@@ -3,6 +3,8 @@ import nipype.interfaces.io as nio
 import glob
 import os
 
+from shutil import copy
+
 from ..qtim_preprocessing.motion_correction import motion_correction
 from ..qtim_preprocessing.threshold import crop_with_mask
 from ..qtim_preprocessing.resample import resample
@@ -46,6 +48,8 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SP
     study_files.inputs.template = os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.nii.gz')
     study_files.inputs.sort_filelist = True
     results = study_files.run().outputs.outfiles
+
+    bias_correct_vols = ['FLAIR', 'MPRAGE', 'T1', 'T2SPACE']
 
     # Remove modality codes that will not be processed for deep-learning.
     dl_volumes = []
@@ -96,9 +100,11 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SP
 
         # Use existing mask to skull-strip if necessary.
         n4_bias_output = os.path.join(output_folder, nifti_splitext(os.path.basename(dl_volume))[0] + '_n4' + nifti_splitext(dl_volume)[-1])
-        print n4_bias_output
-        if not os.path.exists(n4_bias_output):
-            bias_correction(dl_volume, output_filename=n4_bias_output, mask_filename=skull_strip_mask)
+        if any(bias_vol in n4_bias_output for bias_vol in bias_correct_vols):
+            if not os.path.exists(n4_bias_output):
+                bias_correction(dl_volume, output_filename=n4_bias_output, mask_filename=skull_strip_mask)
+        else:
+            copy(dl_volume, n4_bias_output)
 
         # Use existing mask to skull-strip if necessary.
         skull_strip_output = os.path.join(output_folder, nifti_splitext(n4_bias_output)[0] + '_ss' + nifti_splitext(n4_bias_output)[-1])
@@ -107,16 +113,16 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SP
         os.remove(n4_bias_output)
 
         # Resample and remove previous file.
-        resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
-        print resample_output
-        if not os.path.exists(resample_output):
-            resample(skull_strip_output, output_filename=resample_output)
-        os.remove(skull_strip_output)
+        # resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
+        # print resample_output
+        # if not os.path.exists(resample_output):
+        #     resample(skull_strip_output, output_filename=resample_output)
+        # os.remove(skull_strip_output)
 
         # Mean normalize and remove previous file.
         if not os.path.exists(deep_learning_output):
-            zero_mean_unit_variance(resample_output, output_filename=deep_learning_output)
-        os.remove(resample_output)
+            zero_mean_unit_variance(skull_strip_output, input_mask=skull_strip_mask, output_filename=deep_learning_output)
+        os.remove(skull_strip_output)
 
     return
 
