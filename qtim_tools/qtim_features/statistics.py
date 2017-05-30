@@ -93,7 +93,7 @@ statistics_dict = { 'mean': calc_mean,
                     'histogram_percent': calc_intensity_histogram
                     }
 
-def qtim_statistic(input_data, statistics, label_data='', mask_value=0, additional_parameters=''):
+def qtim_statistic(input_data, statistics, label_data='', mask_value=0, return_label=[], additional_parameters=''):
 
     """ TODO: Documentation. This should replace the existing statistics function for the feature extractor.
     """
@@ -105,9 +105,9 @@ def qtim_statistic(input_data, statistics, label_data='', mask_value=0, addition
     input_numpy = convert_input_2_numpy(input_data)
 
     if label_data != '':
-        input_numpy = crop_with_mask(input_numpy, label_data, mask_value=mask_value)
-
-    stats_numpy = np.ravel(input_numpy[input_numpy > mask_value])
+        input_numpy = crop_with_mask(input_numpy, label_data, mask_value=mask_value, return_labels=return_label)
+    
+    stats_numpy = np.ravel(input_numpy[input_numpy != mask_value])    
 
     for statistic in statistics:
 

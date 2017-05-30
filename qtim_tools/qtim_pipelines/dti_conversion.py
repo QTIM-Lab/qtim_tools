@@ -84,7 +84,7 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwr
         print [bval, bvec, diff]
 
         # Motion Correction
-        output_motion_file = nifti_splitext(diff)[0] + '_mc' + nifti_splitext(diff)[-1]
+        output_motion_file = nifti_splitext(diff)[0] + '_mc.' + nifti_splitext(diff)[-1]
         print output_motion_file
         if not overwrite and os.path.exists(output_motion_file):
             pass
@@ -100,6 +100,9 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwr
         output_rotated_bvec_file = os.path.splitext(output_bvec_file)[0] + '_rotated' + os.path.splitext(output_bvec_file)[-1]
         input_motion_file = nifti_splitext(diff)[0] + '_mc.ecclog'
         run_fdt_rotate_bvecs(output_bvec_file, output_rotated_bvec_file, input_motion_file)
+
+        # Run Skull-Stripping
+        
 
     return
 

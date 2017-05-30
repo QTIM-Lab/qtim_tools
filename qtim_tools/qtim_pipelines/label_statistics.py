@@ -9,8 +9,9 @@ import os
 
 from ..qtim_features.statistics import qtim_statistic
 from ..qtim_utilities.text_util import save_numpy_2_csv
+from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def qtim_study_statistics(study_name, label_file, output_csv, base_directory):
+def qtim_study_statistics(study_name, label_file, base_directory, output_csv=None, label_mode='combined'):
 
     """ This script is meant for members of the QTIM lab at MGH. It takes in one of our study names,
         a text-identifier for a label volume (e.g. "FLAIR-label"), and an output file, and computes
@@ -38,6 +39,11 @@ def qtim_study_statistics(study_name, label_file, output_csv, base_directory):
 
     """
 
+    base_directory = os.path.abspath(base_directory)
+
+    if output_csv is None:
+        output_csv = os.path.join(base_directory, study_name, 'ANALYSIS', 'STATISTICS', label_file + '_statistics.csv')
+
     # These are all the features currently available in QTIM.
     features_calculated = ['mean','min','max','median','range','standard_deviation','variance','energy','entropy','kurtosis','skewness','COV']
 
@@ -53,25 +59,37 @@ def qtim_study_statistics(study_name, label_file, output_csv, base_directory):
     outputs_without_labels = [study_file for study_file in results if label_file not in study_file]
 
     # Create the CSV output array.
-    output_numpy = np.full((1+len(outputs_without_labels), 1+len(features_calculated)), 'NA', dtype=object)
+    # output_numpy = np.full((1+len(outputs_without_labels), 1+len(features_calculated)), 'NA', dtype=object)
+    output_numpy = np.array(['filename'] + features_calculated)
 
     for return_idx, return_file in enumerate(outputs_without_labels):
 
         # For each file, make a row and check if the label file exists.
         directory = os.path.dirname(return_file)
         visit_label = sorted(glob.glob(os.path.join(directory, '*' + label_file + '*')))
-        output_numpy[return_idx+1, 0] = return_file
 
         if visit_label:
+
+            # Log output
+            print return_file
 
             # If multiple labels returned, give a warning and use the first option returned.
             if len(visit_label) != 1:
                 print 'WARNING! Multiple labels found. Going with... ' + visit_label[0]
+            visit_label = visit_label[0]
 
             # Use qtim's statistics package to calculate label statistics.
-            print return_file
-            output_numpy[return_idx+1, 1:] = qtim_statistic(return_file, features_calculated, visit_label[0])
-
+            if label_mode == 'separate':
+                visit_label = convert_input_2_numpy(visit_label)
+                for label_num in np.unique(visit_label):
+                    if label_num == 0:
+                        continue
+                    output_numpy = np.vstack((output_numpy, [return_file + '-label_' + str(label_num)] + qtim_statistic(return_file, features_calculated, visit_label, return_label = label_num)))
+            else:
+                if label_mode != 'combined':
+                    print 'Label mode parameter not recognized. Going with \'combined\' mode.'
+                output_numpy = np.vstack((output_numpy, [return_file] + qtim_statistic(return_file, features_calculated, visit_label)))
+               
         else:
             print 'Warning! No label found in the same directory as... ', return_file
 
