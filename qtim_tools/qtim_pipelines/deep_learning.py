@@ -2,17 +2,19 @@ from ..qtim_preprocessing.motion_correction import motion_correction
 from ..qtim_preprocessing.threshold import crop_with_mask
 from ..qtim_preprocessing.resample import resample
 from ..qtim_preprocessing.normalization import zero_mean_unit_variance
+from ..qtim_preprocessing.bias_correction import bias_correction
 from ..qtim_utilities.file_util import nifti_splitext
 
-def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_modalities=[]):
+def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2', skip_modalities=[]):
 
     """ This script is meant for members of the QTIM lab at MGH. It takes in one of our study names, finds the
         COREGISTRATION folder, presumed to have been created in an earlier part of the pipeline, and applies
         the following pre-processing steps to our data to make it ready for input into deep-learning algorithms:
-
-        1) Isotropic Resampling
-        2) Skull-Stripping
-        3) Zero Mean Normalization
+        
+        1) N4 Bias Correction
+        2) Isotropic Resampling
+        3) Skull-Stripping
+        4) Zero Mean Normalization
 
         This is a work in progress, and may not be appropriate for every deep-learning task. For example, data
         completion tasks may not benefit from zero-mean normalization.
@@ -24,6 +26,8 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_
         base_directory: str
             The full path to the directory from which to search for studies. The study directory
             should be contained in this directory.
+        skull_strip_label: str
+            An text identifier (e.g. "FLAIR") for which volume should be skull-stripped. All other volumes will be stripped according to this identifier.
         skip_modalities: str or list of str
             Any modalities that should not be processed.
 
@@ -33,8 +37,6 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_
     # for recursively getting files that match a pattern.
     study_files = nio.DataGrabber()
     study_files.inputs.base_directory = base_directory
-    # Temporary for working at home..
-    # study_files.inputs.template = os.path.join(study_name, 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.nii.gz')
     study_files.inputs.template = os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.nii.gz')
     study_files.inputs.sort_filelist = True
     results = study_files.run().outputs.outfiles
@@ -47,7 +49,7 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_
         dl_volumes += [output]
 
     # We prefer the same skull-stripping in each case. Thus, we first iterate through skull-strip volumes.
-    skull_strip_volumes = [volume for volume in dl_volumes if skull_strip in volume]
+    skull_strip_volumes = [volume for volume in dl_volumes if skull_strip_label in volume]
 
     # Strip the chosen volume..
     for skull_strip_volume in skull_strip_volumes:
@@ -81,20 +83,26 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip='T2', skip_
             continue
 
         # Use existing mask to skull-strip if necessary.
-        skull_strip_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_ss' + nifti_splitext(dl_volume)[-1])
+        n4_bias_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_n4' + nifti_splitext(dl_volume)[-1])
         if not os.path.exists(skull_strip_output):
-            crop_with_mask(dl_volume, skull_strip_mask, output_filename=skull_strip_output)
+            bias_correction(dl_volume, output_filename=n4_bias_output)
+
+        # Use existing mask to skull-strip if necessary.
+        skull_strip_output = os.path.join(output_folder, nifti_splitext(n4_bias_output)[0] + '_ss' + nifti_splitext(n4_bias_output)[-1])
+        if not os.path.exists(skull_strip_output):
+            crop_with_mask(n4_bias_output, skull_strip_mask, output_filename=skull_strip_output)
+        os.remove(n4_bias_output)
 
         # Resample and remove previous file.
         resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
         if not os.path.exists(skull_strip_output):
-            resample(skull_strip_output, resample_output, output_filename=skull_strip_output)
+            resample(skull_strip_output, output_filename=resample_output)
         os.remove(skull_strip_output)
 
         # Mean normalize and remove previous file.
         normalize_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_DL' + nifti_splitext(dl_volume)[-1])
         if not os.path.exists(skull_strip_output):
-            zero_mean_unit_variance(resample_output, normalize_output, output_filename=skull_strip_output)
+            zero_mean_unit_variance(resample_output, output_filename=normalize_output)
         os.remove(resample_output)
 
     return

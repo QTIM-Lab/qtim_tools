@@ -1,28 +1,20 @@
-""" This module should be used for functions that null out values in an array
-    based on a condition. Primarily used for masking.
-"""
+import subprocess
+import os
 
-import numpy as np
-
-from ..qtim_utilities.format_util import convert_input_2_numpy
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
+from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def resample(input_data, output_filename='', input_transform_file='', method="slicer", command="Slicer", temp_dir='./', param_dict={}):
+def motion_correction(input_data, output_filename='', method="ants", command="N4BiasFieldCorrection", temp_dir='./'):
 
-    """ A catch-all function for resampling. Will resample a 3D volume to given dimensions according
-        to the method provided.
-
-        TODO: Add resampling for 4D volumes.
-        TODO: Add dimension, interpolation, reference parameter. Currently set to linear/isotropic.
+    """ A catch-all function for motion correction. Will perform motion correction on an input volume
+        depending on the 'method' and 'command' inputted.
 
         Parameters
         ----------
         input_data: str or array
-            Can be a 3D volume or a filename.
+            Can be a 4D volume or a filename.
         output_filename: str
             Location to save output data to. If left as '', will return numpy array.
-        input_transform_file: str
-            detatails TBD, unimplemented
         method: str
             Will perform motion correction according to the provided method.
             Currently available: ['fsl']
@@ -37,12 +29,12 @@ def resample(input_data, output_filename='', input_transform_file='', method="sl
             Output data, only if output_filename is left as ''.
     """
 
-    skull_strip_methods = ['slicer']
-    if method not in skull_strip_methods:
-        print 'Input \"method\" parameter is not available. Available methods: ', skull_strip_methods
+    bias_correction_methods = ['ants', 'slicer']
+    if method not in bias_correction_methods:
+        print 'Input \"method\" parameter is not available. Available methods: ', bias_correction_methods
         return
 
-    if method == 'slicer':
+    if method == 'ants':
 
         # A good reason to have a Class for qtim methods is to cut through all of this extra code.
 
@@ -59,13 +51,9 @@ def resample(input_data, output_filename='', input_transform_file='', method="sl
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        ResampleVolume_base_command = ['Slicer', '--launch', 'ResampleScalarVolume', '-i', interpolation_mode]
-        ResampleVolume_base_command += ['-s', str(dimensions).strip('[]').replace(' ', '')]
-        ResampleVolume_specific_command = ResampleVolume_base_command + [resample_volume, output_filename]
-
         # TODO: Figure out what last parameter, reference number, means.
-        print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', 's', '1,1,1', input_filename, output_filename])
-        subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', 's', '1,1,1', input_filename, output_filename])
+        print ' '.join([command, '-i', input_filename, '-o', output_filename])
+        subprocess.call([command, '-i', input_filename, '-o', output_filename])
 
         if temp_input:
             os.remove(input_filename)
@@ -75,6 +63,11 @@ def resample(input_data, output_filename='', input_transform_file='', method="sl
             output = convert_input_2_numpy(output_filename)
             os.remove(output_filename)
             return output
+
+    if method == 'slicer':
+
+        print 'Slicer method not yet implemented! Sorry...'
+
 
 def run_test():
     return

@@ -6,7 +6,7 @@ import os
 import glob
 import fnmatch
 
-def copy_files(infolder, outfolder, name, duplicate=True):
+def copy_files(infolder, outfolder, pattern, duplicate=True):
 
     """ I'm not sure how many of these file-moving helper functions should be
         included. I know I like to have them, but it may be better to have 
@@ -14,8 +14,7 @@ def copy_files(infolder, outfolder, name, duplicate=True):
         to users' needs.
     """
 
-    path = os.path.join(infolder, name)
-    print path
+    path = os.path.join(infolder, pattern)
     files = glob.glob(path)
     if files == []:
         print 'No files moved. Might you have made an error with the filenames?'
@@ -37,7 +36,12 @@ def grab_files_recursive(input_directory, regex='*'):
         input_directory: str
             The folder to search.
         regex: str
-            A linux-style pattern to match.        
+            A linux-style pattern to match.
+
+        Returns
+        -------
+        output_list: list
+            A list of found files.
     """
 
     output_list = []
@@ -82,6 +86,7 @@ def grab_linked_file(input_filename, prefix="", suffix="", includes="", regex=""
         criteria relative to the input file. Useful for constructing pipelines.
 
         TODO: Make functional for lists of str.
+        TODO: Make output only one type. Propagate changes to rest of package.
 
         Parameters
         ----------
@@ -107,6 +112,11 @@ def grab_linked_file(input_filename, prefix="", suffix="", includes="", regex=""
             Whether or not to return multiple files if matched. If False,
             will only return the first file and print a warning if multiple
             files are found.
+
+        Returns
+        -------
+        output: str or list
+            Returns linked file or list of files if found.
     """
 
     if search_folder == "":
