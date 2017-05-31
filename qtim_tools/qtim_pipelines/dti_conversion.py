@@ -13,7 +13,9 @@ import sys
 import re
 
 from ..qtim_preprocessing.motion_correction import motion_correction
+from ..qtim_preprocessing.skull_strip import skull_strip
 from ..qtim_utilities.file_util import nifti_splitext
+from ..qtim_dti.fit_dti import run_dtifit
 
 def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwrite=False):
 
@@ -84,12 +86,11 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwr
         print [bval, bvec, diff]
 
         # Motion Correction
-        output_motion_file = nifti_splitext(diff)[0] + '_mc.' + nifti_splitext(diff)[-1]
+        output_motion_file = nifti_splitext(diff)[0] + '_mc' + nifti_splitext(diff)[-1]
         print output_motion_file
         if not overwrite and os.path.exists(output_motion_file):
             pass
         else:
-            fd=gd
             motion_correction(diff, output_motion_file)
 
         # 1d_tool.py transpose
@@ -102,10 +103,14 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwr
         run_fdt_rotate_bvecs(output_bvec_file, output_rotated_bvec_file, input_motion_file)
 
         # Run Skull-Stripping
-        skull_strip_mask = nifti_splitext(output_motion_file)[0] + '_ss_mask.' + nifti_splitext(output_motion_file)[-1]
-        skull_strip_output = nifti_splitext(output_motion_file)[0] + '_ss.' + nifti_splitext(output_motion_file)[-1]
+        skull_strip_mask = nifti_splitext(output_motion_file)[0] + '_ss_mask' + nifti_splitext(output_motion_file)[-1]
+        skull_strip_output = nifti_splitext(output_motion_file)[0] + '_ss' + nifti_splitext(output_motion_file)[-1]
         if not os.path.exists(skull_strip_mask):
-            skull_strip(output_motion_file, skull_strip_output, skull_strip_mask)
+            skull_strip(output_motion_file, skull_strip_output, skull_strip_mask, extra_parameters={'fsl_threshold': .1})
+
+        output_prefix = os.path.join(output_folder, split_path[-4] + '-' + split_path[-3] + '-DTI')
+        run_dtifit(output_motion_file, output_rotated_bvec_file, bval, input_mask=skull_strip_mask, output_fileprefix=output_prefix)
+
 
     return
 
@@ -228,71 +233,3 @@ def run_test():
 
 if __name__ == '__main__':
     run_test()
-
-# root = '/qtim2/users/data/FMS/RAWDATA/FMS_01/VISIT_01/ep2d_diff_SliceAcc3_PAT2/'
-# nifti = '/qtim/users/jcardo/Karl_example/'
-
-# for sub in os.listdir(root):
-#     if os.path.isdir(root+sub):
-#     if os.path.exists(nifti+sub) == False:
-#         os.mkdir(nifti+sub)
-#             #for run in os.listdir(root+sub):
-#                     #if os.path.isdir(root+sub+'/'+run) == True:
-#                             if any(mm.endswith('.dcm') for mm in os.listdir(rooti+sub)):
-#                 if os.path.exists(nifti+sub+'/'+run) == False:
-#                     os.mkdir(nifti+sub+'/'+run)
-                                    # sequence = []
-                                    # protocol, bval = '',''
-                                    # f = os.listdir(root+sub+'/'+run)[0]
-                                    # try:
-                                    #         ds = dicom.read_file(root+sub+'/'+run+'/'+f)
-                                    # except:
-                                    #         f = os.listdir(root+sub+'/'+run)[1]
-                                    #         ds = dicom.read_file(root+sub+'/'+run+'/'+f)
-
-                                    # #####GENERAL SEQUENCE####
-                                    # try:
-                                    #         sequence.append(ds[0x18,0x24].value)
-                                    # except:
-                                    #         pass
-                                    # try:
-                                    #         sequence.append(ds[0x18,0x20].value)
-                                    # except:
-                                    #         pass
-
-                                    # #####GENERAL PROTOCOL#####
-                                    # try:
-                                    #         protocol = ds[0x18,0x1030].value
-                                    # except:
-                                    #         pass
-
-                                    # try:
-                                    #         bval = ds[0x18,0x9087].value
-                                    # except:
-                                    #         pass
-
-                                    # ####SIEMENS Specific Private Tags####
-                                    # if ds.Manufacturer == 'SIEMENS':
-                                    #                 if bval == '':
-                                    #                         try:
-                                    #                                 bval = ds[0x19,0x100C].value
-                                    #                         except:
-                                    #                                 pass
-
-                                    # #####GE Specific Private Tags####### 
-                                    # elif ds.Manufacturer == 'GE MEDICAL SYSTEMS':
-                                    #         try:
-                                    #                 sequence.append([0x19,0x109C].value)
-                                    #         except:
-                                    #                 pass
-                                    #         if bval == '':
-                                    #                 try:
-                                    #                         bval = ds[0x43,0x1039].value
-                                    #                 except:
-                                    #                         pass
-                                    # else:
-                                    #         pass
-
-                                    # DTI = checkIfDTI(sequence, str(protocol), str(bval))
-                                    # if DTI == True:
-#                                             subprocess.call(['dcm2nii', '-d', 'N', '-i', 'N', '-p', 'N', '-o', nifti+sub+'/'+run, root+sub+'/'+run])
