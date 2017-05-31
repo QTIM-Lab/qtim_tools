@@ -7,17 +7,15 @@ import csv
 from optparse import OptionParser
 from subprocess import call
 from shutil import copytree, rmtree
+import nibabel as nib
 
-def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
+def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder, OutputSheet):
 
-    for filename in [InputSeg, InputGroundTruth, InputVolume]:
-        filename = os.path.abspath(filename)
-
-    InputSeg_Base = os.path.basename(os.path.normpath(InputSeg)).replace(" ", "")
-    InputGroundTruth_Base = os.path.basename(os.path.normpath(InputGroundTruth)).replace(" ", "")
-    InputVolume_Base = os.path.basename(os.path.normpath(InputVolume)).replace(" ", "")
-
-    mount_path = os.path.abspath('./output_dicom')
+    # Create Folder variables.
+    InputSeg_Base = os.path.basename(os.path.normpath(os.path.abspath(InputSeg))).replace(" ", "")
+    InputGroundTruth_Base = os.path.basename(os.path.normpath(os.path.abspath(InputGroundTruth))).replace(" ", "")
+    InputVolume_Base = os.path.basename(os.path.normpath(os.path.abspath(InputVolume))).replace(" ", "")
+    mount_path = os.path.abspath(OutputFolder)
 
     # Create required mount folder for Plastimatch Docker
     if os.path.isdir(mount_path):
@@ -41,9 +39,33 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
 
     # Start by recording all of the labels available in Ground Truth Data
     Labels = {}
-    for label_idx, Ground_Truth_Label in enumerate(glob.glob('./output_dicom/' + str.split(InputGroundTruth_Base, '.')[0] + '_split/*')):
+    for label_idx, Ground_Truth_Label in enumerate(glob.glob(os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', '*'))):
         Label_Name = str.split(os.path.basename(os.path.normpath(Ground_Truth_Label)), '.')[0]
         Labels[Label_Name] = label_idx
+
+    # Crop spinal cord by esophagus
+    reference_esophagus = os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz')
+    reference_esophagus_nifti = nib.load(reference_esophagus)
+    reference_esophagus_numpy = reference_esophagus_nifti.get_data()
+    reference_axial_dim = reference_esophagus_nifti.header['pixdim'][3]
+    cm_in_voxels = int(np.floor(10/reference_axial_dim))
+    axial_limits = [-1, -1]
+    # There is likely a more effecient and clear way to find these bounds.
+    for z in xrange(reference_esophagus_numpy.shape[2]):
+        if np.sum(reference_esophagus_numpy[:,:,z]) > 0:
+            if axial_limits[0] == -1:
+                if z+cm_in_voxels > reference_esophagus_numpy.shape[2]:
+                    axial_limits[0] = reference_esophagus_numpy.shape[2]
+                else:
+                    axial_limits[0] = z+cm_in_voxels
+            axial_limits[1] = z+1-cm_in_voxels
+    # Crop esophagus and spinal cord segmentations accordingly.
+    for crop_segmentation in [os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'SpinalCord.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', 'SpinalCord.nii.gz')]:
+        crop_nifti = nib.load(crop_segmentation)
+        crop_numpy = crop_nifti.get_data()
+        crop_numpy[:,:,0:int(axial_limits[0])] = 0
+        crop_numpy[:,:,int(axial_limits[1]+1):] = 0
+        nib.save(nib.Nifti1Image(crop_numpy, crop_nifti.affine), crop_segmentation)
 
     # Create Output CSV
     output_array = np.zeros((2, len(Labels.keys())*2+1), dtype=object)
@@ -52,7 +74,7 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
 
     # Grab matching labels from the test segmentation, and compute label statistics
     output_index = 1
-    for Segmentation_Label in glob.glob('./output_dicom/' + str.split(InputSeg_Base, '.')[0] + '_split/*'):
+    for Segmentation_Label in glob.glob(os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', '*')):
 
         Label_Name = str.split(os.path.basename(os.path.normpath(Segmentation_Label)), '.')[0]
 
@@ -92,11 +114,15 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputSheet):
         for row in output_array:
             csvfile.writerow(row)
 
+    # Optional: remove segmentation directory upon completion.
+    # rmtree(mount_path)
+
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-s", "--seg", dest="InputSeg", help="Segmentation to Compare (DICOM Directory)")
-    parser.add_option("-g", "--groundtruth", dest="InputGroundTruth", help="Ground Truth to Compare (DICOM Directory)")
-    parser.add_option("-v", "--volume", dest="InputVolume", help="CT Volume to Compare (DICOM Directory)")
-    parser.add_option("-o", "--output", dest="OutputSheet", help="Statistics File to Output To (CSV File)")
+    parser.add_option("--seg", dest="InputSeg", help="Segmentation to Compare (DICOM Directory)")
+    parser.add_option("--groundtruth", dest="InputGroundTruth", help="Ground Truth to Compare (DICOM Directory)")
+    parser.add_option("--volume", dest="InputVolume", help="CT Volume to Compare (DICOM Directory)")
+    parser.add_option("--output_dir", dest="OutputDir", help="Statistics File to Output To (CSV File)")
+    parser.add_option("--output_csv", dest="OutputSheet", help="Statistics File to Output To (CSV File)")
     (options, args) = parser.parse_args()
-    Compare_Segmentations(options.InputSeg, options.InputGroundTruth, options.InputVolume, options.OutputSheet)
+    Compare_Segmentations(options.InputSeg, options.InputGroundTruth, options.InputVolume, options.OutputDir, options.OutputSheet)
