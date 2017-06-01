@@ -45,30 +45,33 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder,
 
     # Crop spinal cord by esophagus
     reference_esophagus = os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz')
-    reference_esophagus_nifti = nib.load(reference_esophagus)
-    reference_esophagus_numpy = reference_esophagus_nifti.get_data()
-    reference_axial_dim = reference_esophagus_nifti.header['pixdim'][3]
-    cm_in_voxels = int(np.floor(10/reference_axial_dim))
-    axial_limits = [-1, -1]
-    # There is likely a more effecient and clear way to find these bounds.
-    for z in xrange(reference_esophagus_numpy.shape[2]):
-        if np.sum(reference_esophagus_numpy[:,:,z]) > 0:
-            if axial_limits[0] == -1:
-                if z+cm_in_voxels > reference_esophagus_numpy.shape[2]:
-                    axial_limits[0] = reference_esophagus_numpy.shape[2]
-                else:
-                    axial_limits[0] = z+cm_in_voxels
-            axial_limits[1] = z+1-cm_in_voxels
-    # Crop esophagus and spinal cord segmentations accordingly.
-    for crop_segmentation in [os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'SpinalCord.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', 'SpinalCord.nii.gz')]:
-        crop_nifti = nib.load(crop_segmentation)
-        crop_numpy = crop_nifti.get_data()
-        crop_numpy[:,:,0:int(axial_limits[0])] = 0
-        crop_numpy[:,:,int(axial_limits[1]+1):] = 0
-        nib.save(nib.Nifti1Image(crop_numpy, crop_nifti.affine), crop_segmentation)
+    if os.path.exists(reference_esophagus):
+        reference_esophagus_nifti = nib.load(reference_esophagus)
+        reference_esophagus_numpy = reference_esophagus_nifti.get_data()
+        reference_axial_dim = reference_esophagus_nifti.header['pixdim'][3]
+        cm_in_voxels = int(np.floor(10/reference_axial_dim))
+        axial_limits = [-1, -1]
+        # There is likely a more effecient and clear way to find these bounds.
+        for z in xrange(reference_esophagus_numpy.shape[2]):
+            if np.sum(reference_esophagus_numpy[:,:,z]) > 0:
+                if axial_limits[0] == -1:
+                    if z+cm_in_voxels > reference_esophagus_numpy.shape[2]:
+                        axial_limits[0] = reference_esophagus_numpy.shape[2]
+                    else:
+                        axial_limits[0] = z+cm_in_voxels
+                axial_limits[1] = z+1-cm_in_voxels
+        # Crop esophagus and spinal cord segmentations accordingly.
+        for crop_segmentation in [os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'SpinalCord.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', 'SpinalCord.nii.gz')]:
+            crop_nifti = nib.load(crop_segmentation)
+            crop_numpy = crop_nifti.get_data()
+            crop_numpy[:,:,0:int(axial_limits[0])] = 0
+            crop_numpy[:,:,int(axial_limits[1]+1):] = 0
+            nib.save(nib.Nifti1Image(crop_numpy, crop_nifti.affine), crop_segmentation)
+    else:
+        print 'WARNING: No esophagus file found in the ground truth DICOM-RT. No truncation of the spinal cord to match the esophagus will occur.'
 
     # Create Output CSV
-    output_array = np.zeros((2, len(Labels.keys())*2+1), dtype=object)
+    output_array = np.zeros((2, len(Labels.keys())*3+1), dtype=object)
     output_array[0,0] = 'Segmentation Name'
     output_array[1,0] = InputSeg_Base
 
@@ -89,14 +92,18 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder,
 
             DICE = str.split(output[7], ':')[1]
             HAUSDORFF = str.split(output[-2], '=')[1]
+            AVERAGE_DISTANCE = str.split(output[-4], '=')[1]
 
             output_array[0,output_index] = Label_Name + '_DICE'
             output_array[0,output_index + 1] = Label_Name + '_HAUSDORFF'
+            output_array[0,output_index + 2] = Label_Name + '_AVERAGE_DISTANCE'            
             output_array[1,output_index] = DICE
             output_array[1,output_index + 1] = HAUSDORFF
-            output_index += 2
+            output_array[1,output_index + 2] = AVERAGE_DISTANCE
+            output_index += 3
 
-            print DICE, ' ', HAUSDORFF
+            print os.path.basename(os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', Label_Name + '.nii.gz'))
+            print DICE, ' ', HAUSDORFF, ' ', AVERAGE_DISTANCE
 
             Labels.pop(Label_Name)
 
@@ -104,9 +111,11 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder,
     for key in Labels:
         output_array[0,output_index] = key + '_DICE'
         output_array[0,output_index + 1] = key + '_HAUSDORFF'
+        output_array[0,output_index + 2] = key + '_AVERAGE_DISTANCE'
         output_array[1,output_index] = 'NA'
         output_array[1,output_index + 1] = 'NA'
-        output_index += 2
+        output_array[1,output_index + 2] = 'NA'
+        output_index += 3
 
     # Save output.
     with open(OutputSheet, 'wb') as writefile:
