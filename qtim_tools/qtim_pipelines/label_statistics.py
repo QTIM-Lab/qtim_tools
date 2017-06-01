@@ -42,71 +42,109 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
 
     base_directory = os.path.abspath(base_directory)
 
+    # Defaults
     if output_csv is None:
-        output_csv = os.path.join(base_directory, study_name, 'ANALYSIS', 'STATISTICS', label_file + '_statistics.csv')
+        output_csv = os.path.join(base_directory, study_name, 'ANALYSIS', 'STATISTICS', study_name + '_' + label_file + '_statistics.csv')
+    if label_mode is None:
+        label_mode = 'combined'
 
     # These are all the features currently available in QTIM.
     features_calculated = ['mean','min','max','median','range','standard_deviation','variance','energy','entropy','kurtosis','skewness','COV']
 
     # Column titles. Replace these lines with a config file later...
-    modalities = ['T1-Post', 'T1-Pre', 'MPRAGE-Post', 'MPRAGE-Pre', 'FLAIR', 'T2SPACE', 'SUV', 'CBF', 'CBV']
-    differences = [('T1_Pre','T1_Post'), ('MPRAGE-Post', 'MPRAGE-Pre')]
+    modalities = ['T1Post_r_T2', 'T1Pre_r_T2', 'MPRAGE_POST_r_T2', 'MPRAGE_Pre_r_T2', 'FLAIR_r_T2', 'T2SPACE', 'SUV_r_T2', 'DSC_GE_r_T2', 'DSC_GE_CBV_r_T2', 'DSC_GE_rBF_r_T2', 'DSC_SE_r_T2', 'DSC_SE_CBV_r_T2', 'DSC_SE_rBF_r_T2', 'DCE_r_T2', 'DCE_ktrans_r_T2']
+    differences = [('T1Post_r_T2', 'T1Pre_r_T2'), ('MPRAGE_POST_r_T2', 'MPRAGE_Pre_r_T2')]
 
     # Exlcusion phrases
     label_exclusions = [label_file] + ['label']
 
     # NiPype is not very necessary here, but I want to get used to it. DataGrabber is a utility for
     # for recursively getting files that match a pattern.
-    study_files = nio.DataGrabber()
-    study_files.inputs.base_directory = base_directory
-    study_files.inputs.template = os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.ni*')
-    study_files.inputs.sort_filelist = True
-    results = study_files.run().outputs.outfiles
+    all_patients = sorted(glob.glob(os.path.join(base_directory, study_name, 'ANALYSIS', 'COREGISTRATION', '*/')))
 
-    all_coregistred_files = grab_files_recursive(os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION'), '*.nii*')
-
-    # Toss out labels from calculated statistics.
-    outputs_without_labels = [study_file for study_file in results if label_file not in study_file]
+    # all_coregistred_files = grab_files_recursive(os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION'), '*.nii*')
 
     # Create the CSV output array.
-    # output_numpy = np.full((1+len(outputs_without_labels), 1+len(features_calculated)), 'NA', dtype=object)
-    output_numpy = np.array(['filename'] + features_calculated)
+    output_numpy = np.array(['filename'] + modalities + [modality1 + '_minus_' + modality2 for modality1, modality2 in differences])
 
-    for return_idx, return_file in enumerate(outputs_without_labels):
+    for patient in all_patients:
 
-        # For each file, make a row and check if the label file exists.
-        directory = os.path.dirname(return_file)
-        visit_label = sorted(glob.glob(os.path.join(directory, '*' + label_file + '*')))
+        all_visits = sorted(glob.glob(os.path.join(patient, '*/')))
 
-        if visit_label:
+        for visit in all_visits:
 
-            # Log output
-            print return_file
+            print 'Calculating statistics for... ', visit
 
-            # If multiple labels returned, give a warning and use the first option returned.
-            if len(visit_label) != 1:
-                print 'WARNING! Multiple labels found. Going with... ' + visit_label[0]
-            visit_label = visit_label[0]
+            visit_label = sorted(glob.glob(os.path.join(visit, '*' + label_file + '*')))
+            print visit_label
 
-            # Use qtim's statistics package to calculate label statistics.
-            if label_mode == 'separate':
-                visit_label = convert_input_2_numpy(visit_label)
-                for label_num in np.unique(visit_label):
-                    if label_num == 0:
-                        continue
-                    output_numpy = np.vstack((output_numpy, [return_file + '-label_' + str(label_num)] + qtim_statistic(return_file, features_calculated, visit_label, return_label = label_num)))
+            if visit_label:
+
+                # If multiple labels returned, give a warning and use the first option returned.
+                if len(visit_label) != 1:
+                    print 'WARNING! Multiple labels found. Going with... ' + visit_label[0]
+                visit_label = convert_input_2_numpy(visit_label[0])
+
+                if label_mode == 'combined':
+                    label_list = ['']
+                elif label_mode != 'separate': 
+                    print 'Provided label_mode,', label_mode, 'is not an available option. Going with \'combined\'.'
+                    label_list = ['']
+                else:
+                    label_list = ['_label-' + str(int(label_num)) for label_num in np.unique(visit_label)[1:]]
+
+                print label_list
+
+                for label_index in label_list:
+
+                    new_row = ['']*len(['filename'] + modalities + [modality1 + '_minus_' + modality2 for modality1, modality2 in differences])
+                    col_number = 1
+                    new_row[0] = str.split(visit, os.sep)[-3] + '-' + str.split(visit, os.sep)[-2] + label_index
+
+                    for modality in modalities:
+
+                        modality_file = glob.glob(os.path.join(visit, '*' + modality + '*'))
+
+                        if len(modality_file) == 0:
+                            print 'Modality file for modality label', modality, 'not found, skipping this modality'
+                            new_row[col_number] = ''
+                        else:
+                            if len(modality_file) > 1:
+                                print 'Found multiple files for modality label', modality, '! Choosing the first one found,', modality_file[0]
+                            else:
+                                print 'Calculating statistic for modality label', modality
+                            # try:
+                            if label_index != '':
+                                new_row[col_number] = qtim_statistic(modality_file[0], ['median'], visit_label, return_label=int(label_index[-1]))[0]
+                            else:
+                                new_row[col_number] = qtim_statistic(modality_file[0], ['median'], visit_label)[0]
+                            # except:
+                                # print 'Error calculating statistic for modality label', modality
+                                # new_row[col_number] = ''
+                            if new_row[col_number] == 'nan':
+                                print 'Error calculating statistic for modality label', modality
+                                new_row[col_number] = ''
+
+                        col_number += 1
+
+                    for difference in differences:
+
+                        try:
+                            new_row[col_number] = float(new_row[1+modalities.index(difference[0])]) - float(new_row[1+modalities.index(difference[1])])
+                        except:
+                            print "Error occured while calculating difference for", difference, '. Skipping this statistic.'
+                            new_row[col_number] = ''
+
+                        col_number += 1
+
+                    print new_row
+                    output_numpy = np.vstack((output_numpy, new_row))
+
             else:
-                if label_mode != 'combined':
-                    print 'Label mode parameter not recognized. Going with \'combined\' mode.'
-                output_numpy = np.vstack((output_numpy, [return_file] + qtim_statistic(return_file, features_calculated, visit_label)))
-               
-        else:
-            print 'Warning! No label found in the same directory as... ', return_file
+                print 'Warning! No label found in the same directory as... ', visit_label
 
-    # Create CSV headers.
-    output_numpy[0,:] = ['filename'] + features_calculated
+        output_numpy = np.vstack((output_numpy, ['']*len(['filename'] + modalities + [modality1 + '_minus_' + modality2 for modality1, modality2 in differences])))
 
-    # Save output
     save_numpy_2_csv(output_numpy, output_csv)
 
     return

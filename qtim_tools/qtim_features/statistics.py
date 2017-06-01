@@ -107,7 +107,7 @@ def qtim_statistic(input_data, statistics, label_data='', mask_value=0, return_l
     if label_data != '':
         input_numpy = crop_with_mask(input_numpy, label_data, mask_value=mask_value, return_labels=return_label)
     
-    stats_numpy = np.ravel(input_numpy[input_numpy != mask_value])    
+    stats_numpy = np.ravel(input_numpy[input_numpy > mask_value])    
 
     for statistic in statistics:
 
