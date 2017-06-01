@@ -10,6 +10,7 @@ import os
 from ..qtim_features.statistics import qtim_statistic
 from ..qtim_utilities.text_util import save_numpy_2_csv
 from ..qtim_utilities.format_util import convert_input_2_numpy
+from ..qtim_utilities.file_util import grab_files_recursive
 
 def qtim_study_statistics(study_name, label_file, base_directory, output_csv=None, label_mode='combined'):
 
@@ -47,6 +48,13 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
     # These are all the features currently available in QTIM.
     features_calculated = ['mean','min','max','median','range','standard_deviation','variance','energy','entropy','kurtosis','skewness','COV']
 
+    # Column titles. Replace these lines with a config file later...
+    modalities = ['T1-Post', 'T1-Pre', 'MPRAGE-Post', 'MPRAGE-Pre', 'FLAIR', 'T2SPACE', 'SUV', 'CBF', 'CBV']
+    differences = [('T1_Pre','T1_Post'), ('MPRAGE-Post', 'MPRAGE-Pre')]
+
+    # Exlcusion phrases
+    label_exclusions = [label_file] + ['label']
+
     # NiPype is not very necessary here, but I want to get used to it. DataGrabber is a utility for
     # for recursively getting files that match a pattern.
     study_files = nio.DataGrabber()
@@ -54,6 +62,8 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
     study_files.inputs.template = os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION', study_name + '*', 'VISIT_*', '*.ni*')
     study_files.inputs.sort_filelist = True
     results = study_files.run().outputs.outfiles
+
+    all_coregistred_files = grab_files_recursive(os.path.join(study_name, 'ANALYSIS', 'COREGISTRATION'), '*.nii*')
 
     # Toss out labels from calculated statistics.
     outputs_without_labels = [study_file for study_file in results if label_file not in study_file]
