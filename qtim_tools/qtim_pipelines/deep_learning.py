@@ -2,8 +2,9 @@ import numpy as np
 import nipype.interfaces.io as nio
 import glob
 import os
+import yaml
 
-from shutil import copy
+from shutil import copy, rmtree
 
 from ..qtim_preprocessing.motion_correction import motion_correction
 from ..qtim_preprocessing.threshold import crop_with_mask
@@ -83,46 +84,162 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SP
     # Skull-Strip, Resample, and Normalize the rest. 
     for dl_volume in dl_volumes:
 
-        split_path = os.path.normpath(dl_volume).split(os.sep)
-        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DEEPLEARNING', split_path[-3], split_path[-2])
-        deep_learning_output = os.path.join(output_folder, nifti_splitext(os.path.basename(dl_volume))[0] + '_DL' + nifti_splitext(dl_volume)[-1])
+        try:
 
-        if os.path.exists(deep_learning_output):
-            continue
+            split_path = os.path.normpath(dl_volume).split(os.sep)
+            output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DEEPLEARNING', split_path[-3], split_path[-2])
+            deep_learning_output = os.path.join(output_folder, nifti_splitext(os.path.basename(dl_volume))[0] + '_DL' + nifti_splitext(dl_volume)[-1])
 
-        print output_folder
+            if os.path.exists(deep_learning_output):
+                continue
 
-        # Make sure a mask was created in the previous step.
-        skull_strip_mask = os.path.join(output_folder, split_path[-3] + '-' + split_path[-2] + '-' + 'SKULL_STRIP_MASK.nii.gz')
-        if not os.path.exists(skull_strip_mask):
-            print 'No skull-stripping mask created, skipping volume ', dl_volume
-            continue
+            print output_folder
 
-        # Use existing mask to skull-strip if necessary.
-        n4_bias_output = os.path.join(output_folder, nifti_splitext(os.path.basename(dl_volume))[0] + '_n4' + nifti_splitext(dl_volume)[-1])
-        if any(bias_vol in n4_bias_output for bias_vol in bias_correct_vols):
-            if not os.path.exists(n4_bias_output):
-                bias_correction(dl_volume, output_filename=n4_bias_output, mask_filename=skull_strip_mask)
-        else:
-            copy(dl_volume, n4_bias_output)
+            # Make sure a mask was created in the previous step.
+            skull_strip_mask = os.path.join(output_folder, split_path[-3] + '-' + split_path[-2] + '-' + 'SKULL_STRIP_MASK.nii.gz')
+            if not os.path.exists(skull_strip_mask):
+                print 'No skull-stripping mask created, skipping volume ', dl_volume
+                continue
 
-        # Use existing mask to skull-strip if necessary.
-        skull_strip_output = os.path.join(output_folder, nifti_splitext(n4_bias_output)[0] + '_ss' + nifti_splitext(n4_bias_output)[-1])
-        if not os.path.exists(skull_strip_output):
-            crop_with_mask(n4_bias_output, skull_strip_mask, output_filename=skull_strip_output)
-        os.remove(n4_bias_output)
+            # Use existing mask to skull-strip if necessary.
+            n4_bias_output = os.path.join(output_folder, nifti_splitext(os.path.basename(dl_volume))[0] + '_n4' + nifti_splitext(dl_volume)[-1])
+            if any(bias_vol in n4_bias_output for bias_vol in bias_correct_vols):
+                if not os.path.exists(n4_bias_output):
+                    bias_correction(dl_volume, output_filename=n4_bias_output, mask_filename=skull_strip_mask)
+            else:
+                copy(dl_volume, n4_bias_output)
 
-        # Resample and remove previous file.
-        # resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
-        # print resample_output
-        # if not os.path.exists(resample_output):
-        #     resample(skull_strip_output, output_filename=resample_output)
-        # os.remove(skull_strip_output)
+            # Use existing mask to skull-strip if necessary.
+            skull_strip_output = os.path.join(output_folder, nifti_splitext(n4_bias_output)[0] + '_ss' + nifti_splitext(n4_bias_output)[-1])
+            if not os.path.exists(skull_strip_output):
+                crop_with_mask(n4_bias_output, skull_strip_mask, output_filename=skull_strip_output)
+            os.remove(n4_bias_output)
 
-        # Mean normalize and remove previous file.
-        if not os.path.exists(deep_learning_output):
-            zero_mean_unit_variance(skull_strip_output, input_mask=skull_strip_mask, output_filename=deep_learning_output)
-        os.remove(skull_strip_output)
+            # Resample and remove previous file.
+            # resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
+            # print resample_output
+            # if not os.path.exists(resample_output):
+            #     resample(skull_strip_output, output_filename=resample_output)
+            # os.remove(skull_strip_output)
+
+            # Mean normalize and remove previous file.
+            if not os.path.exists(deep_learning_output):
+                zero_mean_unit_variance(skull_strip_output, input_mask=skull_strip_mask, output_filename=deep_learning_output)
+            os.remove(skull_strip_output)
+
+        except:
+            print 'Error encountered on', os.path.basename(dl_volume)
+
+    return
+
+def deep_learning_experiment(base_directory, output_directory, config_file):
+
+    """ This script creates a deep learning "experiment" from our available studies. This means
+        sorting patient visits into testing and training folders with certain pre-specified modalities.
+
+        Parameters
+        ----------
+        base_directory: str
+            The full path to the directory from which to search for studies. The study directory
+            should be contained in this directory.
+        config_file: str
+            A configuration file that dictates how studies should be split and which modalities.
+    """
+
+    if config_file is None:
+        config_file = os.path.abspath(os.path.join(os.path.realpath(__file__), '..', 'default_configs', 'deep_learning_experiment.yaml'))
+    else:
+        config_file = os.path.asbpath(config_file)
+
+    with open(config_file, 'r') as stream:
+        config = yaml.load(stream)
+
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+
+    for train_test in ['Train', 'Test', 'Validation']:
+        
+        output_folder = os.path.join(os.path.abspath(output_directory), train_test)
+
+        # Make output folder
+        rmtree(output_folder)
+        # if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
+
+        if train_test == 'Train':
+            for study in ['FMS']:
+                for patient in ['01']:
+                    for visit in ['01','02','03', '04', '05']:
+                        for modality in ['MPRAGE_POST', 'FLAIR_r_T2', 'T2SPACE_DL', 'T1Pre']:
+                            try:
+                                target_file = glob.glob(os.path.join(base_directory, study, 'ANALYSIS', 'DEEPLEARNING', '_'.join([study, patient]), '_'.join(['VISIT', visit]), '*' + modality + '*'))[0]
+                                target_folder = os.path.join(output_folder, '_'.join([study, patient, visit]))
+                                if not os.path.exists(target_folder):
+                                    os.mkdir(target_folder)
+                                copy(target_file, os.path.join(target_folder, os.path.basename(target_file)))
+                            except:
+                                pass
+                        for modality in ['SUV']:
+                            try:
+                                target_file = glob.glob(os.path.join(base_directory, study, 'ANALYSIS', 'DEEPLEARNING', '_'.join([study, patient]), '_'.join(['VISIT', visit]), '*' + modality + '*'))[0]
+                                target_folder = os.path.join(output_folder, '_'.join([study, patient, visit]))
+                                if not os.path.exists(target_folder):
+                                    os.mkdir(target_folder)
+                                copy(target_file, os.path.join(target_folder, os.path.basename(target_file)))
+                            except:
+                                pass                            
+
+        if train_test == 'Validation':
+            for study in ['FMS']:
+                for patient in ['02']:
+                    for visit in ['01','02','03', '04', '05']:
+                        for modality in ['MPRAGE_POST', 'FLAIR_r_T2', 'T2SPACE_DL', 'T1Pre']:
+                            try:
+                                target_file = glob.glob(os.path.join(base_directory, study, 'ANALYSIS', 'DEEPLEARNING', '_'.join([study, patient]), '_'.join(['VISIT', visit]), '*' + modality + '*'))[0]
+                                target_folder = os.path.join(output_folder, '_'.join([study, patient, visit]))
+                                if not os.path.exists(target_folder):
+                                    os.mkdir(target_folder)
+                                copy(target_file, os.path.join(target_folder, os.path.basename(target_file)))
+                            except:
+                                pass
+                        for modality in ['SUV']:
+                            try:
+                                target_file = glob.glob(os.path.join(base_directory, study, 'ANALYSIS', 'DEEPLEARNING', '_'.join([study, patient]), '_'.join(['VISIT', visit]), '*' + modality + '*'))[0]
+                                target_folder = os.path.join(output_folder, '_'.join([study, patient, visit]))
+                                if not os.path.exists(target_folder):
+                                    os.mkdir(target_folder)
+                                copy(target_file, os.path.join(target_folder, os.path.basename(target_file)))
+                            except:
+                                pass   
+
+        if train_test == 'Test':
+            for study in ['FMS']:
+                for patient in ['05']:
+                    for visit in ['01','02','03','04','05']:
+                        for modality in ['MPRAGE_POST', 'FLAIR_r_T2', 'T2SPACE_DL', 'T1Pre']:
+                            try:
+                                target_file = glob.glob(os.path.join(base_directory, study, 'ANALYSIS', 'DEEPLEARNING', '_'.join([study, patient]), '_'.join(['VISIT', visit]), '*' + modality + '*'))[0]
+                                target_folder = os.path.join(output_folder, '_'.join([study, patient, visit]))
+                                if not os.path.exists(target_folder):
+                                    os.mkdir(target_folder)
+                                copy(target_file, os.path.join(target_folder, os.path.basename(target_file)))
+                            except:
+                                pass
+                        for modality in ['SUV']:
+                            try:
+                                target_file = glob.glob(os.path.join(base_directory, study, 'ANALYSIS', 'DEEPLEARNING', '_'.join([study, patient]), '_'.join(['VISIT', visit]), '*' + modality + '*'))[0]
+                                target_folder = os.path.join(output_folder, '_'.join([study, patient, visit]))
+                                if not os.path.exists(target_folder):
+                                    os.mkdir(target_folder)
+                                copy(target_file, os.path.join(target_folder, os.path.basename(target_file)))
+                            except:
+                                pass   
+
+        # print config[train_test]
+
+        # for study in config[train_test]['Study']:
+            
+        #     study_dir = study
 
     return
 

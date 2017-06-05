@@ -22,7 +22,8 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
         The following statistics are currently computed: mean, min, max, median, range, standard deviation,
         variance, energy, entropy, kurtosis, skewness, COV
 
-        TODO: Make this function more customizable.
+        TODO: Make this function more customizable with config file.
+        TODO: Recent changes have made this function incredibly messy. Clean it up!
 
         Parameters
         ----------
@@ -138,7 +139,21 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
                         col_number += 1
 
                     print new_row
-                    output_numpy = np.vstack((output_numpy, new_row))
+
+                    # This is awful.
+                    if label_index == '' or len(output_numpy.shape) == 1:
+                        output_numpy = np.vstack((output_numpy, new_row))
+                    else:
+                        if output_numpy[-1,0] == '':
+                            output_numpy = np.vstack((output_numpy, new_row))
+                        else:
+                            previous_index = int(output_numpy[-1,0][-1])
+                            current_index = int(label_index[-1])
+                            if previous_index > current_index:
+                                temp_rows = np.vstack((new_row, output_numpy[-1,:]))
+                                output_numpy = np.vstack((output_numpy[0:-1,:], temp_rows))
+                            else:
+                                output_numpy = np.vstack((output_numpy, new_row))
 
             else:
                 print 'Warning! No label found in the same directory as... ', visit_label

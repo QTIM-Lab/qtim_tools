@@ -1,0 +1,23 @@
+Train:
+  Study: 
+    - FMS:
+      - Patients:
+        - '1,2':
+          - Visits:
+            - all
+  Modalities:
+    - 'MPRAGE_POST'
+  GroundTruth:
+    - 'SUV'
+
+Test:
+  Study: 
+    - FMS:
+      - Patients:
+        - '5':
+          - Visits:
+            - all
+  Modalities:
+    - 'MPRAGE_POST'
+  GroundTruth:
+    - 'SUV'

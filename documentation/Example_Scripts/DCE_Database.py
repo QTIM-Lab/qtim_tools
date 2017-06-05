@@ -3,8 +3,9 @@ import os
 import glob
 import csv
 
-from shutil import copy, move
 
+from shutil import copy, move
+from sklearn.metrics import r2_score
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 
 # Categorical
@@ -188,13 +189,31 @@ def Store_Unneeded_Codes(data_directory, storage_directory):
     i = 0
     for file in file_database:
 
-        if 'pca_0' in file and ('blur_0.8' in file or 'blur_0_' in file) and ('threshold_-1' in file or 'threshold_none' in file):
+        if 'pca_0' in file and ('blur_0.2' in file or 'blur_0_' in file) and ('threshold_-1' in file or 'threshold_none' in file):
             # print os.path.basename(file)
             move(file, os.path.join(data_directory, os.path.basename(file)))
 
-
     print i
 
+def Store_and_Retrieve(data_directory, storage_directory):
+
+    # Store
+    file_database = glob.glob(os.path.join(data_directory, '*.nii*'))
+
+    for file in file_database:
+
+        if 'blur_0.8' in file or 'lm' in file or 'conv' in file:
+            print os.path.basename(file)
+            move(file, os.path.join(storage_directory, os.path.basename(file)))
+
+    # Retrieve
+    file_database = glob.glob(os.path.join(storage_directory, '*.nii*'))
+
+    for file in file_database:
+
+        if 'pca_0' in file and ('blur_0.2' in file or 'blur_0_' in file) and ('simplex' in file and 'recursive' in file) and ('threshold_-1' in file or 'threshold_none' in file):
+            print os.path.basename(file)
+            move(file, os.path.join(data_directory, os.path.basename(file)))
 
 def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
 
@@ -236,13 +255,6 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
 
     return
 
-def Reshape_Statisticts_Worksheet(input_csv, output_csv, ROI_directory):
-
-    """ TBD
-    """
-
-    return
-
 def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2):
 
     input_data = np.genfromtxt(input_csv, delimiter=',', dtype=object, skip_header=1)
@@ -275,9 +287,9 @@ def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2):
 def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
     input_data = np.genfromtxt(input_csv, delimiter=',', dtype=object, skip_header=1)
-    output_data = np.zeros((3000, 5), dtype=object)
-    output_data[0,:] = ['method', 'RMS_COV', 'LOG_COV', 'SD_COV', 'n_measurements']
-
+    headers = ['method', 'RMS_COV', 'LOG_COV', 'SD_COV', 'CCC', 'R2', 'LOA_pos', 'LOS_neg', 'RC', 'n_measurements']
+    output_data = np.zeros((3000, len(headers)), dtype=object)
+    output_data[0,:] = headers
     methods = []
 
     with open(output_csv, 'wb') as writefile:
@@ -303,11 +315,36 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
                 # print patient_list
                 # print 'METHOD', method
 
-                # Root Mean Square Method
+                # Non-Iterative Equations
+
+                not_masked = [(x[0] != '--' and x[1] != '--') for x in patient_list]
+                print not_masked
+                not_masked_patient_list = patient_list[not_masked, :]
+                x, y = not_masked_patient_list[:,1].astype(float), not_masked_patient_list[:,2].astype(float)
+
+                # CCC
+                mean_x = np.mean(x)
+                mean_y = np.mean(y)
+                std_x = np.std(x)
+                std_y = np.std(y)
+                correl = np.ma.corrcoef(x,y)[0,1]
+                CCC = (2 * correl * std_x * std_y) / (np.ma.var(x) + np.ma.var(y) + np.square(mean_x - mean_y))
+
+                # R2
+                R2_score = r2_score(y, x)
+
+                # Limits of Agreement (LOA)
+                differences = x - y
+                mean_diff = np.mean(differences)
+                std_diff = np.std(differences)
+                LOA_neg, LOA_pos = mean_diff - 2*std_diff, mean_diff + 2*std_diff
+
+                # Covariance and Repeatability Coeffecient
                 RMS_sum = 0
                 LOG_sum = 0
                 SD_sum_1 = 0
                 SD_sum_2 = 0
+                RC_sum = 0
                 n = 0
 
                 for patient in patient_list:
@@ -328,8 +365,9 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
                 RMS_COV = 100 * np.sqrt(RMS_sum / (2*n))
                 LOG_COV = 100 * np.exp(np.sqrt(LOG_sum / (2*n)) - 1)
                 SD_COV = 100 * np.sqrt(SD_sum_1 / (2*n)) / (SD_sum_2 / (2*n))
+                RC = (SD_sum_1 / n) * 1.96
 
-                output_data[row_idx+1, :] = [method, RMS_COV, LOG_COV, SD_COV, n]
+                output_data[row_idx+1, :] = [method, RMS_COV, LOG_COV, SD_COV, CCC, R2_score, LOA_pos, LOA_neg, RC, n]
                 # print output_data[row_idx+1, :]
 
                 methods += [method]
@@ -377,7 +415,9 @@ if __name__ == '__main__':
     # Delete_Extra_Files(data_directory)
     Paired_Visits_Worksheet(output_csv, paired_csv)
     Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
+    
     # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
     # Recode_With_Binary_Labels(data_directory)
+    # Store_and_Retrieve(data_directory, storage_directory)
 
     pass

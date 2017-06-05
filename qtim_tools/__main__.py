@@ -11,10 +11,11 @@ class qtim_commands(object):
             usage='''qtim <command> [<args>]
 
 The following commands are available:
-   coregistration      Coregister data to one volume, or through a series of steps.
-   deep_learning       Preprocess coregistered volumes for deep learning analysis.
-   dti_conversion      Generate DTI volumes from RAWDATA.
-   label_statistics    Generate label statistics from the COREGISTRATION folder.
+   coregistration               Coregister data to one volume, or through a series of steps.
+   deep_learning_preprocess     Preprocess coregistered volumes for deep learning analysis.
+   deep_learning_experiment     Copy DL files into test/train folders for an experiment.
+   dti_conversion               Generate DTI volumes from RAWDATA.
+   label_statistics             Generate label statistics from the COREGISTRATION folder.
 ''')
 
         parser.add_argument('command', help='Subcommand to run')
@@ -42,7 +43,7 @@ The following commands are available:
 
         qtim_tools.qtim_pipelines.coregistration.coregistration(args.study_name, args.base_directory, args.destination_volume, args.config)
 
-    def deep_learning(self):
+    def deep_learning_preprocess(self):
         parser = argparse.ArgumentParser(
             description='Prepare a study for a deep learning experiment. Performs N4 bias correction, skull-stripping, isotropic resampling, and zero-mean normalization.')
 
@@ -55,6 +56,19 @@ The following commands are available:
         print 'Preprocessing for deep learning in study directory... %s' % args.study_name
 
         qtim_tools.qtim_pipelines.deep_learning.deep_learning_preprocess(args.study_name, args.base_directory)
+
+    def deep_learning_experiment(self):
+        parser = argparse.ArgumentParser(
+            description='Prepare a study for a deep learning experiment. Performs N4 bias correction, skull-stripping, isotropic resampling, and zero-mean normalization.')
+
+        parser.add_argument('base_directory', type=str) 
+        parser.add_argument('output_directory', type=str)
+        parser.add_argument('-config_file', type=str)
+
+        args = parser.parse_args(sys.argv[2:])
+        print 'Creating a deep learning experiment in study directory... %s' % args.output_directory
+
+        qtim_tools.qtim_pipelines.deep_learning.deep_learning_experiment(args.base_directory, args.output_directory, args.config_file)
 
     def dti_conversion(self):
         parser = argparse.ArgumentParser(
