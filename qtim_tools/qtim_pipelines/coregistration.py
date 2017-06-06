@@ -7,7 +7,7 @@ from ..qtim_preprocessing.resample import resample
 from ..qtim_preprocessing.normalization import zero_mean_unit_variance
 from ..qtim_utilities.file_util import nifti_splitext, grab_files_recursive
 
-def coregister_pipeline(study_name, base_directory, destination_volume='T2', config_file=None):
+def coregister_pipeline(study_name, base_directory, labelmap_volume, destination_volume='T2', config_file=None):
 
     """ This script is meant to coregister a series of volumes into the same space.
 
@@ -26,12 +26,23 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', con
 
     """
 
-    input_modality_dict = {'ANATOMICAL': ['T2.nii', 'T1.nii', 'T1-Post.nii', 'FLAIR.nii', 'MPRAGE-Pre.nii', 'MPRAGE-Post.nii']}
+    # TODO: Implement this with a config file.
+    input_modality_dict = {'T2': ['T2SPACE.nii'],
+                            'FLAIR': ['3D-FLAIR.nii', ]
+                            'T1.nii', 'T1-Post.nii', 'FLAIR.nii', 'MPRAGE-Pre.nii', 'MPRAGE-Post.nii'],
+                            'DCE': ['dce1_mc_ss.nii', 'dce1_mc.nii', 'dce1_mc_ss_mask.nii']
+                            'DTI': ['FA.nii', 'L1.nii', 'L2.nii', 'L3.nii', 'MD.nii', 'M0.nii', 'S0.nii', 'sse.nii', 'V1.nii', 'V2.nii', 'V3.nii', 'diff_mc_ss.nii', 'diff_mc_ss_mask.nii']
+                            'DSC': ['DSC_ge.nii', 'DSC_se.nii']}
+
+    registration_tree = [['FLAIR', 'FLAIR-3D.nii'],
+                            ['FLAIR-3D.nii', 'T2.nii'],
+                            ['FLAIR', ]
+                        ]
 
     coreg_volumes = []
     for folder in input_modality_dict:
         for modality in input_modality_dict[folder]:
-            coreg_volumes += grab_files_recursive(os.path.join(base_directory, study_name, 'ANALYSIS', '*' + modality + '*'))
+            coreg_volumes += grab_files_recursive(os.path.join(base_directory, study_name, 'ANALYSIS', folder), '*' + modality + '*')
 
     if config_file is None:
 
