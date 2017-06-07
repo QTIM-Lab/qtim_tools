@@ -8,7 +8,7 @@ from ..qtim_preprocessing.normalization import zero_mean_unit_variance
 from ..qtim_preprocessing.registration import register_volumes
 from ..qtim_utilities.file_util import nifti_splitext, grab_files_recursive
 
-def coregister_pipeline(study_name, base_directory, labelmap_volume, destination_volume='T2', end_dimensions=[], resampled=True, config_file=None):
+def coregister_pipeline(study_name, base_directory, labelmap_volume, destination_volume='T2', end_dimensions=None, resampled=True, config_file=None):
 
     """ This script is meant to coregister a series of volumes into the same space.
 
@@ -82,86 +82,71 @@ def coregister_pipeline(study_name, base_directory, labelmap_volume, destination
         transform_dictionary = {}
 
         # Iterate through registration tests
-        for moving_step, target_step in registration_tree:
+        for registration_pathway in registration_tree:
 
-            # Get available files to register
-            registration_files = patient_visit_data[patient_visit]
+            for reg_idx, moving_step in enumerate(registration_pathway[0:-1]):
 
-            # Check if one-to-one or all-to-one registration
-            if '.nii' not in moving_step:
-                registration_mode = 'multiple'
-            else:
-                registration_mode = 'single'
+                # Get the fixed volume
+                fixed_step = registration_pathway[reg_idx+1]
 
-            # Error check in case of one-to-all registration.
-            if '.nii' in target_step:
-                print 'Registration step', registration_step, 'has problems. Cannot register one volume to a folder.'
-                continue
+                # Check if one-to-one or all-to-one registration
+                if '.nii' not in moving_step:
+                    registration_mode = 'multiple'
+                else:
+                    registration_mode = 'single'
 
-            # Get target and moving volume from available files.
-            # TODO: Add a bit of error-checking.
-            target_volume = [registration_volume for registration_volume in registration_files if target_step in registration_volume]
-            all_moving_volumes = []            
-            if registration_mode == 'single':
-                moving_volume = [registration_volume for registration_volume in registration_files if moving_step in registration_volume][0]
-            elif registration_mode == 'multiple':
-                multiple_moving_steps = input_modality_dict[moving_step]
-                for single_moving_step in multiple_moving_steps:
-                    all_moving_volumes = [registration_volume for registration_volume in registration_files if single_moving_step in registration_volume]
-                    moving_volume = all_moving_volumes[0]
+                # Get available files to register
+                registration_files = patient_visit_data[patient_visit]
 
-            # Get output suffixes
-            moving_suffix, target_suffix = get_file_suffixes(moving_volume, target_volume)
+                # Error check in case of one-to-all registration
+                if '.nii' in fixed_step:
+                    print 'Registration step', fixed_step, 'has problems. Cannot register one volume to a folder.'
+                    continue
 
-            # Get output filenames
-            output_transform = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'_o.nii.gz')
-            output_volume = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'.txt')
-            output_volume_resampled = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'.nii.gz')
+                # Find the target_volume
+                target_volume = [registration_volume for registration_volume in registration_files if target_step in registration_volume]
 
-            # Do the registration!
-            # TODO: Conditionally not output volume.
-            register_volumes(target_volume, moving_volume, output_volume, output_volume_resampled, output_transform)
+                # Find the moving volume(s). The following steps are more elaborate than needed.
+                all_moving_volumes = []
 
+                # Single volume case.          
+                if registration_mode == 'single':
+                    moving_volumes = [registration_volume for registration_volume in registration_files if moving_step in registration_volume]
+                    if len(moving_volumes) > 1:
+                        print 'Multiple moving volumes found for step', registration_pathway[reg_idx:reg_idx+2], '- aborting this pathway.'
+                        continue
 
+                # Multiple volume case.
+                elif registration_mode == 'multiple':
+                    multiple_moving_steps = input_modality_dict[moving_step]
+                    for single_moving_step in multiple_moving_steps:
+                        moving_volumes = [registration_volume for registration_volume in registration_files if single_moving_step in registration_volume]
 
+                # Error-checking, no volumes found.
+                if len(moving_volumes) == 0:
+                    print 'Moving volume not found for step', registration_pathway[reg_idx:reg_idx+2], '- aborting this pathway.'
+                    continue
 
+                # Get output filenames.
+                moving_suffix, target_suffix = get_file_suffixes(moving_volume[0], target_volume)
+                output_transform = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'_o.nii.gz')
+                output_volume = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'.txt')
+                output_volume_resampled = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'.nii.gz')
 
+                # Register first volume.
+                if not os.path.exists(output_transform):
+                    register_volume(moving_volume[0], target_volume, output_filename=output_volume_resampled, output_transform=output_transform)
+                else:
+                    # get right command
+                    apply_affine_transform(moving_volume[0], output_transform, output_filename=output_volume_resampled)
 
-    if config_file is None:
-
-        # Coregister to one volume.
-        for coreg_volume in coreg_volumes:
-
-            # Don't register the destination_volume to itself..
-            if destination_volume in coreg_volume:
-
-                continue
-
-            # Make sure a mask was created in the previous step.
-            skull_strip_mask = os.path.join(output_folder, split_path[-4] + '-' + split_path[-3] + '-' + 'SKULL_STRIP_MASK.nii.gz')
-            if not os.path.exists(skull_strip_mask):
-                print 'No skull-stripping mask created, skipping this volume!'
-                continue
-
-            # Use existing mask to skull-strip if necessary.
-            skull_strip_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_ss' + nifti_splitext(dl_volume)[-1])
-            if not os.path.exists(skull_strip_output):
-                crop_with_mask(dl_volume, skull_strip_mask, output_filename=skull_strip_output)
-
-            # Resample and remove previous file.
-            resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
-            if not os.path.exists(skull_strip_output):
-                resample(skull_strip_output, resample_output, output_filename=skull_strip_output)
-            os.remove(skull_strip_output)
-
-            # Mean normalize and remove previous file.
-            normalize_output = os.path.join(output_folder, nifti_splitext(dl_volume)[0] + '_DL' + nifti_splitext(dl_volume)[-1])
-            if not os.path.exists(skull_strip_output):
-                zero_mean_unit_variance(resample_output, normalize_output, output_filename=skull_strip_output)
-            os.remove(resample_output)
-
-    else:
-        pass
+                # If applicable, move over the rest of the volumes.
+                if len(moving_volume) > 1:
+                    for additional_volume in moving_volumes[1:]:
+                        moving_suffix, target_suffix = get_file_suffixes(additional_volume, target_volume)
+                        output_volume = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'.txt')
+                        output_volume_resampled = os.path.join(output_folder, patient_visit + '-' + moving_suffix + '_r_' + target_suffix +'.nii.gz')
+                        apply_affine_transform(moving_volume[0], output_transform, output_filename=output_volume_resampled)
 
     return
 
