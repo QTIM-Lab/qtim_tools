@@ -9,7 +9,7 @@ import numpy as np
 from ..qtim_utilities.format_util import convert_input_2_numpy
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
-def resample(input_data, output_filename='', input_transform_file='', method="slicer", command="/opt/Slicer-4.5.0-1-linux-amd64/Slicer", temp_dir='./', param_dict={}):
+def resample(input_data, output_filename='', input_transform_file='', method="slicer", command="/opt/Slicer-4.5.0-1-linux-amd64/Slicer", temp_dir='./', param_dict={'interpolation': 'linear', 'dimensions': [1,1,1]}):
 
     """ A catch-all function for resampling. Will resample a 3D volume to given dimensions according
         to the method provided.
@@ -61,9 +61,11 @@ def resample(input_data, output_filename='', input_transform_file='', method="sl
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', '-s', '1,1,1', input_filename, output_filename])
-        subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', 'linear', '-s', '1,1,1', input_filename, output_filename])
+        param_dict['dimensions'] = str(param_dict['dimensions']).strip('[]').replace(' ', '')
 
+        print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', param_dict['interpolation'], '-s', param_dict['dimensions'], input_filename, output_filename])
+        subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', param_dict['interpolation'], '-s', param_dict['dimensions'], input_filename, output_filename])
+        
         if temp_input:
             os.remove(input_filename)
             pass

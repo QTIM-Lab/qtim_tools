@@ -65,7 +65,7 @@ def get_arbitrary_axis_slice(input_volume, axis, slice_num):
 
     return image_numpy[image_slice]
 
-def truncate_image(input_volume, mask_value=0):
+def truncate_image(input_volume, mask_value=0, return_mask=False, output_mask_filename=""):
 
     """ This function takes in an N-dimensional array and truncates all rows/columns/etc
         that contain only mask values. Useful for reducing computation time on functions
@@ -103,7 +103,10 @@ def truncate_image(input_volume, mask_value=0):
 
     truncate_image_numpy = image_numpy[truncate_slices]
 
-    return truncate_image_numpy
+    if return_mask:
+        return truncate_image_numpy, return mask_numpy
+    else:
+        return truncate_image_numpy
 
 def truncate_to_maximum_image(input_volume_list, mask_value=0):
 
