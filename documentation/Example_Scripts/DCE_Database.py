@@ -179,6 +179,43 @@ def Create_Study_AIF(AIF_directory, output_AIF):
 
     return
 
+def Create_Average_AIF(AIF_directory, output_AIF_directory):
+
+    """ Create a patient-averaged AIF.
+    """
+
+    AIF_list = glob.glob(os.path.join(AIF_directory, '*VISIT*.txt'))
+
+
+
+    for AIF_idx, AIF in enumerate(AIF_list):
+
+        # print AIF
+
+        if 'VISIT_02' in AIF:
+            continue
+
+        split_AIF = str.split(os.path.basename(AIF), '_')
+        split_AIF[3] = '02'
+        visit_2_AIF = os.path.join(AIF_directory, '_'.join(split_AIF))
+
+        print visit_2_AIF
+
+        if not os.path.exists(visit_2_AIF):
+            continue
+
+        AIF_numpy_1, AIF_numpy_2 = np.loadtxt(AIF, delimiter=';', dtype=object), np.loadtxt(visit_2_AIF, delimiter=';', dtype=object)
+
+        print AIF_numpy_1
+        print AIF_numpy_2
+
+        output_AIF = (AIF_numpy_1[0:60].astype(float) + AIF_numpy_2[0:60].astype(float)) / 2.0
+        output_filename = os.path.join(output_AIF_directory, '_'.join(split_AIF[0:4]) + '_AIF_average.txt')
+
+        np.savetxt(output_filename, output_AIF[None], fmt='%2.5f', delimiter=';')
+
+    return
+
 def Store_Unneeded_Codes(data_directory, storage_directory):
 
     file_database = glob.glob(os.path.join(storage_directory, '*.nii*'))
@@ -222,7 +259,7 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
 
     file_database = glob.glob(os.path.join(input_directory, '*.nii*'))
 
-    output_headers = ['filename','mean','median','std','min','max','total_voxels','removed_values', 'removed_percent']
+    output_headers = ['filename','mean','median','std','min','max','total_voxels','removed_values', 'removed_percent', 'low_values', 'low_percent']
 
     output_data = np.zeros((1+len(file_database), len(output_headers)),dtype=object)
     output_data[0,:] = output_headers
@@ -242,10 +279,10 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
             patient_visit_code = os.path.basename(os.path.normpath(filename))[0:15]
             roi_array = ROI_dict[patient_visit_code]
 
-            masked_data_array_invalid = np.ma.masked_where(data_array <= 0, data_array)
+            masked_data_array_invalid = np.ma.masked_where(data_array <= .15, data_array)
             # masked_data_array_ROI = np.ma.masked_where(roi_array <= 0, data_array)
 
-            ROI_values = [np.ma.mean(masked_data_array_invalid), np.ma.median(masked_data_array_invalid), np.ma.min(masked_data_array_invalid), np.ma.max(masked_data_array_invalid), np.ma.std(masked_data_array_invalid),(roi_array > 0).sum(), ((data_array <= 0) & (roi_array > 0)).sum(), float(((data_array <= 0) & (roi_array > 0)).sum()) / float((roi_array > 0).sum())]
+            ROI_values = [np.ma.mean(masked_data_array_invalid), np.ma.median(masked_data_array_invalid), np.ma.min(masked_data_array_invalid), np.ma.max(masked_data_array_invalid), np.ma.std(masked_data_array_invalid),(roi_array > 0).sum(), ((data_array <= 0) & (roi_array > 0)).sum(), float(((data_array <= 0) & (roi_array > 0)).sum()) / float((roi_array > 0).sum()), ((data_array <= .15) & (roi_array > 0)).sum(), float(((data_array <= .15) & (roi_array > 0)).sum()) / float((roi_array > 0).sum())]
 
             print ROI_values
 
@@ -317,9 +354,10 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
                 # Non-Iterative Equations
 
-                not_masked = [(x[0] != '--' and x[1] != '--') for x in patient_list]
+                not_masked = [(x[1] != '--' and x[2] != '--') for x in patient_list]
                 print not_masked
                 not_masked_patient_list = patient_list[not_masked, :]
+                print not_masked_patient_list
                 x, y = not_masked_patient_list[:,1].astype(float), not_masked_patient_list[:,2].astype(float)
 
                 # CCC
@@ -388,7 +426,7 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
 if __name__ == '__main__':
 
-    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1'
+    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/SimplexEcho1'
     storage_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1/Storage'
 
     NHX_directory = '/qtim2/users/data/NHX/ANALYSIS/DCE/'
@@ -398,13 +436,12 @@ if __name__ == '__main__':
     AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/AIFs'
     T1MAP_directory = '/home/abeers/Data/DCE_Package/Test_Results/T1Maps'
 
-    output_csv = 'DCE_Assay.csv'
-    reshaped_output_csv = 'DCE_Assay_Split.csv'
-    paired_csv = 'DCE_Assay_Visits_Paired.csv'
-    paired_reduced_csv = 'DCE_Assay_Visits_Paired_Extremes_Culled.csv'
-    cov_csv = 'DCE_Assay_COV.csv'
-    cov_reduced_csv = "DCE_Assay_COV_reduce.csv"
+    output_csv = 'DCE_Assay_simplex.csv'
+    paired_csv = 'DCE_Assay_Visits_Paired_simplex.csv'
+    cov_csv = 'DCE_Assay_COV_simplex.csv'
 
+
+    # Create_Average_AIF(AIF_directory, AIF_directory)
     # Rename_LM_Files(data_directory)
     # Copy_SameAIF_Visit1_Tumors(data_directory)
     # Create_Resource_Directories(CED_directory, NHX_directory, ROI_directory, AIF_directory, T1MAP_directory)
