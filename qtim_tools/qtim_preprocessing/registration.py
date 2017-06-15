@@ -48,5 +48,28 @@ def register_all_to_one(fixed_volume, moving_volume_folder, output_folder='', ou
 
     return
 
+def register_volume(moving_volume, fixed_volume, output_volume_filename=None, output_transform_filename=None, method='slicer_brainsfit', Slicer_Path='Slicer', transform_type='Rigid,ScaleVersor3D,ScaleSkewVersor3D,Affine', transform_mode = 'useMomentsAlign', interpolation_mode = 'Linear', sampling_percentage = .02):
+
+    """ Registers a folder of volumes to one pre-specified volumes using the BRAINSFit module in 3DSlicer. Must already have 3DSlicer installed.
+    """
+
+    # A good reason to have a Class for qtim methods is to cut through all of this extra code.
+
+
+    if method == 'slicer_brainsfit':
+
+        BRAINSFit_command = [Slicer_Path,'--launch', 'BRAINSFit', '--fixedVolume', '"' + fixed_volume + '"', '--movingVolume', '"' + moving_volume + '"', '--transformType', transform_type, '--initializeTransformMode', transform_mode, '--interpolationMode', interpolation_mode, '--samplingPercentage', str(sampling_percentage)]
+
+        if output_volume_filename is not None:
+            BRAINSFit_command += ['--outputVolume', output_volume_filename]
+
+        if output_transform_filename is not None:
+            BRAINSFIT_command += ['--outputTransform', output_transform_filename]
+
+        print ' '.join(BRAINSFit_command)
+        subprocess.call([BRAINSFit_command])
+
+        return
+
 if __name__ == "__main__":
     pass

@@ -7,6 +7,7 @@ import csv
 from shutil import copy, move
 from sklearn.metrics import r2_score
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
+from qtim_tools.qtim_utilities.file_util import replace_suffix
 
 # Categorical
 BLUR = ['blur_' + x for x in ['0','0.2','0.8','1.2']]
@@ -186,8 +187,6 @@ def Create_Average_AIF(AIF_directory, output_AIF_directory):
 
     AIF_list = glob.glob(os.path.join(AIF_directory, '*VISIT*.txt'))
 
-
-
     for AIF_idx, AIF in enumerate(AIF_list):
 
         # print AIF
@@ -252,7 +251,7 @@ def Store_and_Retrieve(data_directory, storage_directory):
             print os.path.basename(file)
             move(file, os.path.join(data_directory, os.path.basename(file)))
 
-def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
+def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
 
     """ Save ROI statistics into a giant csv file.
     """
@@ -269,26 +268,79 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
     for ROI in glob.glob(os.path.join(ROI_directory, '*.nii*')):
         ROI_dict[os.path.basename(os.path.normpath(ROI))[0:15]] = convert_input_2_numpy(ROI)
 
-    with open(output_csv, 'wb') as writefile:
-        csvfile = csv.writer(writefile, delimiter=',')
-        csvfile.writerow(output_data[0,:])
+    r2_masked_num, r2_total_num = [0]*100, [0]*100
 
-        for row_idx, filename in enumerate(file_database):
+    np.set_printoptions(precision=2)
+    np.set_printoptions(suppress=True)
 
-            data_array = convert_input_2_numpy(filename)
-            patient_visit_code = os.path.basename(os.path.normpath(filename))[0:15]
-            roi_array = ROI_dict[patient_visit_code]
+    for row_idx, filename in enumerate(file_database):
 
-            masked_data_array_invalid = np.ma.masked_where(data_array <= .15, data_array)
-            # masked_data_array_ROI = np.ma.masked_where(roi_array <= 0, data_array)
+        if 'ktrans' not in filename or '0.2' in filename:
+            continue
 
-            ROI_values = [np.ma.mean(masked_data_array_invalid), np.ma.median(masked_data_array_invalid), np.ma.min(masked_data_array_invalid), np.ma.max(masked_data_array_invalid), np.ma.std(masked_data_array_invalid),(roi_array > 0).sum(), ((data_array <= 0) & (roi_array > 0)).sum(), float(((data_array <= 0) & (roi_array > 0)).sum()) / float((roi_array > 0).sum()), ((data_array <= .15) & (roi_array > 0)).sum(), float(((data_array <= .15) & (roi_array > 0)).sum()) / float((roi_array > 0).sum())]
+        data_array = convert_input_2_numpy(filename)
+        r2_array = convert_input_2_numpy(replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_'))
+        # print replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_')
 
-            print ROI_values
+        patient_visit_code = os.path.basename(os.path.normpath(filename))[0:15]
+        roi_array = ROI_dict[patient_visit_code]
 
-            output_data[row_idx+1] = [filename] + ROI_values
+        for r2_idx, r2_threshold in enumerate(np.arange(0,1,.01)):
+            r2_masked_num[r2_idx] += ((r2_array <= r2_threshold) & (roi_array > 0)).sum()
+            r2_total_num[r2_idx] += (roi_array > 0).sum()
 
-            csvfile.writerow(output_data[row_idx+1])
+        print np.array(r2_masked_num, dtype=float) / np.array(r2_total_num, dtype=float)
+
+    r2_percent_num = np.array(r2_masked_num, dtype=float) / np.array(r2_total_num, dtype=float)
+
+    for r2_idx, r2_threshold in enumerate(xrange(0,1,.01)):
+        print r2_threshold
+        print r2_percent_num[r2_idx]
+
+    return
+
+def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
+
+    """ Save ROI statistics into a giant csv file.
+    """
+
+    file_database = glob.glob(os.path.join(input_directory, '*blur_0_*.nii*'))
+
+    output_headers = ['filename','mean','median','std','min','max','total_voxels','removed_values', 'removed_percent', 'low_values', 'low_percent']
+
+    ROI_dict = {}
+
+    for ROI in glob.glob(os.path.join(ROI_directory, '*.nii*')):
+        ROI_dict[os.path.basename(os.path.normpath(ROI))[0:15]] = convert_input_2_numpy(ROI)
+
+    r2_thresholds = [.5, .6, .7, .8, .9]
+
+    for r2 in r2_thresholds:
+
+        output_data = np.zeros((1+len(file_database), len(output_headers)),dtype=object)
+        output_data[0,:] = output_headers
+
+        with open(replace_suffix(output_csv, '', '_' + str(r2)), 'wb') as writefile:
+            csvfile = csv.writer(writefile, delimiter=',')
+            csvfile.writerow(output_data[0,:])
+
+            for row_idx, filename in enumerate(file_database):
+
+                data_array = convert_input_2_numpy(filename)
+                patient_visit_code = os.path.basename(os.path.normpath(filename))[0:15]
+                roi_array = ROI_dict[patient_visit_code]
+                r2_array = convert_input_2_numpy(replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_'))
+
+                masked_data_array_invalid = np.ma.masked_where(r2_array <= r2, data_array)
+                masked_data_array_ROI = np.ma.masked_where(roi_array <= 0, masked_data_array_invalid)
+
+                ROI_values = [np.ma.mean(masked_data_array_invalid), np.ma.median(masked_data_array_invalid), np.ma.min(masked_data_array_invalid), np.ma.max(masked_data_array_invalid), np.ma.std(masked_data_array_invalid),(roi_array > 0).sum(), ((data_array <= 0) & (roi_array > 0)).sum(), float(((data_array <= 0) & (roi_array > 0)).sum()) / float((roi_array > 0).sum()), ((r2_array >= r2) & (roi_array > 0)).sum(), float(((r2_array >= r2) & (roi_array > 0)).sum()) / float((roi_array > 0).sum())]
+
+                print ROI_values
+
+                output_data[row_idx+1] = [filename] + ROI_values
+
+                csvfile.writerow(output_data[row_idx+1])
 
     return
 
@@ -426,7 +478,7 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
 if __name__ == '__main__':
 
-    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/SimplexEcho1'
+    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/FullParams_R2/Echo1'
     storage_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1/Storage'
 
     NHX_directory = '/qtim2/users/data/NHX/ANALYSIS/DCE/'
@@ -436,11 +488,11 @@ if __name__ == '__main__':
     AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/AIFs'
     T1MAP_directory = '/home/abeers/Data/DCE_Package/Test_Results/T1Maps'
 
-    output_csv = 'DCE_Assay_simplex.csv'
+    output_csv = 'DCE_Assay_complete.csv'
     paired_csv = 'DCE_Assay_Visits_Paired_simplex.csv'
     cov_csv = 'DCE_Assay_COV_simplex.csv'
 
-
+    # Determine_R2_Cutoff_Point(data_directory, ROI_directory)
     # Create_Average_AIF(AIF_directory, AIF_directory)
     # Rename_LM_Files(data_directory)
     # Copy_SameAIF_Visit1_Tumors(data_directory)
@@ -450,8 +502,8 @@ if __name__ == '__main__':
     Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
     # Reshape_Statisticts_Worksheet(output_csv, reshaped_output_csv, ROI_directory)
     # Delete_Extra_Files(data_directory)
-    Paired_Visits_Worksheet(output_csv, paired_csv)
-    Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
+    # Paired_Visits_Worksheet(output_csv, paired_csv)
+    # Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
     
     # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
     # Recode_With_Binary_Labels(data_directory)

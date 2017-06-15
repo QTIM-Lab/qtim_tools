@@ -104,7 +104,7 @@ def truncate_image(input_volume, mask_value=0, return_mask=False, output_mask_fi
     truncate_image_numpy = image_numpy[truncate_slices]
 
     if return_mask:
-        return truncate_image_numpy, return mask_numpy
+        return truncate_image_numpy, mask_numpy
     else:
         return truncate_image_numpy
 
