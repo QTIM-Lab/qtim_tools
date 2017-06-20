@@ -41,7 +41,7 @@ The following commands are available:
         args = parser.parse_args(sys.argv[2:])
         print 'Coregistering volumes for study directory... %s' % args.study_name
 
-        qtim_tools.qtim_pipelines.coregistration.coregistration(args.study_name, args.base_directory, args.destination_volume, args.config)
+        qtim_tools.qtim_pipelines.coregistration.coregister_pipeline(args.study_name, args.base_directory)
 
     def deep_learning_preprocess(self):
         parser = argparse.ArgumentParser(

@@ -299,21 +299,27 @@ def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
 
     return
 
+def Generate_KEP_Maps(input_directory):
+
+    return
+
 def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
 
     """ Save ROI statistics into a giant csv file.
     """
 
+    # exclude_patients = ['CED_19', ]
+
     file_database = glob.glob(os.path.join(input_directory, '*blur_0_*.nii*'))
 
-    output_headers = ['filename','mean','median','std','min','max','total_voxels','removed_values', 'removed_percent', 'low_values', 'low_percent']
+    output_headers = ['filename','mean','median','min','max','std', 'total_voxels','removed_values', 'removed_percent', 'low_values', 'low_percent']
 
     ROI_dict = {}
 
     for ROI in glob.glob(os.path.join(ROI_directory, '*.nii*')):
         ROI_dict[os.path.basename(os.path.normpath(ROI))[0:15]] = convert_input_2_numpy(ROI)
 
-    r2_thresholds = [.5, .6, .7, .8, .9]
+    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
 
     for r2 in r2_thresholds:
 
@@ -331,10 +337,21 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
                 roi_array = ROI_dict[patient_visit_code]
                 r2_array = convert_input_2_numpy(replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_'))
 
-                masked_data_array_invalid = np.ma.masked_where(r2_array <= r2, data_array)
-                masked_data_array_ROI = np.ma.masked_where(roi_array <= 0, masked_data_array_invalid)
+                data_array[data_array<0] = -.01
+                data_array[r2_array<=r2] = -.01
+                data_array[roi_array<=0] = -.01
+                masked_data_array_ROI = np.ma.masked_where(data_array < 0, data_array)
 
-                ROI_values = [np.ma.mean(masked_data_array_invalid), np.ma.median(masked_data_array_invalid), np.ma.min(masked_data_array_invalid), np.ma.max(masked_data_array_invalid), np.ma.std(masked_data_array_invalid),(roi_array > 0).sum(), ((data_array <= 0) & (roi_array > 0)).sum(), float(((data_array <= 0) & (roi_array > 0)).sum()) / float((roi_array > 0).sum()), ((r2_array >= r2) & (roi_array > 0)).sum(), float(((r2_array >= r2) & (roi_array > 0)).sum()) / float((roi_array > 0).sum())]
+                ROI_values = [np.ma.mean(masked_data_array_ROI), 
+                                np.ma.median(masked_data_array_ROI), 
+                                np.ma.min(masked_data_array_ROI), 
+                                np.ma.max(masked_data_array_ROI), 
+                                np.ma.std(masked_data_array_ROI),
+                                (roi_array > 0).sum(), 
+                                ((data_array <= 0) & (roi_array > 0)).sum(),
+                                float(((data_array <= 0) & (roi_array > 0)).sum()) / float((roi_array > 0).sum()), 
+                                ((r2_array >= r2) & (roi_array > 0)).sum(), 
+                                float(((r2_array >= r2) & (roi_array > 0)).sum()) / float((roi_array > 0).sum())]
 
                 print ROI_values
 
@@ -346,133 +363,146 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
 
 def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2):
 
-    input_data = np.genfromtxt(input_csv, delimiter=',', dtype=object, skip_header=1)
+    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
 
-    visit_1_list = [x for x in input_data[:,0] if 'VISIT_01' in x]
+    for r2 in r2_thresholds:
 
-    output_data = np.zeros((len(visit_1_list)+1, 3), dtype=object)
-    output_data[0,:] = ['method_code', 'visit_1', 'visit_2']
+        input_data = np.genfromtxt(replace_suffix(input_csv, '', '_' + str(r2)), delimiter=',', dtype=object, skip_header=1)
 
-    with open(output_csv, 'wb') as writefile:
-        csvfile = csv.writer(writefile, delimiter=',')
-        csvfile.writerow(output_data[0,:])
+        visit_1_list = [x for x in input_data[:,0] if 'VISIT_01' in x]
 
-        for visit_idx, visit in enumerate(visit_1_list):
+        output_data = np.zeros((len(visit_1_list)+1, 3), dtype=object)
+        output_data[0,:] = ['method_code', 'visit_1', 'visit_2']
 
-            split_visit = str.split(visit, 'VISIT_01')
-            new_visit = split_visit[0] + 'VISIT_02' + split_visit[1]
+        with open(replace_suffix(output_csv, '', '_' + str(r2)), 'wb') as writefile:
+            csvfile = csv.writer(writefile, delimiter=',')
+            csvfile.writerow(output_data[0,:])
 
-            if new_visit in input_data[:,0]:
-                
-                print np.where(input_data == visit)[0][0]
+            for visit_idx, visit in enumerate(visit_1_list):
 
-                output_data[visit_idx+1, 0] = visit
-                output_data[visit_idx+1, 1] = input_data[np.where(input_data == visit)[0][0], grab_column]
-                output_data[visit_idx+1, 2] = input_data[np.where(input_data == new_visit)[0][0], grab_column]
+                if 'r2' in visit:
+                    continue
 
-            if output_data[visit_idx, 0] != 0 and output_data[visit_idx, 0] != '0':
-                csvfile.writerow(output_data[visit_idx+1,:])
+                split_visit = str.split(visit, 'VISIT_01')
+                new_visit = split_visit[0] + 'VISIT_02' + split_visit[1]
+
+                if new_visit in input_data[:,0]:
+                    
+                    print np.where(input_data == visit)[0][0]
+
+                    output_data[visit_idx+1, 0] = visit
+                    output_data[visit_idx+1, 1] = input_data[np.where(input_data == visit)[0][0], grab_column]
+                    output_data[visit_idx+1, 2] = input_data[np.where(input_data == new_visit)[0][0], grab_column]
+
+                if output_data[visit_idx+1, 0] != 0 and output_data[visit_idx+1, 0] != '0' and input_data[np.where(input_data == visit)[0][0], -1] != '0' and input_data[np.where(input_data == new_visit)[0][0], -1] != '0':
+                    csvfile.writerow(output_data[visit_idx+1,:])
 
 def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
-    input_data = np.genfromtxt(input_csv, delimiter=',', dtype=object, skip_header=1)
-    headers = ['method', 'RMS_COV', 'LOG_COV', 'SD_COV', 'CCC', 'R2', 'LOA_pos', 'LOS_neg', 'RC', 'n_measurements']
-    output_data = np.zeros((3000, len(headers)), dtype=object)
-    output_data[0,:] = headers
-    methods = []
+    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
 
-    with open(output_csv, 'wb') as writefile:
-        csvfile = csv.writer(writefile, delimiter=',')
-        csvfile.writerow(output_data[0,:])
+    for r2 in r2_thresholds:
 
-        row_idx = 0
+        input_data = np.genfromtxt(replace_suffix(input_csv, '', '_' + str(r2)), delimiter=',', dtype=object, skip_header=1)
+        headers = ['method', 'RMS_COV', 'LOG_COV', 'SD_COV', 'CCC', 'R2', 'LOA_pos', 'LOS_neg', 'RC', 'mean_all_vals', 'n_measurements']
+        output_data = np.zeros((3000, len(headers)), dtype=object)
+        output_data[0,:] = headers
+        methods = []
 
-        for row in input_data:
+        with open(replace_suffix(output_csv, '', '_' + str(r2)), 'wb') as writefile:
+            csvfile = csv.writer(writefile, delimiter=',')
+            csvfile.writerow(output_data[0,:])
 
-            if row[0] == '0' or '--' in row:
-                continue
+            row_idx = 0
 
-            method = str.split(row[0], '/')[-1][15:]
+            for row in input_data:
 
-            # print row[0]
-            print method
+                if row[0] == '0' or '--' in row:
+                    continue
 
-            if method not in methods:
-                # patient_list = np.where(method in input_data)
-                patient_list = [method == str.split(x, '/')[-1][15:] for x in input_data[:,0]]
-                patient_list = input_data[patient_list, :]
-                # print patient_list
-                # print 'METHOD', method
+                method = str.split(row[0], '/')[-1][15:]
 
-                # Non-Iterative Equations
+                # print row[0]
+                print method
 
-                not_masked = [(x[1] != '--' and x[2] != '--') for x in patient_list]
-                print not_masked
-                not_masked_patient_list = patient_list[not_masked, :]
-                print not_masked_patient_list
-                x, y = not_masked_patient_list[:,1].astype(float), not_masked_patient_list[:,2].astype(float)
+                if method not in methods:
+                    # patient_list = np.where(method in input_data)
+                    patient_list = [method == str.split(x, '/')[-1][15:] for x in input_data[:,0]]
+                    patient_list = input_data[patient_list, :]
+                    # print patient_list
+                    # print 'METHOD', method
 
-                # CCC
-                mean_x = np.mean(x)
-                mean_y = np.mean(y)
-                std_x = np.std(x)
-                std_y = np.std(y)
-                correl = np.ma.corrcoef(x,y)[0,1]
-                CCC = (2 * correl * std_x * std_y) / (np.ma.var(x) + np.ma.var(y) + np.square(mean_x - mean_y))
+                    # Non-Iterative Equations
 
-                # R2
-                R2_score = r2_score(y, x)
+                    not_masked = [(x[1] != '--' and x[2] != '--') for x in patient_list]
+                    print not_masked
+                    not_masked_patient_list = patient_list[not_masked, :]
+                    print not_masked_patient_list
+                    x, y = not_masked_patient_list[:,1].astype(float), not_masked_patient_list[:,2].astype(float)
 
-                # Limits of Agreement (LOA)
-                differences = x - y
-                mean_diff = np.mean(differences)
-                std_diff = np.std(differences)
-                LOA_neg, LOA_pos = mean_diff - 2*std_diff, mean_diff + 2*std_diff
+                    # CCC
+                    mean_x = np.mean(x)
+                    mean_y = np.mean(y)
+                    std_x = np.std(x)
+                    std_y = np.std(y)
+                    correl = np.ma.corrcoef(x,y)[0,1]
+                    CCC = (2 * correl * std_x * std_y) / (np.ma.var(x) + np.ma.var(y) + np.square(mean_x - mean_y))
 
-                # Covariance and Repeatability Coeffecient
-                RMS_sum = 0
-                LOG_sum = 0
-                SD_sum_1 = 0
-                SD_sum_2 = 0
-                RC_sum = 0
-                n = 0
+                    # Mean all values
+                    mean_all_vals = np.mean(not_masked_patient_list[:,1:].astype(float))
 
-                for patient in patient_list:
+                    # R2
+                    R2_score = r2_score(y, x)
 
-                    # print patient
+                    # Limits of Agreement (LOA)
+                    differences = x - y
+                    mean_diff = np.mean(differences)
+                    std_diff = np.std(differences)
+                    LOA_neg, LOA_pos = mean_diff - 2*std_diff, mean_diff + 2*std_diff
 
-                    if '--' in patient:
-                        continue
+                    # Covariance and Repeatability Coeffecient
+                    RMS_sum = 0
+                    LOG_sum = 0
+                    SD_sum_1 = 0
+                    SD_sum_2 = 0
+                    RC_sum = 0
+                    n = 0
 
-                    data_points = [float(x) for x in patient[1:]]
+                    for patient in patient_list:
 
-                    RMS_sum += np.power(abs(data_points[0] - data_points[1]) / np.mean(data_points), 2)
-                    LOG_sum += np.power(np.log(data_points[0]) - np.log(data_points[1]), 2)
-                    SD_sum_1 += np.power(data_points[0] - data_points[1], 2)
-                    SD_sum_2 += np.sum(data_points)
-                    n += 1
+                        # print patient
 
-                RMS_COV = 100 * np.sqrt(RMS_sum / (2*n))
-                LOG_COV = 100 * np.exp(np.sqrt(LOG_sum / (2*n)) - 1)
-                SD_COV = 100 * np.sqrt(SD_sum_1 / (2*n)) / (SD_sum_2 / (2*n))
-                RC = (SD_sum_1 / n) * 1.96
+                        if '--' in patient:
+                            continue
 
-                output_data[row_idx+1, :] = [method, RMS_COV, LOG_COV, SD_COV, CCC, R2_score, LOA_pos, LOA_neg, RC, n]
-                # print output_data[row_idx+1, :]
+                        data_points = [float(x) for x in patient[1:]]
 
-                methods += [method]
-                # print methods
+                        RMS_sum += np.power(abs(data_points[0] - data_points[1]) / np.mean(data_points), 2)
+                        LOG_sum += np.power(np.log(data_points[0]) - np.log(data_points[1]), 2)
+                        SD_sum_1 += np.power(data_points[0] - data_points[1], 2)
+                        SD_sum_2 += np.sum(data_points)
+                        n += 1
 
-                if output_data[row_idx+1, 0] != 0 and output_data[row_idx+1, 0] != '0':
-                    csvfile.writerow(output_data[row_idx+1,:])
+                    RMS_COV = 100 * np.sqrt(RMS_sum / (2*n))
+                    LOG_COV = 100 * np.exp(np.sqrt(LOG_sum / (2*n)) - 1)
+                    SD_COV = 100 * np.sqrt(SD_sum_1 / (2*n)) / (SD_sum_2 / (2*n))
+                    RC = (SD_sum_1 / n) * 1.96
 
-                row_idx += 1
+                    output_data[row_idx+1, :] = [method, RMS_COV, LOG_COV, SD_COV, CCC, R2_score, LOA_pos, LOA_neg, RC, mean_all_vals, n]
+                    # print output_data[row_idx+1, :]
+
+                    methods += [method]
+                    # print methods
+
+                    if output_data[row_idx+1, 0] != 0 and output_data[row_idx+1, 0] != '0':
+                        csvfile.writerow(output_data[row_idx+1,:])
+
+                    row_idx += 1
 
 
-            else:
-                # print 'SKIPPED!!!!'
-                continue
-
+                else:
+                    # print 'SKIPPED!!!!'
+                    continue
 
     return
 
@@ -502,8 +532,8 @@ if __name__ == '__main__':
     Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
     # Reshape_Statisticts_Worksheet(output_csv, reshaped_output_csv, ROI_directory)
     # Delete_Extra_Files(data_directory)
-    # Paired_Visits_Worksheet(output_csv, paired_csv)
-    # Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
+    Paired_Visits_Worksheet(output_csv, paired_csv)
+    Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
     
     # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
     # Recode_With_Binary_Labels(data_directory)

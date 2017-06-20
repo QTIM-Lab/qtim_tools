@@ -9,7 +9,7 @@ import numpy as np
 from ..qtim_utilities.format_util import convert_input_2_numpy
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
-def resample(input_data, output_filename='', input_transform_file='', method="slicer", command="/opt/Slicer-4.5.0-1-linux-amd64/Slicer", temp_dir='./', param_dict={'interpolation': 'linear', 'dimensions': [1,1,1]}):
+def resample(input_data, output_filename='', input_transform='', method="slicer", command="Slicer", temp_dir='./', interpolation='linear', dimensions= [1,1,1], reference_volume=None):
 
     """ A catch-all function for resampling. Will resample a 3D volume to given dimensions according
         to the method provided.
@@ -23,7 +23,7 @@ def resample(input_data, output_filename='', input_transform_file='', method="sl
             Can be a 3D volume or a filename.
         output_filename: str
             Location to save output data to. If left as '', will return numpy array.
-        input_transform_file: str
+        input_transform: str
             detatails TBD, unimplemented
         method: str
             Will perform motion correction according to the provided method.
@@ -61,10 +61,15 @@ def resample(input_data, output_filename='', input_transform_file='', method="sl
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        param_dict['dimensions'] = str(param_dict['dimensions']).strip('[]').replace(' ', '')
+        dimensions = str(dimensions).strip('[]').replace(' ', '')
 
-        print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', param_dict['interpolation'], '-s', param_dict['dimensions'], input_filename, output_filename])
-        subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', param_dict['interpolation'], '-s', param_dict['dimensions'], input_filename, output_filename])
+        if reference_volume or input_transform is not None:
+            # ResampleScalarVectorDWIVolume ${prefix}-${modality}_LPS.nii.gz ${prefix}-${modality}_r_T2.nii.gz -R ${prefix}-T2_LPS_N4.nii.gz -f ${prefix}-PERFUSION-SE_r_T2.txt &
+            print ' '.join([command, '--launch', 'ResampleScalarVectorDWIVolume', input_filename, output_filename, '-R', reference_volume, '--interpolation', interpolation])
+            subprocess.call([command, '--launch', 'ResampleScalarVectorDWIVolume', input_filename, output_filename, '-R', reference_volume, '--interpolation', interpolation])
+        else:
+            print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', interpolation, '-s', dimensions, input_filename, output_filename])
+            subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', interpolation, '-s', dimensions, input_filename, output_filename])
         
         if temp_input:
             os.remove(input_filename)

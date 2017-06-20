@@ -64,10 +64,10 @@ def register_volume(moving_volume, fixed_volume, output_volume_filename=None, ou
             BRAINSFit_command += ['--outputVolume', output_volume_filename]
 
         if output_transform_filename is not None:
-            BRAINSFIT_command += ['--outputTransform', output_transform_filename]
+            BRAINSFit_command += ['--outputTransform', output_transform_filename]
 
         print ' '.join(BRAINSFit_command)
-        subprocess.call([BRAINSFit_command])
+        call(' '.join(BRAINSFit_command), shell=True)
 
         return
 
