@@ -28,6 +28,28 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath='', output_path=[])
     else:
         nib.save(output_nifti, output_path)
 
+def itk_2_vtk_transform(affine):
+
+    """ Transforms from itk to vtk. 
+    """
+
+    output_affine = np.copy(affine)
+    output_affine[3,0:-1]=0
+
+    input_center = affine[0:-1, 3]
+    input_offset = affine[3,0:-1]
+
+    output_offset = np.asarray([0,0,0]).astype(float)
+
+    for i in range(3):
+        output_offset[i] = input_offset[i] + input_center[i]
+        for j in range(3):
+            output_offset[i] = output_offset[i] - (affine[i,j]*input_center[j])
+
+    output_affine[:-1,3] = output_offset
+
+    return output_affine
+
 def generate_identity_affine(timepoints=1):
 
     """ A convenient function for generating an identity affine matrix. Can be
@@ -185,8 +207,8 @@ def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
 
         for row in affine_matrix:
             rotate_string = rotate_string + " ".join(map(str, row[:-1])) + ' '
-            translate_string = translate_string + str(row[-1]) + ' '
-        translate_string = translate_string[0:-2]
+        
+        translate_string = '0 0 0'
 
         f.write('Parameters: ' + rotate_string + '\n')
         f.write('FixedParameters: ' + translate_string + '\n')

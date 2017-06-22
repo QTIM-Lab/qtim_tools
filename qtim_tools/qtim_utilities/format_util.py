@@ -4,13 +4,15 @@
 
 """ One might consider making a class for format converters for
     the future. Classes obfuscate the code a bit for new users,
-    however, so for now we'll maek it a TODO.
+    however, so for now we'll make it a TODO.
 """
+
 # from nifti_util import nifti_2_numpy
 from dicom_util import dcm_2_numpy
 from nrrd_util import nrrd_2_numpy
 from image_util import img_2_numpy
 
+import numpy as np
 import nibabel as nib
 
 # This is magic code for Python 3 compatability. Of course
@@ -22,21 +24,68 @@ except NameError:
 
 def nifti_2_numpy(filepath):
 
-    """ There are a lot of repetitive conversions in the current iteration
-        of this program. Another option would be to always pass the nibabel
-        numpy class, which contains image and attributes. But not everyone
-        knows how to use that class, so it may be more difficult to troubleshoot.
+    """ This function takes in a .nii or .nii.gz file and converts into a numpy array.
+
+        Parameters
+        ----------
+        filepath: str
+            The filepath to be converted
+
+        Returns
+        -------
+        img: numpy array
+            A numpy array of the image data as interpreted by nibabel.
     """
 
     img = nib.load(filepath).get_data().astype(float)
     return img
+
+def itk_transform_2_numpy(filepath):
+
+    """ This function takes in an itk transform text file and converts into a 4x4
+        array.
+
+        TODO: Ensure this correctly rotates.
+        TODO: Make work for more than just .txt files.
+
+        Parameters
+        ----------
+        filepath: str
+            The filepath to be converted
+
+        Returns
+        -------
+        output_array: numpy array
+            A 4x4 float matrix containing the affine transform.
+    """
+
+    with open(filepath) as f:
+        content = f.readlines()
+
+    for row_idx, row in enumerate(content):
+        if row.startswith("Parameters:"):
+            r_idx = row_idx
+        if row.startswith("FixedParameters:"):
+            t_idx = row_idx
+
+    output_array = np.zeros((4,4))
+
+    rotations = [float(r) for r in str.split(content[r_idx].replace("Parameters: ", '').rstrip(), ' ')]
+    translations = [float(t) for t in str.split(content[t_idx].replace("FixedParameters: ", '').rstrip(), ' ')] + [1]
+
+    for i in range(4):
+        output_array[i,0:3] = rotations[i*3:(i+1)*3]
+        output_array[i, 3] = translations[i]
+
+    return output_array
 
 # Consider merging these into one dictionary. Separating them
 # is easier to visaulize though.
 FORMAT_LIST = {'dicom':('.dcm','.ima'),
                 'nifti':('.nii','.nii.gz'),
                 'nrrd':('.nrrd','.nhdr'),
-                'image':('.jpg','.png')}
+                'image':('.jpg','.png'),
+                'itk_transform':('.txt')}
 
 NUMPY_CONVERTER_LIST = {'dicom':dcm_2_numpy,
                 'nifti':nifti_2_numpy,

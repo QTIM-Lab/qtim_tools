@@ -24,6 +24,13 @@ def return_nifti_attributes(filepath):
     img_nifti = nib.load(filepath)
     return img_nifti.header
 
+def get_nifti_affine(filepath):
+    affine = nib.load(filepath).affine
+    return affine
+
+def set_nifti_affine(nifti, new_affine):
+    nifti.affine = new_affine
+
 def nifti_2_numpy(filepath):
 
     """ There are a lot of repetitive conversions in the current iteration
