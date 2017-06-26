@@ -24,12 +24,40 @@ def return_nifti_attributes(filepath):
     img_nifti = nib.load(filepath)
     return img_nifti.header
 
-def get_nifti_affine(filepath):
-    affine = nib.load(filepath).affine
+def get_nifti_affine(input_data):
+
+    if isinstance(input_data, basestring):
+        affine = nib.load(input_data).affine
+    else:
+        affine = input_data.affine
+
     return affine
 
-def set_nifti_affine(nifti, new_affine):
-    nifti.affine = new_affine
+def set_nifti_affine(input_data, new_affine, output_filepath=None):
+
+    """ This function takes in either a nibabel nifti object or a nifti
+        filepath and alters its affine matrix.
+
+        Parameters
+        ----------
+        input_data: str or nibabel object
+            If str, will be interpreted as a filepath. Otherwise, will be
+            interpreted as a nibabel nifti object.
+        new_affine: 4x4 numpy array
+            The new affine matrix to be set.
+        output_filepath: str
+            The output_filepath, if not the same as the input_filepath.
+
+    """
+
+    if isinstance(input_data, basestring):
+        if output_filepath is None:
+            output_filepath = input_data
+        input_data = nib.load(input_data)
+        output_nifti = nib.Nifti1Image(input_data.get_data(), new_affine)
+        nib.save(output_nifti, output_filepath)
+    else:
+        input_data.affine = new_affine
 
 def nifti_2_numpy(filepath):
 
@@ -42,7 +70,7 @@ def nifti_2_numpy(filepath):
     img = nib.load(filepath).get_data().astype(float)
     return img
 
-def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_path):
+def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_filepath):
 
     """ Sometimes, a reference nifti is only available in 3D form when trying to
         generate a 4D volume. This function addresses that.
@@ -55,13 +83,13 @@ def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_pat
     output_nifti = nib.Nifti1Image(input_4d_numpy, image_affine)
     nib.save(output_nifti, output_path)
 
-def save_3d_numpy_from_4d_nifti(image_numpy, reference_nifti, output_path):
+def save_3d_numpy_from_4d_nifti(image_numpy, reference_nifti, output_filepath):
 
     return
 
-def save_numpy_2_nifti(image_numpy, reference_nifti_filepath='', output_path=[]):
+def save_numpy_2_nifti(image_numpy, reference_nifti_filepath=None, output_filepath=None):
 
-    if reference_nifti_filepath != '':
+    if reference_nifti_filepath is not None:
         nifti_image = nib.load(reference_nifti_filepath)
         image_affine = nifti_image.affine
     else:
@@ -70,10 +98,10 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath='', output_path=[])
 
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)
 
-    if output_path == []:
+    if output_filepath is None:
         return output_nifti
     else:
-        nib.save(output_nifti, output_path)
+        nib.save(output_nifti, output_filepath)
 
 """ All functions below will eventually be moved into other modules. They remain
     for now, because it takes time to figure out which other functions reference

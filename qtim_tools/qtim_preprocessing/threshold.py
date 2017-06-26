@@ -7,7 +7,7 @@ import numpy as np
 from ..qtim_utilities.format_util import convert_input_2_numpy
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
-def crop_with_mask(input_data, label_data, output_filename='', mask_value=0, return_labels=[], replacement_value=0):
+def crop_with_mask(input_data, label_data, output_filename='', mask_value=0, return_labels=None, replacement_value=0):
 
     """ Crops and image with a predefined mask image. Values equal to mask value
         are replaced with replacement_value.
@@ -40,13 +40,12 @@ def crop_with_mask(input_data, label_data, output_filename='', mask_value=0, ret
 
     input_numpy[label_numpy == mask_value] = replacement_value
 
-    if not isinstance(return_labels, list): 
-        return_labels = [return_labels]
+    # if not isinstance(return_labels, list): 
+    #     return_labels = [return_labels]
 
-    if len(return_labels) > 0:
-
-        # [TODO FIX]
-        input_numpy[label_numpy != return_labels[0]] = replacement_value
+    # if len(return_labels) > 0:
+    #     # [TODO FIX]
+    #     input_numpy[label_numpy != return_labels[0]] = replacement_value
 
     if output_filename != '':
         if isinstance(input_data, basestring):

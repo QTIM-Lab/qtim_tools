@@ -36,7 +36,7 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
 
     """
 
-    #### PBR #####
+    ### PBR #####
     # input_modality_dict = {'T2': ['ANATOMICAL', ['T2SPACE.nii']],
     #                         'T1_Pre': ['ANATOMICAL', ['T1Pre.nii']],
     #                         'T1_Post': ['ANATOMICAL', ['T1Post.nii', 'T1Post-label.nii']],
@@ -65,25 +65,27 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
 
     # name_change_dict = []
 
+    # patient_directory = 'ANATOMICAL'
+
     #### NHX ####
-    input_modality_dict = {'T2': ['ANATOMICAL', ['T2SPACE.nii']],
-                            'T1_Pre': ['ANATOMICAL', ['T1Pre.nii']],
-                            'T1_Post': ['ANATOMICAL', ['T1Post.nii', 'T1Post-label.nii']],
-                            'FLAIR': ['ANATOMICAL', ['FLAIR.nii', 'FLAIR-label.nii']],
-                            '3D-FLAIR': ['ANATOMICAL', ['3D-FLAIR.nii']],
-                            'MEMPRAGE_Pre': ['ANATOMICAL', ['MEMPRAGE_Pre.nii']],
-                            'MEMPRAGE_Post': ['ANATOMICAL', ['MEMPRAGE_POST.nii']],
-                            'DCE1': ['DCE', ['dce1_mc.nii', 'dce1_mc_ss.nii', 'dce1_mc_ss_mask.nii']],
-                            'DCE2': ['DCE', ['dce2_mc.nii', 'dce2_mc_ss.nii', 'dce2_mc_ss_mask.nii']],
-                            'DTI': ['DTI', ['diff_mc.nii', 'diff_mc_ss.nii', 'FA.nii', 'L1.nii', 'L2.nii', 'L3.nii', 'MD.nii', 'M0.nii', 'S0.nii', 'sse.nii', 'V1.nii', 'V2.nii', 'V3.nii', 'diff_mc_ss_mask.nii']],
-                            'DSC_GE': ['DSC', ['DSC_ge.nii']],
-                            'DSC_SE': ['DSC', ['DSC_se.nii']]}
+    input_modality_dict = {'T2': ['RAW', ['T2SPACE.nii']],
+                            # 'T1_Pre': ['ANATOMICAL', ['T1Pre.nii']],
+                            'T1_Post': ['RAW', ['T1Post.nii', 'T1Post-label.nii']],
+                            'FLAIR': ['RAW', ['FLAIR.nii', 'FLAIR-label.nii']],
+                            # '3D-FLAIR': ['ANATOMICAL', ['3D-FLAIR.nii']],
+                            # 'MEMPRAGE_Pre': ['ANATOMICAL', ['MEMPRAGE_Pre.nii']],
+                            'MEMPRAGE_Post': ['RAW', ['MEMPRAGE_POST.nii']],
+                            # 'DCE1': ['DCE', ['dce1_mc.nii', 'dce1_mc_ss.nii', 'dce1_mc_ss_mask.nii']],
+                            # 'DCE2': ['DCE', ['dce2_mc.nii', 'dce2_mc_ss.nii', 'dce2_mc_ss_mask.nii']],
+                            # 'DTI': ['DTI', ['diff_mc.nii', 'diff_mc_ss.nii', 'FA.nii', 'L1.nii', 'L2.nii', 'L3.nii', 'MD.nii', 'M0.nii', 'S0.nii', 'sse.nii', 'V1.nii', 'V2.nii', 'V3.nii', 'diff_mc_ss_mask.nii']],
+                            'DSC_GE': ['RAW', ['DSC_ge.nii']],
+                            'DSC_SE': ['RAW', ['DSC_se.nii']]}
 
     # Order in which to register files.
     registration_tree = [['FLAIR', 'T2'],
                         ['DSC_GE', 'T2'],
                         ['DSC_SE', 'T2'],
-                        ['DCE2', 'DCE1', 'T1_Pre', 'T1_Post', 'MEMPRAGE_Pre', 'MEMPRAGE_Post', 'T2']
+                        ['T1_Post', 'MEMPRAGE_Post', 'T2']
                         ]
 
     label_volumes = ['FLAIR-label.nii', 'T1Post-label.nii']
@@ -92,14 +94,14 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
 
     time_volumes = ['DCE1', 'DCE2', 'DSC_GE', 'DSC_SE', 'DTI']
 
-    name_change_dict = {'RAW': {'dsc_ge.nii.gz': 'DSC_ge.nii.gz',
-                                'dsc_se.nii.gz': 'DSC_se.nii.gz',
-                                't1axialpostroi.nii.gz': 'T1Post-label.nii.gz',
-                                't1axialpost.nii.gz': 'T1Post.nii.gz',
-                                't2space.nii.gz': 'T2SPACE.nii.gz',
-                                'memprage.nii.gz': 'MEMPRAGE_Post.nii.gz',
-                                'flair.nii.gz': 'FLAIR.nii.gz',
-                                'flairroi.nii.gz': 'FLAIR-label.nii.gz'
+    name_change_dict = {'RAW': {'dsc_ge.nii': 'DSC_ge.nii',
+                                'dsc_se.nii': 'DSC_se.nii',
+                                't1axialpostroi.nii': 'T1Post-label.nii',
+                                't1axialpost.nii': 'T1Post.nii',
+                                't2space.nii': 'T2SPACE.nii',
+                                'memprage.nii': 'MEMPRAGE_Post.nii',
+                                'flair.nii': 'FLAIR.nii',
+                                'flairroi.nii': 'FLAIR-label.nii'
                                 }
                                 }
 
@@ -130,7 +132,12 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
         file_deletion_list = []
         for name_change_directory in name_change_dict:
             for name_change_file in name_change_dict[name_change_directory]:
+
+                print name_change_file
+                print os.path.join(base_directory, study_name, 'ANALYSIS', name_change_directory, patient_visit[0], patient_visit[1], '*' + name_change_file + '*')
+
                 name_change_volume = glob.glob(os.path.join(base_directory, study_name, 'ANALYSIS', name_change_directory, patient_visit[0], patient_visit[1], '*' + name_change_file + '*'))
+
                 # Error check the fixed volume
                 if name_change_volume == []:
                     continue
@@ -138,10 +145,18 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
 
                 print name_change_volume
 
-                if name_change_volume.startswith(visit_code):
-                    copy(name_change_volume, os.path.join(base_directory, study_name, 'ANALYSIS', name_change_directory, patient_visit[0], patient_visit[1], visit_code + '-' + name_change_dict[name_change_directory][name_change_file]))
+                if not os.path.basename(name_change_volume).startswith(visit_code):
+                    copy_path = os.path.join(base_directory, study_name, 'ANALYSIS', name_change_directory, patient_visit[0], patient_visit[1], visit_code + name_change_dict[name_change_directory][name_change_file])
                 else:
-                    copy(name_change_volume, os.path.join(base_directory, study_name, 'ANALYSIS', name_change_directory, patient_visit[0], patient_visit[1], name_change_dict[name_change_directory][name_change_file]))
+                    copy_path = os.path.join(base_directory, study_name, 'ANALYSIS', name_change_directory, patient_visit[0], patient_visit[1], name_change_dict[name_change_directory][name_change_file])
+                
+                if not os.path.exists(copy_path):
+                    copy(name_change_volume, copy_path)
+
+                print visit_code
+                print copy_path
+
+                file_deletion_list += [copy_path]
 
         # Iterate through registration tests
         for registration_pathway in registration_tree:
@@ -166,7 +181,7 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
                 fixed_volume = glob.glob(os.path.join(base_directory, study_name, 'ANALYSIS', input_modality_dict[fixed_step][0], patient_visit[0], patient_visit[1], '*' + input_modality_dict[fixed_step][1][0] + '*'))
                 # Error check the fixed volume
                 if fixed_volume == []:
-                    print 'Missing ', input_modality_dict[fixed_step][1][0], 'in registration pathway', registration_pathway, '. Skipping this step.'
+                    print 'Missing', input_modality_dict[fixed_step][1][0], 'in registration pathway', registration_pathway, '. Skipping this step.'
                     continue
                 fixed_volume = fixed_volume[0]
 
@@ -175,7 +190,7 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
                 # Get available files to register. Reformat so this is less redundant.
                 moving_volume = glob.glob(os.path.join(base_directory, study_name, 'ANALYSIS', input_modality_dict[moving_step][0], patient_visit[0], patient_visit[1], '*' + input_modality_dict[moving_step][1][0] + '*'))
                 if moving_volume == []:
-                    print 'Missing ', input_modality_dict[moving_step][1][0], 'in registration pathway', registration_pathway, '. Skipping this step.'
+                    print 'Missing', input_modality_dict[moving_step][1][0], 'in registration pathway', registration_pathway, '. Skipping this step.'
                     continue        
                 moving_volume = moving_volume[0]
 
@@ -201,10 +216,9 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
 
                 np.set_printoptions(suppress=True)
 
-                transform_list = [transform_dictionary[transform_step] for transform_step in registration_pathway[reg_idx:-1]]
+                transform_list = [transform_dictionary[transform_step] for transform_step in registration_pathway[reg_idx:-1] if transform_dictionary[transform_step] != []]
                 print transform_list
-
-                if transform_list == [[]]:
+                if transform_list == []:
                     continue
 
                 final_transform = generate_identity_affine()
@@ -252,8 +266,12 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
                     output_volume = os.path.join(output_folder_not_resampled, visit_code + moving_suffix + '_r_' + fixed_suffix +'_o.nii.gz')
                     output_volume_resampled = os.path.join(output_folder, visit_code + moving_suffix + '_r_' + fixed_suffix +'.nii.gz')
 
-                    if not os.path.exists(output_volume) or not os.path.exists(output_volume_resampled):
-                        resample(moving_volume_filename, output_volume_resampled, input_transform=replace_suffix(transform_list[0], '', '_mod'), reference_volume=reference_volume, command='/opt/Slicer-4.5.0-1-linux-amd64/Slicer', interpolation=interpolation)
+                    if not os.path.exists(output_volume_resampled):
+                        resample(moving_volume_filename, output_volume_resampled, input_transform=input_transform, reference_volume=reference_volume, command='/opt/Slicer-4.5.0-1-linux-amd64/Slicer', interpolation=interpolation)
+
+                    if not os.path.exists(output_volume):
+                        output_affine = compose_affines(final_transform, get_nifti_affine(moving_volume_filename))
+                        set_nifti_affine(moving_volume_filename, output_affine, output_filepath=output_volume)
 
                 # # Once all the transforms are accumulated, register for real.
                 # if reg_idx == len(registration_pathway) - 2:

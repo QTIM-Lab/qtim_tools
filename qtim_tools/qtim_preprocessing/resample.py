@@ -9,7 +9,7 @@ import numpy as np
 from ..qtim_utilities.format_util import convert_input_2_numpy
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
-def resample(input_data, output_filename='', input_transform='', method="slicer", command="Slicer", temp_dir='./', interpolation='linear', dimensions= [1,1,1], reference_volume=None):
+def resample(input_data, output_filename='', input_transform=None, method="slicer", command="Slicer", temp_dir='./', interpolation='linear', dimensions= [1,1,1], reference_volume=None):
 
     """ A catch-all function for resampling. Will resample a 3D volume to given dimensions according
         to the method provided.
