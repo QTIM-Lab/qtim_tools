@@ -59,6 +59,21 @@ def set_nifti_affine(input_data, new_affine, output_filepath=None):
     else:
         input_data.affine = new_affine
 
+def nifti_resave(input_filepath, output_filepath):
+
+    """ Copies a file somewhere else. Effectively only used for compressing nifti files.
+
+        Parameters
+        ----------
+        input_filepath: str
+            Input filepath.
+        output_filepath: str
+            Output filepath to be copied to.
+
+    """
+
+    nib.save(nib.load(input_filepath), output_filepath)
+
 def nifti_2_numpy(filepath):
 
     """ There are a lot of repetitive conversions in the current iteration

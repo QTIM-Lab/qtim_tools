@@ -3,7 +3,7 @@
 """
 from __future__ import division
 
-from ..qtim_utilities import nifti_util
+from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti
 from multiprocessing import freeze_support
 
 import numpy as np
@@ -193,10 +193,15 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
     block_B = (capital_E - (capital_E * log_e) - 1)
     block_ktrans = ktrans * time_interval_minutes / log_e_2
 
+    print block_ktrans
+
     for i in xrange(1, np.size(contrast_AIF_numpy)):
         term_A = contrast_AIF_numpy[i] * block_A
         term_B = contrast_AIF_numpy[i-1] * block_B
         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+        # print estimated_concentration[-1]
+
+    # fd = dg
 
     # Quick, error prone convolution method
     # print estimated_concentration
@@ -236,8 +241,6 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
             baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1],baseline.shape[2], 1)), (1,1,1,reference_data_numpy.shape[-1]))
     else:
         baseline = static_baseline
-
-
 
     data_numpy = np.exp(data_numpy / (-1 / (relaxivity*TR)))
     data_numpy = (data_numpy * a -1) / (data_numpy * a * np.cos(flip_angle_radians) - 1)
@@ -300,6 +303,59 @@ def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_
 
     return []
 
+def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.01,.5], ve_range=[.01,.8], scan_time_seconds=120, time_interval_seconds=1, injection_start_time_seconds=40, flip_angle_degrees=15, TR=6.8, relaxivity=.0045, hematocrit=.45, T1_tissue=1350, aif='population'):
+
+    """ TO-DO: Fix the ktrans variation so that it correctly ends in 0.35, instead of whatever
+        it currently ends in. Also parameterize and generalize everything for more interesting
+        phantoms.
+    """
+
+    # Initialize variables
+    timepoints = int(scan_time_seconds/time_interval_seconds)
+    time_series_minutes = np.arange(0, timepoints) / (60 / time_interval_seconds)
+    time_interval_minutes = time_interval_seconds / 60
+    print time_interval_minutes
+
+    # Create empty phantom, labels, and outputs
+    output_phantom_concentration = np.zeros(output_shape + (2, int(scan_time_seconds/time_interval_seconds)), dtype=float)
+    output_phantom_signal = np.zeros_like(output_phantom_concentration)
+
+    output_AIF_mask = np.zeros(output_shape + (2,))
+    output_region_mask = np.zeros_like(output_AIF_mask)
+    output_AIF_mask[:,:,1] = 1
+    output_region_mask[:,:,0] = 1
+    output_ktrans = np.zeros_like(output_AIF_mask)
+    output_ve = np.zeros_like(output_AIF_mask)
+
+    # Create Parker AIF
+    AIF = np.array(parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, timepoints=int(scan_time_seconds/time_interval_seconds)))
+    AIF = AIF[np.newaxis, np.newaxis, np.newaxis, :]
+    output_phantom_concentration[:,:,1,:] = AIF
+
+    # Fill in answers
+    for ve_idx, ve in enumerate(np.linspace(ktrans_range[0], ktrans_range[1], output_shape[0])):
+        for ktrans_idx, ktrans in enumerate(np.linspace(ve_range[0], ve_range[1], output_shape[1])):
+            output_ktrans[ve_idx, ktrans_idx, 0] = float(ktrans)
+            output_ve[ve_idx, ktrans_idx, 0] = float(ve)
+
+            # print np.squeeze(AIF).shape
+            print ve_idx, ktrans_idx
+            print ktrans, ve
+            # conc = estimate_concentration([ktrans,ve], np.squeeze(AIF)[:], time_series_minutes)
+            # print len(conc)
+            # print conc[-1]
+            # print len(conc[-1])
+            output_phantom_concentration[ve_idx, ktrans_idx,0,:] = estimate_concentration([ktrans,ve], np.squeeze(AIF), time_interval_minutes)
+
+    save_numpy_2_nifti(output_phantom_concentration, None, output_prefix + '_concentrations.nii.gz')
+    save_numpy_2_nifti(output_ktrans, None, output_prefix + '_ktrans.nii.gz')
+    save_numpy_2_nifti(output_ve, None, output_prefix + '_ve.nii.gz')
+
+    output_phantom_signal = revert_concentration_to_intensity(data_numpy=output_phantom_concentration, reference_data_numpy=None, T1_tissue=T1_tissue, TR=TR, flip_angle_degrees=flip_angle_degrees, injection_start_time_seconds=injection_start_time_seconds, relaxivity=relaxivity, time_interval_seconds=time_interval_seconds, hematocrit=hematocrit, T1_blood=0, T1_map = [], static_baseline=140)
+
+    save_numpy_2_nifti(output_phantom_signal, None, output_prefix + '_phantom.nii.gz')
+
+
 # def create_4d_from_3d(filepath, stacks=5):
 
 # 	""" Mainly to make something work with NordicICE. TO-DO: Make work with anything but the Tofts phantom.
@@ -322,52 +378,6 @@ def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_
 
 # 	nifti_util.save_numpy_2_nifti(numpy_4d, filepath, 'tofts_4d.nii')
 # 	nifti_util.save_numpy_2_nifti(t1_map, filepath, 'tofts_t1map.nii')
-
-# def create_gradient_phantom(filepath, label_filepath):
-
-# 	""" TO-DO: Fix the ktrans variation so that it correctly ends in 0.35, instead of whatever
-# 		it currently ends in. Also parameterize and generalize everything for more interesting
-# 		phantoms.
-# 	"""
-
-# 	nifti_3d = nib.load(filepath)
-# 	numpy_3d = nifti_3d.get_data()
-
-# 	label_3d = nib.load(label_filepath).get_data()
-# 	AIF_label_value = 1
-# 	dimension = 3
-
-# 	AIF_subregion = np.copy(numpy_3d)
-# 	label_mask = (label_3d[:,:,0] != AIF_label_value).reshape((label_3d.shape[0:-1] + (1,)))
-# 	AIF_subregion = np.ma.array(AIF_subregion, mask=np.tile(label_mask, (1,)*(dimension-1) + (AIF_subregion.shape[-1],)))
-# 	AIF_subregion = np.reshape(AIF_subregion, (np.product(AIF_subregion.shape[0:-1]), AIF_subregion.shape[-1]))
-# 	AIF = AIF_subregion.mean(axis=0, dtype=np.float64)
-
-# 	time_interval_seconds = float((11*60) / numpy_3d.shape[-1])
-# 	time_series = np.arange(0, AIF.size) / (60 / time_interval_seconds)
-	
-# 	contrast_AIF = generate_contrast_agent_concentration(AIF,T1_tissue=1000, TR=5, flip_angle_degrees=30, injection_start_time_seconds=60, relaxivity=.0045, time_interval_seconds=time_interval_seconds, hematocrit=.45, T1_blood=1440)
-
-# 	gradient_nifti = numpy_3d[:,:,0:2].astype(float)
-# 	gradient_nifti[:,0:10,:] = 0
-# 	gradient_nifti[:,70:,:] = 0
-# 	time_nifti = np.copy(numpy_3d).astype(float)
-
-# 	for ve_idx, ve in enumerate(np.arange(.01, .5 +.5/50, .5/50)):
-# 		for ktrans_idx, ktrans in enumerate(np.arange(.01, .35 +.35/60, .35/60)):
-# 			gradient_nifti[ve_idx, ktrans_idx+10, 0] = float(ktrans)
-# 			gradient_nifti[ve_idx, ktrans_idx+10, 1] = float(ve)
-# 			time_nifti[ve_idx, ktrans_idx+10,:] = estimate_concentration([np.log(ktrans),-1 * np.log((1-ve)/ve)], contrast_AIF, time_series)
-# 			print np.shape(time_nifti)
-# 			print [ve_idx, ktrans_idx]
-# 			print [ve, ktrans]
-
-# 	nifti_util.save_numpy_2_nifti(time_nifti, filepath, 'gradient_toftsv6_concentration')
-# 	time_nifti[:,10:70,:] = revert_concentration_to_intensity(data_numpy=time_nifti[:,10:70,:], reference_data_numpy=numpy_3d[:,10:70,:], T1_tissue=1000, TR=5, flip_angle_degrees=30, injection_start_time_seconds=60, relaxivity=.0045, time_interval_seconds=time_interval_seconds, hematocrit=.45, T1_blood=0, T1_map = [])
-
-# 	nifti_util.save_numpy_2_nifti(gradient_nifti[:,:,0], filepath, 'gradient_toftsv6_ktrans_truth')
-# 	nifti_util.save_numpy_2_nifti(gradient_nifti[:,:,1], filepath, 'gradient_toftsv6_ve_truth')
-# 	nifti_util.save_numpy_2_nifti(time_nifti, filepath, 'gradient_toftsv6')
 
 # def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = []):
 

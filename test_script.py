@@ -14,4 +14,6 @@ from shutil import copy
 
 # qtim_tools.qtim_visualization.d3_models.labeled_scatter(input_data='visualization_test.csv', html_directory='/home/anderff/Documents/MGH/Visualizations/qtim_tools_test_dir', labels=True, dimensions=[200,200])
 
-print qtim_tools.qtim_utilities.file_util.grab_linked_file('./setup.py', suffix=".py", return_multiple=True, recursive=True)
+# print qtim_tools.qtim_utilities.file_util.grab_linked_file('./setup.py', suffix=".py", return_multiple=True, recursive=True)
+
+qtim_tools.qtim_dce.dce_util.create_gradient_phantom('test')

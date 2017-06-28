@@ -8,6 +8,7 @@ from shutil import copy, move
 from sklearn.metrics import r2_score
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 from qtim_tools.qtim_utilities.file_util import replace_suffix
+from qtim_tools.qtim_utilities.nifti_util import nifti_resave, save_numpy_2_nifti
 
 # Categorical
 BLUR = ['blur_' + x for x in ['0','0.2','0.8','1.2']]
@@ -114,13 +115,13 @@ def Recode_With_Binary_Labels(data_directory):
 
     return
 
-def Create_Resource_Directories(CED_directory, NHX_directory, ROI_folder, AIF_folder, T1MAP_folder):
+def Create_Resource_Directories(CED_directory, NHX_directory, ROI_folder, AIF_folder, T1MAP_folder, DCE_Folder):
 
     """ Move all ROIs/AIFs/T1MAPs for the DCE script from their idiosyncratic locations
         to a set folder.
     """
 
-    output_folders = [ROI_folder, AIF_folder, T1MAP_folder]
+    output_folders = [ROI_folder, AIF_folder, T1MAP_folder, DCE_Folder]
 
     for output_folder in output_folders:
         if not os.path.exists(output_folder):
@@ -140,17 +141,34 @@ def Create_Resource_Directories(CED_directory, NHX_directory, ROI_folder, AIF_fo
                 print output_path
                 copy(ROI, output_path)
 
-            AIF = os.path.join(subdir, visit, 'MAPS', 'NORDIC_ICE_AIF.txt')
-            output_path = os.path.join(AIF_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_AIF.txt')
-            if os.path.exists(AIF):
-                print output_path
-                copy(AIF, output_path)
+            # AIF = os.path.join(subdir, visit, 'MAPS', 'NORDIC_ICE_AIF.txt')
+            # output_path = os.path.join(AIF_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_AIF.txt')
+            # if os.path.exists(AIF):
+            #     print output_path
+            #     copy(AIF, output_path)
 
-            T1MAP = os.path.join(subdir, visit, 'MAPS', 'T1inDCE.nii')
-            output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_T1inDCE.nii')
-            if os.path.exists(T1MAP):
+            # T1MAP = os.path.join(subdir, visit, 'MAPS', 'T1inDCE.nii')
+            # output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_T1inDCE.nii')
+            # if os.path.exists(T1MAP):
+            #     print output_path
+            #     copy(T1MAP, output_path)
+
+            DCE = os.path.join(subdir, visit, 'MAPS', 'dce_mc_st_eco1.nii')
+            output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_DCE_ECHO1.nii')
+            if os.path.exists(DCE):
                 print output_path
-                copy(T1MAP, output_path)
+                copy(DCE, output_path)
+
+def Convert_NordicIce_AIF(AIF_directory, output_suffix='_AIF'):
+    AIF_list = glob.glob(os.path.join(AIF_directory, '*VISIT*.txt'))
+    AIF_numpy_list = [[np.loadtxt(AIF, dtype=float), AIF] for AIF in AIF_list]
+
+    for AIF in AIF_numpy_list:
+        print AIF[1]
+        print AIF[0].shape
+
+        np.savetxt(replace_suffix(AIF[1], '', output_suffix), AIF[0][None], fmt='%2.5f', delimiter=';')
+
 
 def Create_Study_AIF(AIF_directory, output_AIF):
 
@@ -191,27 +209,26 @@ def Create_Average_AIF(AIF_directory, output_AIF_directory):
 
         # print AIF
 
-        if 'VISIT_02' in AIF:
-            continue
+        if 'VISIT_01' in AIF:
 
-        split_AIF = str.split(os.path.basename(AIF), '_')
-        split_AIF[3] = '02'
-        visit_2_AIF = os.path.join(AIF_directory, '_'.join(split_AIF))
+            split_AIF = str.split(os.path.basename(AIF), '_')
+            split_AIF[3] = '02'
+            visit_2_AIF = os.path.join(AIF_directory, '_'.join(split_AIF))
 
-        print visit_2_AIF
+            print visit_2_AIF
 
-        if not os.path.exists(visit_2_AIF):
-            continue
+            if not os.path.exists(visit_2_AIF):
+                continue
 
-        AIF_numpy_1, AIF_numpy_2 = np.loadtxt(AIF, delimiter=';', dtype=object), np.loadtxt(visit_2_AIF, delimiter=';', dtype=object)
+            AIF_numpy_1, AIF_numpy_2 = np.loadtxt(AIF, delimiter=';', dtype=object), np.loadtxt(visit_2_AIF, delimiter=';', dtype=object)
 
-        print AIF_numpy_1
-        print AIF_numpy_2
+            print AIF_numpy_1
+            print AIF_numpy_2
 
-        output_AIF = (AIF_numpy_1[0:60].astype(float) + AIF_numpy_2[0:60].astype(float)) / 2.0
-        output_filename = os.path.join(output_AIF_directory, '_'.join(split_AIF[0:4]) + '_AIF_average.txt')
+            output_AIF = (AIF_numpy_1[0:60].astype(float) + AIF_numpy_2[0:60].astype(float)) / 2.0
+            output_filename = os.path.join(output_AIF_directory, '_'.join(split_AIF[0:4]) + '_AIF_average.txt')
 
-        np.savetxt(output_filename, output_AIF[None], fmt='%2.5f', delimiter=';')
+            np.savetxt(output_filename, output_AIF[None], fmt='%2.5f', delimiter=';')
 
     return
 
@@ -302,6 +319,43 @@ def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
 def Generate_KEP_Maps(input_directory):
 
     return
+
+def Preprocess_Volumes(input_directory, output_directory, r2_threshold=.9):
+
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+
+    file_database = glob.glob(os.path.join(input_directory, '*r2*.nii*'))
+
+    for file in file_database:
+
+        print file
+
+        input_ktrans = replace_suffix(file, 'r2', 'ktrans')
+        input_ve = replace_suffix(file, 'r2', 've')
+
+        output_ktrans = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'ktrans'))
+        output_ve = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 've'))
+        output_kep = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'kep'))
+
+        r2_map = convert_input_2_numpy(file)
+        ktrans_map = convert_input_2_numpy(input_ktrans)
+        ve_map = convert_input_2_numpy(input_ve)
+
+        r2_map = np.nan_to_num(r2_map)
+        # print np.isnan(r2_map).any()
+        print (r2_map < r2_threshold).sum()
+
+        ktrans_map[r2_map < r2_threshold] = -.01
+        ve_map[r2_map < r2_threshold] = -.01
+        kep_map = ktrans_map / ve_map
+        kep_map[r2_map < r2_threshold] = -.01
+
+        save_numpy_2_nifti(ktrans_map, input_ktrans, output_ktrans)
+        save_numpy_2_nifti(ve_map, input_ktrans, output_ve)
+        save_numpy_2_nifti(kep_map, input_ktrans, output_kep)
+
+
 
 def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
 
@@ -508,8 +562,9 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
 if __name__ == '__main__':
 
-    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/FullParams_R2/Echo1'
+    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/New_AIFs/Echo1'
     storage_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1/Storage'
+    preprocess_directory = '/home/abeers/Data/DCE_Package/Test_Results/New_AIFs/Echo1/PreProcess'
 
     NHX_directory = '/qtim2/users/data/NHX/ANALYSIS/DCE/'
     CED_directory = '/qtim/users/data/CED/ANALYSIS/DCE/PREPARATION_FILES/'
@@ -517,23 +572,28 @@ if __name__ == '__main__':
     ROI_directory = '/home/abeers/Data/DCE_Package/Test_Results/ROIs'
     AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/AIFs'
     T1MAP_directory = '/home/abeers/Data/DCE_Package/Test_Results/T1Maps'
+    DCE_directory = '/home/abeers/Data/DCE_Package/Test_Results/DCE_Echo1'
+
+    ALT_AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/DCE_Echo1/AIFS'
 
     output_csv = 'DCE_Assay_complete.csv'
     paired_csv = 'DCE_Assay_Visits_Paired_simplex.csv'
     cov_csv = 'DCE_Assay_COV_simplex.csv'
 
+    Preprocess_Volumes(data_directory, preprocess_directory)
     # Determine_R2_Cutoff_Point(data_directory, ROI_directory)
-    # Create_Average_AIF(AIF_directory, AIF_directory)
+    # Create_Average_AIF(ALT_AIF_directory, ALT_AIF_directory)
     # Rename_LM_Files(data_directory)
     # Copy_SameAIF_Visit1_Tumors(data_directory)
-    # Create_Resource_Directories(CED_directory, NHX_directory, ROI_directory, AIF_directory, T1MAP_directory)
-    # Create_Study_AIF(AIF_directory, '/home/abeers/Data/DCE_Package/Test_Results/AIFs/Study_AIF.txt')
+    # Convert_NordicIce_AIF(ALT_AIF_directory)
+    # Create_Resource_Directories(CED_directory, NHX_directory, ROI_directory, AIF_directory, T1MAP_directory, DCE_directory)
+    # Create_Study_AIF(ALT_AIF_directory, '/home/abeers/Data/DCE_Package/Test_Results/DCE_Echo1/AIFS/Study_AIF.txt')
     # Store_Unneeded_Codes(data_directory, storage_directory)
-    Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
+    # Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
     # Reshape_Statisticts_Worksheet(output_csv, reshaped_output_csv, ROI_directory)
     # Delete_Extra_Files(data_directory)
-    Paired_Visits_Worksheet(output_csv, paired_csv)
-    Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
+    # Paired_Visits_Worksheet(output_csv, paired_csv)
+    # Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
     
     # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
     # Recode_With_Binary_Labels(data_directory)
