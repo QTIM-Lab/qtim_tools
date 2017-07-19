@@ -5,8 +5,16 @@
 
 import numpy as np
 import math
-from .format_util import convert_input_2_numpy
+
+from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
+from qtim_tools.qtim_utilities.nifit_util import save_numpy_2_nifti
+
 from scipy.ndimage.interpolation import affine_transform, geometric_transform
+from skimage import measure
+try:
+    from skimage import filters
+except ImportError:
+    from skimage import filter as filters
 
 def get_intensity_range(input_volume, percentiles=[.25,.75]):
 
@@ -19,6 +27,53 @@ def get_intensity_range(input_volume, percentiles=[.25,.75]):
     intensity_range = [np.percentile(image_numpy, percentiles[0], interpolation="nearest"), np.percentile(image_numpy, percentiles[1], interpolation="nearest")]
 
     return intensity_range
+
+def staple_algorithm(input_label_list):
+
+    """ TODO
+    """
+
+    return
+
+def dice_coeffecient(input_label_1, input_label_2):
+
+    """ Computes the Dice coefficient, a measure of set similarity.
+        Implementation from https://gist.github.com/brunodoamaral/e130b4e97aa4ebc468225b7ce39b3137.
+
+        TODO: Multi-label DICE, weighted dice.
+
+        Parameters
+        ----------
+        input_label_1 : array-like, bool
+            Any array of arbitrary size. If not boolean, will be converted.
+        input_label_2 : array-like, bool
+            Any other array of identical size. If not boolean, will be converted.
+        
+        Returns
+        -------
+        dice : float
+            Dice coefficient as a float on range [0,1].
+            Maximum similarity = 1
+            No similarity = 0
+            Both are empty (sum eq to zero) = empty_score
+
+    """
+    im1 = np.asarray(im1).astype(np.bool)
+    im2 = np.asarray(im2).astype(np.bool)
+
+    if im1.shape != im2.shape:
+        raise ValueError("Shape mismatch: im1 and im2 must have the same shape.")
+
+    im_sum = im1.sum() + im2.sum()
+    if im_sum == 0:
+        return empty_score
+
+    # Compute Dice coefficient
+    intersection = np.logical_and(im1, im2)
+
+    return 2. * intersection.sum() / im_sum
+
+    return
 
 def match_array_orientation(image1, image2):
 
@@ -65,7 +120,7 @@ def get_arbitrary_axis_slice(input_volume, axis, slice_num):
 
     return image_numpy[image_slice]
 
-def truncate_image(input_volume, mask_value=0, return_mask=False, output_mask_filename=""):
+def truncate_image(input_volume, mask_value=0, return_mask=False, padding=0, output_mask_filename=""):
 
     """ This function takes in an N-dimensional array and truncates all rows/columns/etc
         that contain only mask values. Useful for reducing computation time on functions
@@ -99,6 +154,9 @@ def truncate_image(input_volume, mask_value=0, return_mask=False, output_mask_fi
                 start_flag = False
                 truncate_ranges[axis][1] = idx + 1
 
+    if padding > 0:
+        truncate_ranges = [[max(0, x[0]-padding), min(dims[axis], x[1]+padding)] for axis, x in enumerate(truncate_ranges)]
+
     truncate_slices = [slice(x[0], x[1]) for x in truncate_ranges]
 
     truncate_image_numpy = image_numpy[truncate_slices]
@@ -118,7 +176,61 @@ def truncate_to_maximum_image(input_volume_list, mask_value=0):
 
     return
 
-def split_image(input_volume, input_label_volume='', label_indices='', mask_value=0):
+def return_connected_components(input_volume, mask_value=0, return_split=True, truncate=False, truncate_padding=0, output_filepath=None):
+
+    """ This function takes in an N-dimensional array and uses scikit-image's measure.label function
+        to split it into individual connected components. One can either return a split version of
+        the original label, which will be stackd in a new batch dimension (N, ...), or return a renumbered
+        version of the original label. One can also choose to truncate the output of the original image,
+        instead returning a list of arrays of different sizes.
+
+        Parameters
+        ----------
+
+        input_volume: N-dimensional array
+            The volume to be queried.
+        mask_value: int or float
+            Islands composed of "mask_value" will be ignored.
+        return_split: bool
+            Whether to a return a stacked output of equal-size binary arrays for each island,
+            or to return one array with differently-labeled islands for each output.
+        truncate: bool
+            Whether or not to truncate the output. Irrelevant if return_split is False
+        truncate_padding: int
+            How many voxels of padding to leave when truncating.
+        output_filepath: str
+            If return_split is False, output will be saved to this file. If return_split
+            is True, output will be save to this file with the suffix "_[#]" for island
+            number
+
+        Returns
+        -------
+        output_array: N+1 or N-dimensional array
+            Output array(s) depending on return_split
+
+    """
+
+    image_numpy = convert_input_2_numpy(input_volume)
+
+    connected_components = measure.label(image_numpy, background=mask_value, connectivity=2)
+
+    if not return_split:
+        if output_filepath is not None:
+            save_numpy_2_nifti(connected_components, input_volume, output_filepath)
+        return connected_components
+
+    else:
+        all_islands = split_image(connected_components)
+        for island in all_islands:
+            all_islands[island] = truncate_image(island, truncate_padding=truncate_padding)
+
+        if output_filepath is not None:
+            for island_idx, island in enumerate(all_islands):
+                save_numpy_2_nifti(connected_components, input_volume, replace_suffix(output_filepath, '', str(island_idx)))
+
+        return all_islands
+
+def split_image(input_volume, input_label_volume=None, label_indices=None, mask_value=0):
 
     """ This function takes in an image, optionally a label image, and optionally a set of indices,
         and returns one duplicate masked image for each given label. Useful for analyzing,
@@ -131,8 +243,8 @@ def split_image(input_volume, input_label_volume='', label_indices='', mask_valu
 
     masked_images = []
 
-    if label_indices == '':
-        if label_numpy == '':
+    if label_indices is not None:
+        if label_numpy == is not None:
             label_indices = np.unique(image_numpy)
         else:
             label_indices = np.unique(label_numpy)

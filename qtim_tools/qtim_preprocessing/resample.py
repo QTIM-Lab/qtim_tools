@@ -64,12 +64,15 @@ def resample(input_data, output_filename='', input_transform=None, method="slice
         dimensions = str(dimensions).strip('[]').replace(' ', '')
 
         if reference_volume or input_transform is not None:
-            # ResampleScalarVectorDWIVolume ${prefix}-${modality}_LPS.nii.gz ${prefix}-${modality}_r_T2.nii.gz -R ${prefix}-T2_LPS_N4.nii.gz -f ${prefix}-PERFUSION-SE_r_T2.txt &
-            print ' '.join([command, '--launch', 'ResampleScalarVectorDWIVolume', input_filename, output_filename, '-R', reference_volume, '--interpolation', interpolation])
-            subprocess.call([command, '--launch', 'ResampleScalarVectorDWIVolume', input_filename, output_filename, '-R', reference_volume, '--interpolation', interpolation])
+            resample_command = [command, '--launch', 'ResampleScalarVectorDWIVolume', input_filename, output_filename, '-R', reference_volume, '--interpolation', interpolation]
+            if input_transform is not None:
+                resample_command += ['-f', input_transform]
+            print ' '.join(resample_command)
+            subprocess.call(resample_command)
         else:
-            print ' '.join([command, '--launch', 'ResampleScalarVolume', '-i', interpolation, '-s', dimensions, input_filename, output_filename])
-            subprocess.call([command, '--launch', 'ResampleScalarVolume', '-i', interpolation, '-s', dimensions, input_filename, output_filename])
+            resample_command = [command, '--launch', 'ResampleScalarVolume', '-i', interpolation, '-s', dimensions, input_filename, output_filename]
+            print ' '.join(resample_command)
+            subprocess.call(resample_command)
         
         if temp_input:
             os.remove(input_filename)

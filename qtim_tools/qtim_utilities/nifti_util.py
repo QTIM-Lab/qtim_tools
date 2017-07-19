@@ -104,9 +104,18 @@ def save_3d_numpy_from_4d_nifti(image_numpy, reference_nifti, output_filepath):
 
 def save_numpy_2_nifti(image_numpy, reference_nifti_filepath=None, output_filepath=None):
 
+    """ This is a bit convoluted.
+
+        TODO: Documentation, rearrange reference_nifti and output_filepath, and
+        propagate changes to the rest of qtim_tools.
+    """
+
     if reference_nifti_filepath is not None:
-        nifti_image = nib.load(reference_nifti_filepath)
-        image_affine = nifti_image.affine
+        if isinstance(reference_nifti_filepath, basestring):
+            nifti_image = nib.load(reference_nifti_filepath)
+            image_affine = nifti_image.affine
+        else:
+            image_affine = generate_identity_affine()
     else:
         print 'Warning: no reference nifti file provided. Generating empty header.'
         image_affine = generate_identity_affine()
