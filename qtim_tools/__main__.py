@@ -16,6 +16,7 @@ The following commands are available:
    deep_learning_experiment     Copy DL files into test/train folders for an experiment.
    dti_conversion               Generate DTI volumes from RAWDATA.
    label_statistics             Generate label statistics from the COREGISTRATION folder.
+   mosaic                       Generate a mosaic from an input volume and optional label.
 ''')
 
         parser.add_argument('command', help='Subcommand to run')
@@ -101,6 +102,18 @@ The following commands are available:
 
         qtim_tools.qtim_pipelines.label_statistics.qtim_study_statistics(args.study_name, args.label_name, args.base_directory, args.output_csv, args.label_mode)
 
+    def mosaic(self):
+
+        parser = argparse.ArgumentParser(
+            description='Create a mosaic of 2D images from a 3D volume and, optionally, a 2D label.')
+
+        parser.add_argument('input_volume', type=str)
+        parser.add_argument('output_image', type=str)
+        parser.add_argument('-label_volume', type=str)
+
+        args = parser.parse_args(sys.argv[2:])
+
+        qtim_tools.qtim_utilities.nifti_util.create_mosaic(args.input_volume, args.output_image, args.label_volume)
 
 def main():
     qtim_commands()

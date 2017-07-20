@@ -16,4 +16,4 @@ from shutil import copy
 
 # print qtim_tools.qtim_utilities.file_util.grab_linked_file('./setup.py', suffix=".py", return_multiple=True, recursive=True)
 
-qtim_tools.qtim_dce.dce_util.create_gradient_phantom('test')
+qtim_tools.qtim_utilities.nifti_util.create_mosaic(input_volume='T2_pp.nii.gz', label_volume='seg_pp.nii.gz', outfile='test.png')

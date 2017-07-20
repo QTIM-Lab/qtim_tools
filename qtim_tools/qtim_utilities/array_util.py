@@ -7,7 +7,7 @@ import numpy as np
 import math
 
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
-from qtim_tools.qtim_utilities.nifit_util import save_numpy_2_nifti
+from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti
 
 from scipy.ndimage.interpolation import affine_transform, geometric_transform
 from skimage import measure
@@ -244,7 +244,7 @@ def split_image(input_volume, input_label_volume=None, label_indices=None, mask_
     masked_images = []
 
     if label_indices is not None:
-        if label_numpy == is not None:
+        if label_numpy is not None:
             label_indices = np.unique(image_numpy)
         else:
             label_indices = np.unique(label_numpy)
