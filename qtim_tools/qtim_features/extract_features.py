@@ -120,6 +120,8 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
 
     if labels:
 
+        print imagepath
+
         if set_label != '':
             label_path = os.path.join(os.path.dirname(imagepath), os.path.basename(os.path.normpath(set_label)))
         else:
@@ -128,8 +130,12 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
             label_path = split_path[0] + label_suffix + '.' + '.'.join(split_path[1:])
             label_path = os.path.join(head, label_path)
 
+        print label_path
+
         if os.path.isfile(label_path):
             label_image = nifti_util.nifti_2_numpy(label_path)
+
+            print label_image.shape
 
             if label_image.shape != image.shape:
                 print 'Warning: image and label do not have the same dimensions. Imaging padding support has not yet been added. This image will be skipped.'
@@ -280,8 +286,8 @@ def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suff
             label_images = [ x for x in imagepaths if label_suffix in x ]
             imagepaths = [ x for x in imagepaths if label_suffix not in x ]
         else:
-            label_images = [os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) if os.path.exists(x) else '' for x in imagepaths]
-            imagepaths = [ x for x in imagepaths if os.path.join(os.path.dirname(x), os.path.basename(os.path.normpath(set_label))) not in x ]
+            label_images = [os.path.join(os.path.dirname(x), os.path.basename(set_label)) if os.path.exists(x) else '' for x in imagepaths]
+            imagepaths = [ x for x in imagepaths if os.path.join(os.path.dirname(x), os.path.basename(set_label)) not in x ]
     else:
         label_images = []
 

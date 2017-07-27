@@ -11,6 +11,7 @@
 from dicom_util import dcm_2_numpy
 from nrrd_util import nrrd_2_numpy
 from image_util import img_2_numpy
+from nifti_util import nifti_2_numpy
 
 import numpy as np
 import nibabel as nib
@@ -21,24 +22,6 @@ try:
   basestring
 except NameError:
   basestring = str
-
-def nifti_2_numpy(filepath):
-
-    """ This function takes in a .nii or .nii.gz file and converts into a numpy array.
-
-        Parameters
-        ----------
-        filepath: str
-            The filepath to be converted
-
-        Returns
-        -------
-        img: numpy array
-            A numpy array of the image data as interpreted by nibabel.
-    """
-
-    img = nib.load(filepath).get_data().astype(float)
-    return img
 
 def itk_transform_2_numpy(filepath):
 
@@ -110,11 +93,25 @@ def check_format(filepath):
     else:
         return format_type
 
-def convert_input_2_numpy(input_data, input_format=[]):
+def convert_input_2_numpy(input_data, input_format=[], return_header=False):
     
-    """ This function is meant to take in any normal imaging file 
-        format and convert it into numpy. Numpy is supposed from
-        now on to be the lingua franca of qtim_tools.
+    """ Copies a file somewhere else. Effectively only used for compressing nifti files.
+
+        Parameters
+        ----------
+        input_filepath: str
+            Input filepath.
+        return_header: bool
+            If true, returns header information in nibabel format.
+
+        Returns
+        -------
+        img: Numpy array
+            Untransformed image data.
+        header: list
+            A two item list. The first is the affine matrix in array format, the
+            second is 
+
     """
 
     if isinstance(input_data, basestring):
@@ -122,12 +119,22 @@ def convert_input_2_numpy(input_data, input_format=[]):
             input_format = check_format(input_data)
 
         if input_format == []:
-            return []
+            print 'Cannot understand input format for numpy conversion, returning None.'
+            if return_header:
+                return None, None
+            else:
+                return None
 
-        return NUMPY_CONVERTER_LIST[input_format](input_data)
+        if return_header:
+            return NUMPY_CONVERTER_LIST[input_format](input_data, return_header=True)
+        else:
+            return NUMPY_CONVERTER_LIST[input_format](input_data)
 
     else:
-        return input_data
+        if return_header:
+            return input_data, None
+        else:
+            return input_data
 
 def save_numpy_2_file(input, output_filename, reference_file=[], output_format=[]):
     return

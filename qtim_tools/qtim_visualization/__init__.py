@@ -1,2 +1,3 @@
-import image_database
-import d3_models
+import database
+import d3
+import image

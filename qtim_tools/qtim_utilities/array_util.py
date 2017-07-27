@@ -10,6 +10,7 @@ from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti
 
 from scipy.ndimage.interpolation import affine_transform, geometric_transform
+from scipy import stats, signal, misc
 from skimage import measure
 try:
     from skimage import filters
@@ -243,8 +244,10 @@ def split_image(input_volume, input_label_volume=None, label_indices=None, mask_
 
     masked_images = []
 
-    if label_indices is not None:
-        if label_numpy is not None:
+    print label_indices
+
+    if label_indices is None:
+        if label_numpy is None:
             label_indices = np.unique(image_numpy)
         else:
             label_indices = np.unique(label_numpy)
@@ -292,6 +295,66 @@ def extract_maximal_slice(input_volume, input_label_volume='', mode='max_intensi
         return get_arbitrary_axis_slice(image_numpy, axis, highest_slice_index), highest_slice_index
 
     return get_arbitrary_axis_slice(image_numpy, axis, highest_slice_index)
+
+def generate_label_outlines(label_numpy, dim=2, mask_value=0):
+
+    """ 
+        Assumes labels are > 0 and integers.
+
+        Parameters
+        ----------
+
+        input_volume: N-dimensional array
+            The volume to be queried.
+        mask_value: int or float
+            Islands composed of "mask_value" will be ignored.
+        return_split: bool
+            Whether to a return a stacked output of equal-size binary arrays for each island,
+            or to return one array with differently-labeled islands for each output.
+        truncate: bool
+            Whether or not to truncate the output. Irrelevant if return_split is False
+        truncate_padding: int
+            How many voxels of padding to leave when truncating.
+        output_filepath: str
+            If return_split is False, output will be saved to this file. If return_split
+            is True, output will be save to this file with the suffix "_[#]" for island
+            number
+
+        Returns
+        -------
+        output_array: N+1 or N-dimensional array
+            Output array(s) depending on return_split
+
+    """
+        
+    edges_kernel = np.zeros((3,3,3),dtype=float)
+    edges_kernel[1,1,1] = 4
+
+    if dim != 2:
+        edges_kernel[1,1,0] = -1
+        edges_kernel[1,1,2] = -1
+
+    if dim != 1:
+        edges_kernel[1,0,1] = -1
+        edges_kernel[1,2,1] = -1
+
+    if dim != 0:
+        edges_kernel[0,1,1] = -1
+        edges_kernel[2,1,1] = -1
+    
+    outline_label_numpy = np.zeros_like(label_numpy)
+
+    for label_number in np.unique(label_numpy):
+        if label_number != mask_value:
+            sublabel_numpy = np.copy(label_numpy)
+            sublabel_numpy[sublabel_numpy != label_number] = 0
+            edge_image = signal.convolve(sublabel_numpy, edges_kernel, mode='same')
+            edge_image[sublabel_numpy != label_number] = 0
+            edge_image[edge_image != 0] = label_number
+            outline_label_numpy += edge_image
+
+    return outline_label_numpy
+
 
 if __name__ == '__main__':
     pass

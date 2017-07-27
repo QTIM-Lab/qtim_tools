@@ -8,7 +8,7 @@ from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 
 import numpy as np
 
-def zero_mean_unit_variance(input_volume, input_mask=[], output_filename=[]):
+def zero_mean_unit_variance(input_volume, input_mask=None, output_filename=None):
 
     """ Normalizes an image by subtracting its mean and dividing by its standard
         deviation. If provided a mask, the normalization will only occur within the
@@ -35,12 +35,12 @@ def zero_mean_unit_variance(input_volume, input_mask=[], output_filename=[]):
 
     input_numpy = convert_input_2_numpy(input_volume)
 
-    if input_mask != []:
+    if input_mask is not None:
         mask_numpy = convert_input_2_numpy(input_mask)
     else:
         mask_numpy = []
 
-    if mask_numpy == []:
+    if mask_numpy is None:
         vol_mean = np.mean(input_numpy)
         vol_std = np.std(input_numpy)
         output_numpy = (input_numpy - vol_mean) / vol_std        
@@ -51,7 +51,7 @@ def zero_mean_unit_variance(input_volume, input_mask=[], output_filename=[]):
         output_numpy = (masked_numpy - vol_mean) / vol_std
         output_numpy[mask_numpy == 0] = 0
 
-    if output_filename != []:
+    if output_filename is not None:
         if isinstance(input_volume, basestring):
             save_numpy_2_nifti(output_numpy, input_volume, output_filename)
         else:
