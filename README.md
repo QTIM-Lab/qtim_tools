@@ -13,7 +13,7 @@ pip install qtim_tools
 
 You may need to install some other python libraries to run this code (most likely nibabel and pydicom).
 
-# qtim_tools.qtim_features
+# QtimFeatures - qtim_tools.qtim_features
 
 qtim_features is meant to extract features (size, shape, texture, intensity, etc.) from medical imaging data. It currently takes .nii or .nii.gz files as input and output, although support for other filetypes will come soon.
 
@@ -48,3 +48,7 @@ __label_suffix__ - If your label files use a different identifier than '-label',
 __mask_value__ - If your background values is not 0 for your label-maps (e.g. -1), you can change that value here. Deafult is 0.
 
 To see some sample data, check out the files at ~\qtim_tools\test_data\test_data_features. Also try running the command __qtim_tools.qtim_features.test()__ to do a test-run of extract_features() with sample data.
+
+# QtimDCE - qtim_tools.qtim_dce
+
+Documentation coming soon!
