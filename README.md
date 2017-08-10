@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/QTIM-Lab/qtim_tools.svg?branch=master)](https://travis-ci.org/QTIM-Lab/qtim_tools)
 
-# qtim_tools
+# QtimTools
 This is a repository for QTIM image processing utilties written in Python. It is a work in progress, and we would love to get your input if anything is not working as expected. Send us a message!
 
 To get this package up and running, clone this repository from github and run from the command line:
