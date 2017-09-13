@@ -11,80 +11,20 @@ import nibabel as nib
 import math
 import os
 
-# def calc_DCE_properties_batch(folder, regex='', recursive=False, T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(11*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_file=[], label_suffix=[], label_value=1, mask_value=0, mask_threshold=0, T1_map_file=[], T1_map_suffix='-T1Map', AIF_label_file=[],  AIF_value_data=[], convert_AIF_values=True, AIF_mode='label_average', AIF_label_suffix=[], AIF_label_value=1, label_mode='separate', param_file=[], default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outputs=['ktrans','ve','auc'], outfile_prefix='', processes=1, gaussian_blur=.65, gaussian_blur_axis=2):
-
-
-#     suffix_exclusion_regex = []
-#     for suffix in label_suffix, T1_map_suffix, AIF_label_suffix, AIF_value_suffix:
-#         if suffix != []:
-#             suffix_exclusion_regex += [suffix]
-    
-#     volume_list = []
-#     if recursive:
-#         for root, dirnames, filenames in os.walk(folder):
-#             for filename in fnmatch.filter(filenames, regex):
-#                 volume_list.append(os.path.join(root, filename))
-#     else:
-#         for filename in os.listdir(folder):
-#             if fnmatch.fnmatch(regex):
-#                 volume_list.append(os.path.join(root, filename))
-    
-#     for volume in volume_list:
-#         for suffix in suffix_exclusion_regex:
-#             if suffix_exclusion_regex not in volume:
-
-#                 print 'Working on volume located at... ' + volume
-
-#                 calc_DCE_properties_single(volume, T1_tissue, T1_blood, relaxivity, TR, TE, scan_time_seconds, hematocrit, injection_start_time_seconds, flip_angle_degrees, label_file, label_suffix, label_value, mask_value, mask_threshold, T1_map_file, T1_map_suffix, AIF_label_file,  AIF_value_data, convert_AIF_values, AIF_mode, AIF_label_suffix, AIF_label_value, label_mode, param_file, default_population_AIF, initial_fitting_function_parameters, outputs, outfile_prefix, processes, gaussian_blur, gaussian_blur_axis)
-
-# class timewith():
-#     def __init__(self, name=''):
-#         self.name = name
-#         self.start = time.time()
-
-#     @property
-#     def elapsed(self):
-#         return time.time() - self.start
-
-#     def checkpoint(self, name=''):
-#         print '{timer} {checkpoint} took {elapsed} seconds'.format(
-#             timer=self.name,
-#             checkpoint=name,
-#             elapsed=self.elapsed,
-#         ).strip()
-
-#     def __enter__(self):
-#         return self
-
-#     def __exit__(self, type, value, traceback):
-#         self.checkpoint('finished')
-#         pass
-
-# class ParamWorker(Thread):
-#     def __init__(self, queue):
-#         Thread.__init__(self)
-#         self.queue = queue
-#         self.__output_image = []
-
-#     def run(self):
-#         while True:
-#            # Get the work from the queue and expand the tuple
-#             contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, mask_value, mask_threshold, intial_fitting_function_parameters = self.queue.get()
-#             self.__output_image = simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interval_seconds, mask_value, mask_threshold, intial_fitting_function_parameters)
-#             self.queue.task_done()
-    
-#     def join(self):
-#         Thread.join(self)
-#         return self.__output_image
-
-def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=[], timepoints=0):
+def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_seconds, image_numpy=None, timepoints=0, output_shape=None):
 
     """ Creates and AIF of a set duration and with a set bolus arrival time using the Parker model.
     """ 
 
     if timepoints == 0:
         timepoints = image_numpy.shape[-1]
-    AIF = np.zeros(timepoints)
+
+    if output_shape is None:
+        output_shape = (timepoints,)
+    else:
+        output_shape = output_shape + (timepoints,)
+
+    AIF = np.zeros(output_shape)
 
     bolus_time = int(np.ceil((injection_start_time_seconds / scan_time_seconds) * timepoints))
 
@@ -114,7 +54,7 @@ def parker_model_AIF(scan_time_seconds, injection_start_time_seconds, time_inter
 
     post_bolus_AIF = term_0 + term_1 + term_2
 
-    AIF[bolus_time:] = post_bolus_AIF
+    AIF[..., bolus_time:] = post_bolus_AIF
 
     return AIF
 
@@ -169,13 +109,45 @@ def convert_intensity_to_concentration(data_numpy, T1_tissue, TR, flip_angle_deg
         output_numpy = output_numpy / (1-hematocrit)
         return output_numpy
 
+def estimate_concentration_general(params, contrast_AIF_numpy, time_interval_minutes):
+
+    # A non-optimized version of estimate_concentration that uses numpy. Can take in arbitrary arrays of ktrans and ve.
+
+    e = math.e
+
+    ktrans = params[0]
+    ve = params[1]
+    kep = ktrans / ve
+
+    time_points = len(contrast_AIF_numpy)
+
+    if type(ktrans) is np.ndarray:
+        estimated_concentration = np.zeros(ktrans.shape + (time_points,))
+    else:
+        estimated_concentration = np.zeros(time_points)
+
+    time_series = np.arange(0, time_points) / (60 / time_interval_minutes)
+
+    log_e = -1 * kep * time_interval_minutes
+    capital_E = e**log_e
+    log_e_2 = log_e**2
+
+    block_A = (capital_E - log_e - 1)
+    block_B = (capital_E - (capital_E * log_e) - 1)
+    block_ktrans = ktrans * time_interval_minutes / log_e_2
+
+    for i in xrange(1, len(contrast_AIF_numpy)):
+        term_A = contrast_AIF_numpy[i] * block_A
+        term_B = contrast_AIF_numpy[i-1] * block_B
+        estimated_concentration[..., i] = estimated_concentration[..., i-1]*capital_E + block_ktrans * (term_A - term_B)
+
+    return estimated_concentration
+
 def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
 
     # Notation is very inexact here. Clean it up later.
 
     estimated_concentration = [0]
-    # if params[0] > 10 or params[1] > 10:
-    #   return estimated_concentration
 
     append = estimated_concentration.append
     e = math.e
@@ -193,15 +165,10 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
     block_B = (capital_E - (capital_E * log_e) - 1)
     block_ktrans = ktrans * time_interval_minutes / log_e_2
 
-    print block_ktrans
-
     for i in xrange(1, np.size(contrast_AIF_numpy)):
         term_A = contrast_AIF_numpy[i] * block_A
         term_B = contrast_AIF_numpy[i-1] * block_B
         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
-        # print estimated_concentration[-1]
-
-    # fd = dg
 
     # Quick, error prone convolution method
     # print estimated_concentration
@@ -211,12 +178,12 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
 
     return estimated_concentration
 
-def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = [], static_baseline=-1):
+def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = None, static_baseline=None):
 
     # Note that this function currently has a broken section.
     # Add functionality for a static baseline T1 i.e. reference_dat
 
-    if T1_map != []:
+    if T1_map is not None:
         R1_pre = 1 / T1_map
         R1_pre = np.reshape(R1_pre.shape + (1,))
     else:
@@ -226,7 +193,7 @@ def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissu
     a = np.exp(-1 * TR * R1_pre)
     relative_term = (1-a) / (1-a*np.cos(flip_angle_radians))
 
-    if static_baseline == -1:
+    if static_baseline is None:
         if len(reference_data_numpy.shape) == 1:
             baseline = np.mean(reference_data_numpy[0:int(np.round(injection_start_time_seconds/time_interval_seconds))])
             baseline = np.tile(baseline, reference_data_numpy.shape[-1])
