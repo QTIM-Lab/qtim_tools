@@ -1,5 +1,4 @@
 import numpy as np
-import nipype.interfaces.io as nio
 import glob
 import os
 import yaml
