@@ -8,7 +8,8 @@ import numpy as np
 import os
 import glob
 import re
-from file_util import human_sort
+from file_util import human_sort, grab_files_recursive
+from collections import defaultdict
 
 def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='name'):
 
@@ -34,30 +35,52 @@ def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='n
 
     return output_dictionary
 
-def dcm_2_numpy(filepath):
+def dcm_2_numpy(folder, return_header=False, verbose=True):
 
     """ Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it
         take slice_order into account.
     """
 
+    if verbose:
+        print 'Searching for dicom files...'
+
+    found_files = grab_files_recursive(folder)
+
+    if verbose:
+        print 'Found', len(found_files), 'in directory. \n'
+        print 'Checking DICOM compatability...'
+
     dicom_files = []
+    for file in found_files:
+        try:
+            dicom_files += [dicom.read_file(file)]
+        except:
+            pass
 
-    if os.path.isdir(filepath):
-        for fname in os.listdir(filepath):
-            if os.path.isdir(os.path.join(filepath, fname)):
-                continue
-            dicom_files += [os.path.join(filepath, fname)]
-    else:
-        dicom_files = [filepath]
+    if verbose:
+        print 'Found', len(dicom_files), 'DICOM files in directory. \n'
+        print 'Counting volumes..'
 
-    dicom_files = human_sort(dicom_files)
+    dicom_headers = [] 
+    unique_dicoms = defaultdict(list)
+    for dicom_file in dicom_files:
+        UID = dicom_file.data_element('SeriesInstanceUID').value
+        unique_dicoms[UID] = dicom_file
 
-    output_numpy = np.zeros((dicom.read_file(dicom_files[0]).pixel_array.shape + (len(dicom_files),)), dtype=float)
+    if verbose:
+        print 'Found', len(unique_dicoms.keys()), 'unique volumes \n'
+        print 'Saving out files from these volumes.'
+
+    for UID in unique_dicoms.keys():
+        current_dicoms = unique_dicoms[UID]
+        print UID
+
+    # output_numpy = np.zeros((dicom.read_file(dicom_files[0]).pixel_array.shape + (len(dicom_files),)), dtype=float)
     
-    for dicom_idx, dicom_file in enumerate(dicom_files):
-        output_numpy[..., dicom_idx] = dicom.read_file(dicom_file).pixel_array
+    # for dicom_idx, dicom_file in enumerate(dicom_files):
+    #     output_numpy[..., dicom_idx] = dicom.read_file(dicom_file).pixel_array
 
-    return output_numpy
+    # return output_numpy
 
 if __name__ == '__main__':
     pass
