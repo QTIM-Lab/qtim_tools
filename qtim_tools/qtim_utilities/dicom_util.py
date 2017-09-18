@@ -10,6 +10,7 @@ import glob
 import re
 from file_util import human_sort, grab_files_recursive
 from collections import defaultdict
+from nifti_util import save_numpy_2_nifti
 
 def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='name'):
 
@@ -65,18 +66,90 @@ def dcm_2_numpy(folder, return_header=False, verbose=True):
     unique_dicoms = defaultdict(list)
     for dicom_file in dicom_files:
         UID = dicom_file.data_element('SeriesInstanceUID').value
-        unique_dicoms[UID] = dicom_file
+        unique_dicoms[UID] += [dicom_file]
+
+    if verbose:
+        print 'Found', len(unique_dicoms.keys()), 'unique volumes \n'
+        print 'Saving out files from these volumes.'
+
+    output_dict = {}
+
+    for UID in unique_dicoms.keys():
+        
+        current_dicoms = unique_dicoms[UID]
+        volume_label = current_dicoms[0].data_element('SeriesDescription').value
+
+        try:
+            output_numpy = np.zeros((current_dicoms[0].pixel_array.shape + (len(current_dicoms),)), dtype=float)
+            output_dict[volume_label] = output_numpy
+
+            dicom_instances = [x.data_element('InstanceNumber').value for x in current_dicoms]
+            current_dicoms = [x for _,x in sorted(zip(dicom_instances,current_dicoms))]
+
+            for i in xrange(output_numpy.shape[-1]):
+                output_numpy[..., i] = current_dicoms[i].pixel_array
+        except:
+            output_dict[volume_label] = None
+            print 'Could not read DICOM at SeriesDescription...', volume_label
+
+    return output_dict
+    
+def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesDescription'], prefix='', suffix=''):
+
+    """ Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it
+        take slice_order into account.
+    """
+
+    if verbose:
+        print 'Searching for dicom files...'
+
+    found_files = grab_files_recursive(input_folder)
+
+    if verbose:
+        print 'Found', len(found_files), 'in directory. \n'
+        print 'Checking DICOM compatability...'
+
+    dicom_files = []
+    for file in found_files:
+        try:
+            dicom_files += [dicom.read_file(file)]
+        except:
+            pass
+
+    if verbose:
+        print 'Found', len(dicom_files), 'DICOM files in directory. \n'
+        print 'Counting volumes..'
+
+    dicom_headers = [] 
+    unique_dicoms = defaultdict(list)
+    for dicom_file in dicom_files:
+        UID = dicom_file.data_element('SeriesInstanceUID').value
+        unique_dicoms[UID] += [dicom_file]
 
     if verbose:
         print 'Found', len(unique_dicoms.keys()), 'unique volumes \n'
         print 'Saving out files from these volumes.'
 
     for UID in unique_dicoms.keys():
+        
         current_dicoms = unique_dicoms[UID]
-        print UID
+        volume_label = prefix + '_'.join([current_dicoms[0].data_element(tag).value for tag in naming_tags]).replace(" ", "") + suffix + '.nii.gz'
 
-    # output_numpy = np.zeros((dicom.read_file(dicom_files[0]).pixel_array.shape + (len(dicom_files),)), dtype=float)
-    
+        # try:
+        output_numpy = np.zeros((current_dicoms[0].pixel_array.shape + (len(current_dicoms),)), dtype=float)
+
+        dicom_instances = [x.data_element('InstanceNumber').value for x in current_dicoms]
+        current_dicoms = [x for _,x in sorted(zip(dicom_instances,current_dicoms))]
+
+        for i in xrange(output_numpy.shape[-1]):
+            output_numpy[..., i] = current_dicoms[i].pixel_array
+
+        print 'Saving...', volume_label
+        save_numpy_2_nifti(output_numpy, None, os.path.join(output_folder, volume_label))
+
+        # except:
+            # print 'Could not read DICOM at SeriesDescription...', volume_label
+
     # for dicom_idx, dicom_file in enumerate(dicom_files):
     #     output_numpy[..., dicom_idx] = dicom.read_file(dicom_file).pixel_array
 
