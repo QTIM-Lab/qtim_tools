@@ -94,7 +94,7 @@ def dcm_2_numpy(folder, return_header=False, verbose=True):
 
     return output_dict
     
-def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesDescription'], prefix='', suffix=''):
+def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesDescription'], prefix='', suffix='', write_header=False, header_suffix='_header'):
 
     """ Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it
         take slice_order into account.
@@ -114,7 +114,7 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
         try:
             dicom_files += [dicom.read_file(file)]
         except:
-            pass
+            continue
 
     if verbose:
         print 'Found', len(dicom_files), 'DICOM files in directory. \n'
@@ -132,19 +132,36 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
 
     for UID in unique_dicoms.keys():
         
+        print 'Saving...', volume_label
+
         current_dicoms = unique_dicoms[UID]
-        volume_label = prefix + '_'.join([current_dicoms[0].data_element(tag).value for tag in naming_tags]).replace(" ", "") + suffix + '.nii.gz'
 
-        # try:
-        output_numpy = np.zeros((current_dicoms[0].pixel_array.shape + (len(current_dicoms),)), dtype=float)
-
+        # Sort DICOMs by Instance.
         dicom_instances = [x.data_element('InstanceNumber').value for x in current_dicoms]
         current_dicoms = [x for _,x in sorted(zip(dicom_instances,current_dicoms))]
+        first_dicom, last_dicom = current_dicoms[0], current_dicoms[-1]
+        volume_label = prefix + '_'.join([first_dicom.data_element(tag).value for tag in naming_tags]).replace(" ", "") + suffix + '.nii.gz'
 
+        print np.array(image_position_patient).astype(float)
+        print np.array(image_orientation_patient).astype(float)
+
+        # try:
+        # Create affine...
+        output_affine = np.eye(4)
+        image_position_patient = np.array(first_dicom.data_element('ImagePositionPatient').value).astype(float)
+        image_orientation_patient = np.array(first_dicom.data_element('ImageOrientationPatient').value).astype(float)
+        last_image_orientation_patient = np.array(last_dicom.data_element('ImageOrientationPatient').value).astype(float)
+        pixel_spacing_patient = np.array(first_dicom.data_element('PixelSpacing').value).astype(float)
+        output_affine[0:3, 0] = pixel_spacing_patient[0] * image_orientation_patient[0:3]
+        output_affine[0:3, 1] = pixel_spacing_patient[1] * image_orientation_patient[3:6]
+        output_affine[0:3, 2] = np.cross(output_affine[0:3, 0], output_affine[0:3, 1])
+        output_affine[0:3, 3] = image_position_patient
+
+        # Create array...s
+        output_numpy = np.zeros((current_dicoms[0].pixel_array.shape + (len(current_dicoms),)), dtype=float)
         for i in xrange(output_numpy.shape[-1]):
             output_numpy[..., i] = current_dicoms[i].pixel_array
 
-        print 'Saving...', volume_label
         save_numpy_2_nifti(output_numpy, None, os.path.join(output_folder, volume_label))
 
         # except:
