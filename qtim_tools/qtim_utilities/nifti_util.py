@@ -312,7 +312,7 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
 
     return image_numpy
 
-def check_image_2d(image_numpy, second_image_numpy=[], mode="cycle", step=1, mask_value=0, slice_axis="first"):
+def check_image_2d(image_numpy, second_image_numpy=[], slice_view="cycle", step=1, mask_value=0, slice_axis="first"):
 
     """ A useful utiltiy for spot checks. TODO: Add utility for dynamic axis viewing. Also TODO: make
         a check_image_3d
@@ -327,18 +327,18 @@ def check_image_2d(image_numpy, second_image_numpy=[], mode="cycle", step=1, mas
             imgplot = plt.imshow(second_image_numpy[:,:,i*step], interpolation='none', aspect='auto')
             plt.show()
     else:
-        if mode == "cycle":
+        if slice_view == "cycle":
             for i in xrange(image_numpy.shape[0]):
                 fig = plt.figure()
                 imgplot = plt.imshow(image_numpy[i,:,:], interpolation='none', aspect='auto')
                 plt.show()
 
-        if mode == "first":
+        elif slice_view == "first":
             fig = plt.figure()
             imgplot = plt.imshow(image_numpy[0,:,:], interpolation='none', aspect='auto')
             plt.show()
 
-        if mode == "maximal_slice":
+        elif slice_view == "maximal_slice":
 
             maximal = [0, np.zeros(image_numpy.shape)]
 
@@ -354,6 +354,11 @@ def check_image_2d(image_numpy, second_image_numpy=[], mode="cycle", step=1, mas
 
             fig = plt.figure()
             imgplot = plt.imshow(maximal[1], interpolation='none', aspect='auto')
+            plt.show()
+
+        else:
+            fig = plt.figure()
+            imgplot = plt.imshow(image_numpy[slice_view,:,:], interpolation='none', aspect='auto')
             plt.show()
 
 def check_tumor_histogram(image_numpy, second_image_numpy=[], mask_value=0, image_name = ''):
