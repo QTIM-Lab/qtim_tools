@@ -131,8 +131,7 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
         print 'Saving out files from these volumes.'
 
     for UID in unique_dicoms.keys():
-        
-        print 'Saving...', volume_label
+
 
         current_dicoms = unique_dicoms[UID]
 
@@ -140,29 +139,57 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
         dicom_instances = [x.data_element('InstanceNumber').value for x in current_dicoms]
         current_dicoms = [x for _,x in sorted(zip(dicom_instances,current_dicoms))]
         first_dicom, last_dicom = current_dicoms[0], current_dicoms[-1]
-        volume_label = prefix + '_'.join([first_dicom.data_element(tag).value for tag in naming_tags]).replace(" ", "") + suffix + '.nii.gz'
 
-        print np.array(image_position_patient).astype(float)
-        print np.array(image_orientation_patient).astype(float)
+        volume_label = '_'.join([first_dicom.data_element(tag).value for tag in naming_tags]).replace(" ", "")
+        volume_label = prefix + "".join([c for c in volume_label if c.isalpha() or c.isdigit() or c==' ']).rstrip() + suffix + '.nii.gz'
+
+        if verbose:
+            print 'Saving...', volume_label
 
         # try:
         # Create affine...
         output_affine = np.eye(4)
         image_position_patient = np.array(first_dicom.data_element('ImagePositionPatient').value).astype(float)
         image_orientation_patient = np.array(first_dicom.data_element('ImageOrientationPatient').value).astype(float)
-        last_image_orientation_patient = np.array(last_dicom.data_element('ImageOrientationPatient').value).astype(float)
+        last_image_position_patient = np.array(last_dicom.data_element('ImagePositionPatient').value).astype(float)
         pixel_spacing_patient = np.array(first_dicom.data_element('PixelSpacing').value).astype(float)
+
+        # image_orientation_patient = np.multiply(image_orientation_patient, [-1,-1,1,-1])
+
+        print image_position_patient, last_image_position_patient
+        print image_orientation_patient
+
         output_affine[0:3, 0] = pixel_spacing_patient[0] * image_orientation_patient[0:3]
         output_affine[0:3, 1] = pixel_spacing_patient[1] * image_orientation_patient[3:6]
-        output_affine[0:3, 2] = np.cross(output_affine[0:3, 0], output_affine[0:3, 1])
+        output_affine[0:3, 2] = (image_position_patient - last_image_position_patient) / (1 - len(current_dicoms))
         output_affine[0:3, 3] = image_position_patient
 
-        # Create array...s
+        x, y, z = np.argmax(np.abs(output_affine[0:3,0:3]), axis=0)
+
+        print x,y,z
+        cr_flip = np.eye(4)
+        cr_flip[0:2,0:2] = [[0,1],[1,0]]
+        neg_flip = np.eye(4)
+        neg_flip[0:2,0:2] = [[-1,0],[0,-1]]
+        # cr_flip[x, y] = 1
+        # cr_flip[y, x] = 1 
+        # cr_flip[x, x] = 0
+        # cr_flip[y, y] = 0
+
+        output_affine = np.matmul(neg_flip, np.matmul(output_affine, cr_flip))
+        # output_affine[0:2,0:2] = output_affine[0:2,0:2]*-1
+        print output_affine
+
+        # print nib.orientations.io_orientation(output_affine)
+
+        # Create array...
         output_numpy = np.zeros((current_dicoms[0].pixel_array.shape + (len(current_dicoms),)), dtype=float)
         for i in xrange(output_numpy.shape[-1]):
             output_numpy[..., i] = current_dicoms[i].pixel_array
 
-        save_numpy_2_nifti(output_numpy, None, os.path.join(output_folder, volume_label))
+        output_nifti = nib.Nifti1Image(output_numpy, output_affine)
+
+        save_numpy_2_nifti(output_numpy, output_affine, os.path.join(output_folder, volume_label))
 
         # except:
             # print 'Could not read DICOM at SeriesDescription...', volume_label

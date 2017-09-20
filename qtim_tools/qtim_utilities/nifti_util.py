@@ -131,7 +131,7 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath=None, output_filepa
             nifti_image = nib.load(reference_nifti_filepath)
             image_affine = nifti_image.affine
         else:
-            image_affine = np.eye(4)
+            image_affine = reference_nifti_filepath
     else:
         print 'Warning: no reference nifti file provided. Generating empty header.'
         image_affine = np.eye(4)
