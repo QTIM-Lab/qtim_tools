@@ -44,7 +44,7 @@ def register_all_to_one(fixed_volume, moving_volume_folder, output_folder='', ou
             call(' '.join(BRAINSFit_specific_command), shell=True)
         except:
             print 'Registration command failed. Did you provide the correct path to your Slicer insallation? Provided Slicer Path: ' + Slicer_Path
-            pass
+            continue
 
     return
 

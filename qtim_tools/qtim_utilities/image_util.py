@@ -16,7 +16,9 @@ def img_2_numpy(input_image):
         in loading images.
     """
 
-    return
+    image_nifti = misc.imread(filepath)
+
+    return image_nifti
 
 def save_numpy_2_img(input_numpy, output_filename, output_dimensions=[], rescale=0):
 

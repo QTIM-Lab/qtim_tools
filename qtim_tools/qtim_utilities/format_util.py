@@ -80,20 +80,21 @@ def dicom_convert_slicer():
     return
 
 def check_format(filepath):
-    format_type = []
+
+    format_type = None
 
     for data_type in FORMAT_LIST:
         if filepath.lower().endswith(FORMAT_LIST[data_type]):
             format_type = data_type
-        if format_type != []:
+        if format_type is not None:
             break
 
-    if format_type == []:
-        print 'Error! Input file extension is not supported by qtim_tools. Returning [].'
+    if format_type is None:
+        print 'Error! Input file extension is not supported by qtim_tools. Returning None.'
     else:
         return format_type
 
-def convert_input_2_numpy(input_data, input_format=[], return_header=False):
+def convert_input_2_numpy(input_data, input_format=None, return_header=False, return_type=False):
     
     """ Copies a file somewhere else. Effectively only used for compressing nifti files.
 
@@ -109,16 +110,18 @@ def convert_input_2_numpy(input_data, input_format=[], return_header=False):
         img: Numpy array
             Untransformed image data.
         header: list
-            A two item list. The first is the affine matrix in array format, the
-            second is 
-
+            Varies from format to format.
+        type: str
+            Internal code for image type.
     """
 
+    return_items = []
+
     if isinstance(input_data, basestring):
-        if input_format == []:
+        if input_format is None:
             input_format = check_format(input_data)
 
-        if input_format == []:
+        if input_format is None:
             print 'Cannot understand input format for numpy conversion, returning None.'
             if return_header:
                 return None, None
@@ -126,15 +129,23 @@ def convert_input_2_numpy(input_data, input_format=[], return_header=False):
                 return None
 
         if return_header:
-            return NUMPY_CONVERTER_LIST[input_format](input_data, return_header=True)
+            return_items += NUMPY_CONVERTER_LIST[input_format](input_data, return_header=True)
         else:
-            return NUMPY_CONVERTER_LIST[input_format](input_data)
+            return_items = [NUMPY_CONVERTER_LIST[input_format](input_data)]
+        if return_type:
+            return_items += [input_format]
 
     else:
+        return_items += [input_data]
         if return_header:
-            return input_data, None
-        else:
-            return input_data
+            return_items += [None]
+        if return_type:
+            return_items += ['numpy']
+
+    if len(return_items) > 1:
+        return return_items
+    else:
+        return return_items[0]
 
 def save_numpy_2_file(input, output_filename, reference_file=[], output_format=[]):
     return
