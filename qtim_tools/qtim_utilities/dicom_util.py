@@ -8,10 +8,11 @@ import numpy as np
 import os
 import glob
 import re
-from file_util import human_sort, grab_files_recursive
+
 from collections import defaultdict
-from nifti_util import save_numpy_2_nifti, check_image_2d
-import matplotlib.pyplot as plt
+
+from qtim_tools.qtim_utilities.file_util import human_sort, grab_files_recursive
+from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti, check_image_2d
 
 def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='name'):
 
@@ -131,6 +132,8 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
         print 'Found', len(unique_dicoms.keys()), 'unique volumes \n'
         print 'Saving out files from these volumes.'
 
+    output_filenames = []
+
     for UID in unique_dicoms.keys():
 
         np.set_printoptions(suppress=True)
@@ -199,10 +202,14 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
 
                 output_affine = np.matmul(output_affine, flip_matrix)
 
-            save_numpy_2_nifti(output_numpy, output_affine, os.path.join(output_folder, volume_label))
+            output_filename = os.path.join(output_folder, volume_label)
+            save_numpy_2_nifti(output_numpy, output_affine, output_filename)
+            output_filenames += [output_filename]
 
         except:
             print 'Could not read DICOM at SeriesDescription...', volume_label
+
+    return output_filenames
 
 if __name__ == '__main__':
     pass
