@@ -214,6 +214,10 @@ def replace_suffix(input_filepath, input_suffix, output_suffix, suffix_delimiter
         output_filepath = prefix + split_filename[1]
         return output_filepath
 
+def sanitize_filename(filename, allowed=[]):
+
+    return "".join([c for c in filename if c.isalpha() or c.isdigit() or c in allowed]).rstrip()
+
 def human_sort(l):
 
     """ Stolen from Stack Exchange. Sorts alphabetically, but also numerically. How?
