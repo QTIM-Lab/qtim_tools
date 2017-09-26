@@ -189,9 +189,8 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
             if harden_orientation is not None:
 
                 cx, cy, cz = np.argmax(np.abs(output_affine[0:3,0:3]), axis=0)
-                rx, ry, rz = np.argmax(np.abs(output_affine[0:3,0:3]), axis=1)
 
-                output_numpy = np.transpose(output_numpy, (rx,ry,rz))
+                output_numpy = np.transpose(output_numpy, (cx,cy,cz))
 
                 harden_matrix = np.eye(4)
                 for dim, i in enumerate([cx,cy,cz]):
