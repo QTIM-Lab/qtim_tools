@@ -53,6 +53,34 @@ def grab_files_recursive(input_directory, regex='*'):
 
     return output_list
 
+def grab_folders_recursive(input_directory, regex='*'):
+
+    """ Returns all files recursively in a directory. Essentially a convenience wrapper 
+        around os.walk.
+
+        Parameters
+        ----------
+
+        input_directory: str
+            The folder to search.
+        regex: str
+            A linux-style pattern to match.
+
+        Returns
+        -------
+        output_list: list
+            A list of found files.
+    """
+
+    output_list = []
+
+    for root, subFolders, files in os.walk(input_directory):
+        for subFolder in subFolders:
+            if fnmatch.fnmatch(subFolder, regex):
+                output_list += [os.path.join(root, subFolder)]
+
+    return output_list
+
 def nifti_splitext(input_filepath):
 
     """ os.path.splitext splits a filename into the part before the LAST
