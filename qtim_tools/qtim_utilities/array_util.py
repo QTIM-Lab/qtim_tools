@@ -342,16 +342,16 @@ def generate_label_outlines(label_numpy, dim=2, mask_value=0):
         edges_kernel[0,1,1] = -1
         edges_kernel[2,1,1] = -1
     
-    outline_label_numpy = np.zeros_like(label_numpy)
+    outline_label_numpy = np.zeros_like(label_numpy, dtype=float)
 
     for label_number in np.unique(label_numpy):
         if label_number != mask_value:
             sublabel_numpy = np.copy(label_numpy)
             sublabel_numpy[sublabel_numpy != label_number] = 0
-            edge_image = signal.convolve(sublabel_numpy, edges_kernel, mode='same')
+            edge_image = signal.convolve(sublabel_numpy, edges_kernel, mode='same').astype(int)
             edge_image[sublabel_numpy != label_number] = 0
             edge_image[edge_image != 0] = label_number
-            outline_label_numpy += edge_image
+            outline_label_numpy += edge_image.astype(float)
 
     return outline_label_numpy
 

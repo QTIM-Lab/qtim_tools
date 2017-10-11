@@ -62,8 +62,8 @@ def skull_strip(input_data, output_filename='', output_mask_filename='', method=
             temp_mask_output = True
             output_mask_filename = os.path.join(temp_dir, 'temp_mask_out.nii.gz')
 
-        if extra_parameters['fsl_threshold'] is None:
-            extra_parameters['fsl_threshold'] = .5
+        # if extra_parameters['fsl_threshold'] is None:
+        extra_parameters['fsl_threshold'] = .5
 
         print ' '.join([command, input_filename, output_filename, '-f', str(extra_parameters['fsl_threshold']), '-g', '0', '-m'])
         subprocess.call([command, input_filename, output_filename, '-f', str(extra_parameters['fsl_threshold']), '-g', '0', '-m'])

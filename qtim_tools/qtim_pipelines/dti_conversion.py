@@ -11,12 +11,12 @@ import shutil
 import sys
 import re
 
-from ..qtim_preprocessing.motion_correction import motion_correction
-from ..qtim_preprocessing.skull_strip import skull_strip
-from ..qtim_utilities.file_util import nifti_splitext
-from ..qtim_dti.fit_dti import run_dtifit
+from qtim_tools.qtim_preprocessing.motion_correction import motion_correction
+from qtim_tools.qtim_preprocessing.skull_strip import skull_strip
+from qtim_tools.qtim_utilities.file_util import nifti_splitext, grab_files_recursive
+from qtim_tools.qtim_dti.fit_dti import run_dtifit
 
-def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwrite=False):
+def qtim_dti_conversion(study_name, base_directory, specific_case=None, output_modalities=[], overwrite=False):
 
     """ This script is meant for members of the QTIM lab at MGH. It takes in one of our study names,
         a text-identifier for a label volume (e.g. "FLAIR-label"), and an output file, and computes
@@ -40,76 +40,89 @@ def qtim_dti_conversion(study_name, base_directory, output_modalities=[], overwr
 
     """
 
-    # NiPype is not very necessary here, but I want to get used to it. DataGrabber is a utility for
-    # for recursively getting files that match a pattern.
-    study_files = nio.DataGrabber()
-    study_files.inputs.base_directory = base_directory
-    study_files.inputs.template = os.path.join(study_name, 'RAWDATA', study_name + '*', 'VISIT_*', 'ep2d*/', '*/')
-    study_files.inputs.sort_filelist = True
-    results = study_files.run().outputs.outfiles
+    # TODO: write a file_utils function to grab files recursively with wildcards.
+    studies = glob.glob(os.path.join(base_directory, study_name, 'RAWDATA', study_name + '*/'))
+    visits = []
+    for study in studies:
+        visits += glob.glob(os.path.join(study, 'VISIT_*'))
+
+    # We will have to update the types of folders to grab as folder names change.
+    dicom_folders = []
+    for visit in visits:
+        dicom_folders += glob.glob(os.path.join(visit, 'ep2d*/'))
+        dicom_folders += glob.glob(os.path.join(visit, 'EP2D*/'))
 
     # Because of inconsistent naming within QTIM, there are many directories we need to filter out.
     # I create an original_volumes list to hopefully contain only the raw DTI data.
     filter_out_list = ['DFC', 'ADC', 'FA', 'TENSOR', 'TRACEW', 'saraadj']
     original_volumes = []
-    for output in results:
-        if any(filter_out in output for filter_out in filter_out_list):
+    for output in dicom_folders:
+        if any(filter_out.lower() in output.lower() for filter_out in filter_out_list):
             continue
+        if glob.glob(os.path.join(output, '*/')) != []:
+            output = glob.glob(os.path.join(output, '*/'))[0]
         original_volumes += [output]
+
+    # results = []
+    # for folder in original_volumes:
+    #     results += glob.glob(os.path.join(folder, '*'))
 
     # Each volume is iterated through...
     for volume in original_volumes:
 
-        # Find the output folder
-        # TODO: Do this with nipype DataSink instead.
         # Also TODO: Make this easier to change in case directory structure changes.
+        # With a config file...?
         split_path = os.path.normpath(volume).split(os.sep)
-        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DTI', split_path[-4], split_path[-3], 'NEW_DTI')
+        for path_idx, subpath in enumerate(split_path):
+            if subpath == 'RAWDATA':
+                patient_name = split_path[path_idx+1]
+                visit_name = split_path[path_idx+2]
+
+        # Find the output folder
+        output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DTI', patient_name, visit_name, 'NEW_DTI')
 
         # Create or delete/create the output folder.
         # if os.path.exists(output_folder):
-            # shutil.rmtree(output_folder)    
-        # os.mkdir(output_folder)
+            # shutil.rmtree(output_folder)
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
         # Convert from DICOM
-        output_file_prefix = os.path.join(output_folder, split_path[-4] + '-' + split_path[-3]) + '-DTI_diff'
+        output_file_prefix = os.path.join(output_folder, patient_name + '-' + visit_name) + '-DTI_diff'
         
         print split_path
 
-        # Don't overwrite if possible.
-        if not overwrite and os.path.exists(output_file_prefix + '.bval') and os.path.exists(output_file_prefix + '.bvec') and os.path.exists(output_file_prefix + '.nii.gz'):
-            bval, bvec, diff = [output_file_prefix + '.bval', output_file_prefix + '.bvec',output_file_prefix + '.nii.gz']
-        else:
+        # Create bvals and bvecs. Don't overwrite if possible.
+        bval, bvec, diff = [output_file_prefix + '.bval', output_file_prefix + '.bvec',output_file_prefix + '.nii.gz']
+        if overwrite or not (os.path.exists(output_file_prefix + '.bval') and os.path.exists(output_file_prefix + '.bvec') and os.path.exists(output_file_prefix + '.nii.gz')):
             bval, bvec, diff = convert_DTI_nifti(volume, output_folder, output_file_prefix)
-
-        print [bval, bvec, diff]
 
         # Motion Correction
         output_motion_file = nifti_splitext(diff)[0] + '_mc' + nifti_splitext(diff)[-1]
-        print output_motion_file
-        if not overwrite and os.path.exists(output_motion_file):
-            pass
-        else:
+        if overwrite or not os.path.exists(output_motion_file):
             motion_correction(diff, output_motion_file)
 
         # 1d_tool.py transpose
         output_bvec_file = os.path.splitext(bvec)[0] + '_t' + os.path.splitext(bvec)[-1]
-        run_1dtool(bvec, output_bvec_file)
+        if overwrite or not os.path.exists(output_bvec_file):
+            run_1dtool(bvec, output_bvec_file)
 
         # Rotate bvecs
         output_rotated_bvec_file = os.path.splitext(output_bvec_file)[0] + '_rotated' + os.path.splitext(output_bvec_file)[-1]
         input_motion_file = nifti_splitext(diff)[0] + '_mc.ecclog'
-        run_fdt_rotate_bvecs(output_bvec_file, output_rotated_bvec_file, input_motion_file)
+        if overwrite or not os.path.exists(output_rotated_bvec_file):
+            run_fdt_rotate_bvecs(output_bvec_file, output_rotated_bvec_file, input_motion_file)
 
         # Run Skull-Stripping
         skull_strip_mask = nifti_splitext(output_motion_file)[0] + '_ss_mask' + nifti_splitext(output_motion_file)[-1]
         skull_strip_output = nifti_splitext(output_motion_file)[0] + '_ss' + nifti_splitext(output_motion_file)[-1]
-        if not os.path.exists(skull_strip_mask):
+        if overwrite or not os.path.exists(skull_strip_mask):
             skull_strip(output_motion_file, skull_strip_output, skull_strip_mask, extra_parameters={'fsl_threshold': .1})
 
-        output_prefix = os.path.join(output_folder, split_path[-4] + '-' + split_path[-3] + '-DTI')
-        run_dtifit(output_motion_file, output_rotated_bvec_file, bval, input_mask=skull_strip_mask, output_fileprefix=output_prefix)
-
+        # Fit DTI
+        output_prefix = os.path.join(output_folder, patient_name + '-' + visit_name + '-DTI')
+        if overwrite or not os.path.exists(output_prefix + '_FA.nii.gz'):
+            run_dtifit(output_motion_file, output_rotated_bvec_file, bval, input_mask=skull_strip_mask, output_fileprefix=output_prefix)
 
     return
 
@@ -124,8 +137,8 @@ def run_fdt_rotate_bvecs(input_bvec, output_bvec, input_motion):
 def run_1dtool(input_bvec, output_bvec):
 
     print input_bvec, output_bvec
-    print ' '.join(['1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
-    subprocess.call(['1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
+    print ' '.join(['/home/abeers/abin/1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
+    subprocess.call(['/home/abeers/abin/1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
 
     return
 

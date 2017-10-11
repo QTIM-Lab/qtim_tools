@@ -63,7 +63,7 @@ def coregister_pipeline(study_name, base_directory, destination_volume='T2', out
 
     # time_volumes = ['DCE1', 'DCE2', 'DSC_GE', 'DSC_SE', 'DTI']
 
-    # name_change_dict = []
+    # name_change_dict = {}
 
     # patient_directory = 'ANATOMICAL'
 

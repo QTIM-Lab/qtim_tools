@@ -29,6 +29,8 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
     """
 
     image_numpy = convert_input_2_numpy(input_volume)
+    if step is None:
+        step = 1
 
     if label_volume is not None:
 
@@ -46,6 +48,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
         mosaic_selections = np.unique(mosaic_selections)
         mosaic_selections = mosaic_selections[mosaic_selections >= 0]
         mosaic_selections = mosaic_selections[mosaic_selections <= image_numpy.shape[dim]]
+        mosaic_selections = mosaic_selections[::step]
 
         color_range_image = [np.min(image_numpy), np.max(image_numpy)]
         color_range_label = [np.min(label_numpy), np.max(label_numpy)]
@@ -92,11 +95,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
             plt.imshow(mosaic_image_numpy, 'gray', vmin=color_range_image[0], vmax=color_range_image[1], interpolation='none')
             plt.imshow(mosaic_label_numpy, 'jet', vmin=color_range_label[0], vmax=color_range_label[1], interpolation='none')
             
-            # try:
             plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=1000)
-            # except:
-                # print 'failure'
-            # plt.show()    
             plt.clf()
             plt.close()
 
@@ -108,12 +107,14 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
         slice_width = test_slice.shape[1]
         slice_height = test_slice.shape[0]
 
-        mosaic_image_numpy = np.zeros((slice_height*np.ceil(float(image_numpy.shape[dim])/float(cols)), test_slice.shape[1]*cols), dtype=float)
+        mosaic_selections = np.arange(image_numpy.shape[dim])[::step]
+        print mosaic_selections
+        mosaic_image_numpy = np.zeros((int(slice_height*np.ceil(float(len(mosaic_selections))/float(cols))), int(test_slice.shape[1]*cols)), dtype=float)
 
         row_index = 0
         col_index = 0
 
-        for i in xrange(image_numpy.shape[dim]):
+        for i in mosaic_selections:
             image_slice = np.squeeze(image_numpy[[slice(None) if k != dim else slice(i, i+1) for k in xrange(3)]])
 
             image_slice = np.rot90(image_slice, rotate_90)
@@ -136,10 +137,8 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
             plt.gca().xaxis.set_major_locator(plt.NullLocator())
             plt.gca().yaxis.set_major_locator(plt.NullLocator())
             plt.imshow(mosaic_image_numpy, 'gray', vmin=color_range_image[0], vmax=color_range_image[1], interpolation='none')
-            # try:
-            plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=500)
-            # except:
-                # print 'failure'   
+
+            plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=500) 
             plt.clf()
             plt.close()
 

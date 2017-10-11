@@ -76,7 +76,8 @@ The following commands are available:
             description='Generate DTI modalities from QTIM study raw data.')
 
         parser.add_argument('study_name', type=str)
-        parser.add_argument('base_directory', type=str)       
+        parser.add_argument('base_directory', type=str)
+        parser.add_argument('-case', type=str)     
         parser.add_argument('-output_modalities', type=str)
         parser.add_argument('-overwrite', type=bool)         
         parser.add_argument('-config', type=str)   
@@ -84,7 +85,7 @@ The following commands are available:
         args = parser.parse_args(sys.argv[2:])
         print 'Running DTI conversion on study directory... %s' % args.study_name
 
-        qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(args.study_name, args.base_directory, args.output_modalities, args.overwrite)
+        qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(args.study_name, args.base_directory, specific_case=args.case, output_modalities=args.output_modalities, overwrite=args.overwrite)
 
     def label_statistics(self):
         parser = argparse.ArgumentParser(
@@ -110,10 +111,11 @@ The following commands are available:
         parser.add_argument('input_volume', type=str)
         parser.add_argument('output_image', type=str)
         parser.add_argument('-label_volume', type=str)
+        parser.add_argument('-step', type=int)
 
         args = parser.parse_args(sys.argv[2:])
 
-        qtim_tools.qtim_utilities.nifti_util.create_mosaic(args.input_volume, args.output_image, args.label_volume)
+        qtim_tools.qtim_visualization.image.create_mosaic(args.input_volume, args.output_image, args.label_volume, step=args.step)
 
 def main():
     qtim_commands()

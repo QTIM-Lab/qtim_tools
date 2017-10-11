@@ -9,6 +9,7 @@ from sklearn.metrics import r2_score
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 from qtim_tools.qtim_utilities.file_util import replace_suffix
 from qtim_tools.qtim_utilities.nifti_util import nifti_resave, save_numpy_2_nifti
+from collections import defaultdict
 
 # Categorical
 BLUR = ['blur_' + x for x in ['0','0.2','0.8','1.2']]
@@ -316,16 +317,13 @@ def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
 
     return
 
-def Generate_KEP_Maps(input_directory):
-
-    return
-
 def Preprocess_Volumes(input_directory, output_directory, r2_threshold=.9):
 
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
 
     file_database = glob.glob(os.path.join(input_directory, '*r2*.nii*'))
+    print os.path.join(input_directory, '*r2*.nii*')
 
     for file in file_database:
 
@@ -334,37 +332,41 @@ def Preprocess_Volumes(input_directory, output_directory, r2_threshold=.9):
         input_ktrans = replace_suffix(file, 'r2', 'ktrans')
         input_ve = replace_suffix(file, 'r2', 've')
 
-        output_ktrans = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'ktrans'))
-        output_ve = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 've'))
-        output_kep = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'kep'))
+        output_ktrans = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'ktrans_r2_' + str(r2_threshold)))
+        output_ve = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 've_r2_' + str(r2_threshold)))
+        output_kep = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'kep_r2_' + str(r2_threshold)))
+        output_r2 = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'r2_r2_' + str(r2_threshold)))
 
-        r2_map = convert_input_2_numpy(file)
+        r2_map = np.nan_to_num(convert_input_2_numpy(file))
         ktrans_map = convert_input_2_numpy(input_ktrans)
         ve_map = convert_input_2_numpy(input_ve)
 
-        r2_map = np.nan_to_num(r2_map)
-        # print np.isnan(r2_map).any()
         print (r2_map < r2_threshold).sum()
+
+        ve_map[ktrans_map > 10] = 0
+        ktrans_map[ktrans_map > 10] = 0
+        ktrans_map[ve_map > 1] = 0
+        ve_map[ve_map > 1] = 0
 
         ktrans_map[r2_map < r2_threshold] = -.01
         ve_map[r2_map < r2_threshold] = -.01
-        kep_map = ktrans_map / ve_map
+        kep_map = np.nan_to_num(ktrans_map / ve_map)
         kep_map[r2_map < r2_threshold] = -.01
 
         save_numpy_2_nifti(ktrans_map, input_ktrans, output_ktrans)
         save_numpy_2_nifti(ve_map, input_ktrans, output_ve)
         save_numpy_2_nifti(kep_map, input_ktrans, output_kep)
+        save_numpy_2_nifti(r2_map, input_ktrans, output_r2)
 
 
-
-def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask'):
+def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=False, mask_suffix='_mask', r2_thresholds=[.9]):
 
     """ Save ROI statistics into a giant csv file.
     """
 
     # exclude_patients = ['CED_19', ]
 
-    file_database = glob.glob(os.path.join(input_directory, '*blur_0_*.nii*'))
+    file_database = glob.glob(os.path.join(input_directory, '*blur_0_*r2_' + str(r2_thresholds[0]) + '.nii*'))
 
     output_headers = ['filename','mean','median','min','max','std', 'total_voxels','removed_values', 'removed_percent', 'low_values', 'low_percent']
 
@@ -372,8 +374,6 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
 
     for ROI in glob.glob(os.path.join(ROI_directory, '*.nii*')):
         ROI_dict[os.path.basename(os.path.normpath(ROI))[0:15]] = convert_input_2_numpy(ROI)
-
-    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
 
     for r2 in r2_thresholds:
 
@@ -389,7 +389,12 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
                 data_array = convert_input_2_numpy(filename)
                 patient_visit_code = os.path.basename(os.path.normpath(filename))[0:15]
                 roi_array = ROI_dict[patient_visit_code]
-                r2_array = convert_input_2_numpy(replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_'))
+
+                r2_filename = str.split(filename, '_')
+                r2_filename[-3] = 'r2'
+                r2_filename = '_'.join(r2_filename)
+
+                r2_array = convert_input_2_numpy(r2_filename)
 
                 data_array[data_array<0] = -.01
                 data_array[r2_array<=r2] = -.01
@@ -415,9 +420,9 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
 
     return
 
-def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2):
+def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2, r2_thresholds=[.9]):
 
-    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
+    print r2_thresholds
 
     for r2 in r2_thresholds:
 
@@ -434,7 +439,7 @@ def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2):
 
             for visit_idx, visit in enumerate(visit_1_list):
 
-                if 'r2' in visit:
+                if 'r2_r2' in visit:
                     continue
 
                 split_visit = str.split(visit, 'VISIT_01')
@@ -451,9 +456,7 @@ def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2):
                 if output_data[visit_idx+1, 0] != 0 and output_data[visit_idx+1, 0] != '0' and input_data[np.where(input_data == visit)[0][0], -1] != '0' and input_data[np.where(input_data == new_visit)[0][0], -1] != '0':
                     csvfile.writerow(output_data[visit_idx+1,:])
 
-def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
-
-    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
+def Coeffecient_of_Variation_Worksheet(input_csv, output_csv, r2_thresholds=[.9]):
 
     for r2 in r2_thresholds:
 
@@ -461,7 +464,46 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
         headers = ['method', 'RMS_COV', 'LOG_COV', 'SD_COV', 'CCC', 'R2', 'LOA_pos', 'LOS_neg', 'RC', 'mean_all_vals', 'n_measurements']
         output_data = np.zeros((3000, len(headers)), dtype=object)
         output_data[0,:] = headers
-        methods = []
+        methods, finished_methods = [], []
+
+        # Get all methods
+        for row in input_data:
+
+            if row[0] == '0' or '--' in row:
+                continue
+
+            methods += [str.split(row[0], '/')[-1][15:]]
+
+        method_dict = defaultdict(set)
+        for method in methods:
+            patient_list = [method == str.split(x, '/')[-1][15:] for x in input_data[:,0]]
+            patient_list = input_data[patient_list, :]
+
+            not_masked = [(x[1] != '--' and x[2] != '--') for x in patient_list]
+            not_masked_patient_list = patient_list[not_masked, :]
+
+            for row in not_masked_patient_list:
+                method_dict[method].add(str.split(row[0], '/')[-1][0:15])
+
+        available_patients = []
+        for key, value in method_dict.iteritems():
+            print key
+            if len(value) < 5:
+                continue
+            if available_patients == []:
+                available_patients = value
+            if len(value) < len(available_patients):
+                available_patients = value
+
+        print available_patients
+        print len(available_patients)
+        
+        new_input_data = np.zeros((1,3), dtype=object)
+        for row_idx, row in enumerate(input_data):
+            patient = str.split(row[0], '/')[-1][0:15]
+            if patient in available_patients:
+                new_input_data = np.vstack((new_input_data, row))
+        input_data = new_input_data[1:,:]
 
         with open(replace_suffix(output_csv, '', '_' + str(r2)), 'wb') as writefile:
             csvfile = csv.writer(writefile, delimiter=',')
@@ -471,28 +513,42 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
             for row in input_data:
 
-                if row[0] == '0' or '--' in row:
+                if row[0] == '0' or '--' in row or row[0] == 0:
+                    continue
+
+                patient = str.split(row[0], '/')[-1][0:15]
+                if patient not in available_patients:
                     continue
 
                 method = str.split(row[0], '/')[-1][15:]
 
-                # print row[0]
-                print method
+                if 't1map' in method:
+                    continue
 
-                if method not in methods:
+                aif_method = str.split(method, '_')
+                aif_method[1] = 'sameAIF21'
+                aif_method = '_'.join(aif_method)
+
+                for row2 in input_data:
+                    if aif_method in row2:
+                        continue
+
+                if method not in finished_methods:
                     # patient_list = np.where(method in input_data)
                     patient_list = [method == str.split(x, '/')[-1][15:] for x in input_data[:,0]]
                     patient_list = input_data[patient_list, :]
-                    # print patient_list
                     # print 'METHOD', method
 
                     # Non-Iterative Equations
 
-                    not_masked = [(x[1] != '--' and x[2] != '--') for x in patient_list]
-                    print not_masked
+                    not_masked = [(x[1] != 'nan' and x[2] != 'nan') for x in patient_list]
+                    # print not_masked
                     not_masked_patient_list = patient_list[not_masked, :]
-                    print not_masked_patient_list
+                    # print not_masked_patient_list
                     x, y = not_masked_patient_list[:,1].astype(float), not_masked_patient_list[:,2].astype(float)
+
+                    if not_masked_patient_list.shape[0] < 10:
+                        continue
 
                     # CCC
                     mean_x = np.mean(x)
@@ -522,14 +578,18 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
                     RC_sum = 0
                     n = 0
 
-                    for patient in patient_list:
+                    for patient in not_masked_patient_list:
 
-                        # print patient
+                        data_points = [float(d) for d in patient[1:]]
 
-                        if '--' in patient:
+                        skip=False
+                        for d in data_points:
+                            if d == 0:
+                                skip = True
+                        if skip:
                             continue
 
-                        data_points = [float(x) for x in patient[1:]]
+                        print data_points
 
                         RMS_sum += np.power(abs(data_points[0] - data_points[1]) / np.mean(data_points), 2)
                         LOG_sum += np.power(np.log(data_points[0]) - np.log(data_points[1]), 2)
@@ -545,10 +605,11 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
                     output_data[row_idx+1, :] = [method, RMS_COV, LOG_COV, SD_COV, CCC, R2_score, LOA_pos, LOA_neg, RC, mean_all_vals, n]
                     # print output_data[row_idx+1, :]
 
-                    methods += [method]
+                    finished_methods += [method]
                     # print methods
 
                     if output_data[row_idx+1, 0] != 0 and output_data[row_idx+1, 0] != '0':
+                        print 'nice'
                         csvfile.writerow(output_data[row_idx+1,:])
 
                     row_idx += 1
@@ -560,11 +621,29 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv):
 
     return
 
+# def Equalize_Patient_Number(input_csv, output_csv, r2=.9):
+
+#     input_data = np.genfromtxt(replace_suffix(input_csv, '', '_' + str(r2)), delimiter=',', dtype=object, skip_header=1)
+
+#     output_data = np.zeros((len(visit_1_list)+1, 3), dtype=object)
+
+#     for row in input_data:
+
+#         patient_num = os.path.basename(row[0])
+#         patient_num = patient_num[0:6]
+
+#         if patient
+
+#     return
+
 if __name__ == '__main__':
 
-    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/New_AIFs/Echo1'
+    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/OLD/New_AIFs/Echo1'
     storage_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1/Storage'
     preprocess_directory = '/home/abeers/Data/DCE_Package/Test_Results/New_AIFs/Echo1/PreProcess'
+
+    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/Old_AIFs/Echo1'
+    preprocess_directory = '/home/abeers/Data/DCE_Package/Test_Results/Old_AIFs/Echo1/PreProcess'
 
     NHX_directory = '/qtim2/users/data/NHX/ANALYSIS/DCE/'
     CED_directory = '/qtim/users/data/CED/ANALYSIS/DCE/PREPARATION_FILES/'
@@ -576,27 +655,30 @@ if __name__ == '__main__':
 
     ALT_AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/DCE_Echo1/AIFS'
 
-    output_csv = 'DCE_Assay_complete.csv'
-    paired_csv = 'DCE_Assay_Visits_Paired_simplex.csv'
-    cov_csv = 'DCE_Assay_COV_simplex.csv'
+    output_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Patient_Level_Statistics_old.csv'
+    paired_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Visit_Level_Statistics_old.csv'
+    cov_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Repeatability_Measures_old.csv'
 
-    Preprocess_Volumes(data_directory, preprocess_directory)
-    # Determine_R2_Cutoff_Point(data_directory, ROI_directory)
-    # Create_Average_AIF(ALT_AIF_directory, ALT_AIF_directory)
-    # Rename_LM_Files(data_directory)
-    # Copy_SameAIF_Visit1_Tumors(data_directory)
-    # Convert_NordicIce_AIF(ALT_AIF_directory)
-    # Create_Resource_Directories(CED_directory, NHX_directory, ROI_directory, AIF_directory, T1MAP_directory, DCE_directory)
-    # Create_Study_AIF(ALT_AIF_directory, '/home/abeers/Data/DCE_Package/Test_Results/DCE_Echo1/AIFS/Study_AIF.txt')
-    # Store_Unneeded_Codes(data_directory, storage_directory)
-    # Save_Directory_Statistics(data_directory, ROI_directory, output_csv)
-    # Reshape_Statisticts_Worksheet(output_csv, reshaped_output_csv, ROI_directory)
-    # Delete_Extra_Files(data_directory)
-    # Paired_Visits_Worksheet(output_csv, paired_csv)
-    # Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv)
-    
-    # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
-    # Recode_With_Binary_Labels(data_directory)
-    # Store_and_Retrieve(data_directory, storage_directory)
+    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
+    for r2 in r2_thresholds:
+
+        Preprocess_Volumes(data_directory, preprocess_directory, r2_threshold = r2)
+        # Determine_R2_Cutoff_Point(data_directory, ROI_directory)
+        # Create_Average_AIF(ALT_AIF_directory, ALT_AIF_directory)
+        # Rename_LM_Files(data_directory)
+        # Copy_SameAIF_Visit1_Tumors(data_directory)
+        # Convert_NordicIce_AIF(ALT_AIF_directory)
+        # Create_Resource_Directories(CED_directory, NHX_directory, ROI_directory, AIF_directory, T1MAP_directory, DCE_directory)
+        # Create_Study_AIF(ALT_AIF_directory, '/home/abeers/Data/DCE_Package/Test_Results/DCE_Echo1/AIFS/Study_AIF.txt')
+        # Store_Unneeded_Codes(data_directory, storage_directory)
+        Save_Directory_Statistics(preprocess_directory, ROI_directory, output_csv, r2_thresholds = [r2])
+        # Reshape_Statisticts_Worksheet(output_csv, reshaped_output_csv, ROI_directory)
+        # Delete_Extra_Files(data_directory)
+        Paired_Visits_Worksheet(output_csv, paired_csv, r2_thresholds = [r2])
+        Coeffecient_of_Variation_Worksheet(paired_csv, cov_csv, r2_thresholds = [r2])
+        
+        # Coeffecient_of_Variation_Worksheet(paired_reduced_csv, cov_reduced_csv)
+        # Recode_With_Binary_Labels(data_directory)
+        # Store_and_Retrieve(data_directory, storage_directory)
 
     pass
