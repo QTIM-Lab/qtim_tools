@@ -78,6 +78,9 @@ def qtim_dti_conversion(study_name, base_directory, specific_case=None, output_m
                 patient_name = split_path[path_idx+1]
                 visit_name = split_path[path_idx+2]
 
+        if specific_case is not None and (patient_name + '-' + visit_name != specific_case):
+            continue
+
         # Find the output folder
         output_folder = os.path.join(base_directory, study_name, 'ANALYSIS', 'DTI', patient_name, visit_name, 'NEW_DTI')
 

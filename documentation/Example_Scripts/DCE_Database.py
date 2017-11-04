@@ -317,6 +317,13 @@ def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
 
     return
 
+def Rename_Files(input_directory):
+
+    files = glob.glob(os.path.join(input_directory, '*.nii*'))
+    for file in files:
+        new_path = file.replace('0.2', '02')
+        move(file, new_path)
+
 def Preprocess_Volumes(input_directory, output_directory, r2_threshold=.9):
 
     if not os.path.exists(output_directory):
@@ -336,6 +343,8 @@ def Preprocess_Volumes(input_directory, output_directory, r2_threshold=.9):
         output_ve = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 've_r2_' + str(r2_threshold)))
         output_kep = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'kep_r2_' + str(r2_threshold)))
         output_r2 = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'r2_r2_' + str(r2_threshold)))
+
+        print input_ktrans
 
         r2_map = np.nan_to_num(convert_input_2_numpy(file))
         ktrans_map = convert_input_2_numpy(input_ktrans)
@@ -366,7 +375,7 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
 
     # exclude_patients = ['CED_19', ]
 
-    file_database = glob.glob(os.path.join(input_directory, '*blur_0_*r2_' + str(r2_thresholds[0]) + '.nii*'))
+    file_database = glob.glob(os.path.join(input_directory, '*blur*r2_' + str(r2_thresholds[0]) + '.nii*'))
 
     output_headers = ['filename','mean','median','min','max','std', 'total_voxels','removed_values', 'removed_percent', 'low_values', 'low_percent']
 
@@ -427,6 +436,8 @@ def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2, r2_thresholds=
     for r2 in r2_thresholds:
 
         input_data = np.genfromtxt(replace_suffix(input_csv, '', '_' + str(r2)), delimiter=',', dtype=object, skip_header=1)
+
+        print input_data
 
         visit_1_list = [x for x in input_data[:,0] if 'VISIT_01' in x]
 
@@ -642,8 +653,8 @@ if __name__ == '__main__':
     storage_directory = '/home/abeers/Data/DCE_Package/Test_Results/Echo1/Storage'
     preprocess_directory = '/home/abeers/Data/DCE_Package/Test_Results/New_AIFs/Echo1/PreProcess'
 
-    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/Old_AIFs/Echo1'
-    preprocess_directory = '/home/abeers/Data/DCE_Package/Test_Results/Old_AIFs/Echo1/PreProcess'
+    data_directory = '/home/abeers/Data/DCE_Package/Test_Results/Old_AIFs_Minor_Blur/Echo1'
+    preprocess_directory = '/home/abeers/Data/DCE_Package/Test_Results/Old_AIFs_Minor_Blur/Echo1/Preprocess'
 
     NHX_directory = '/qtim2/users/data/NHX/ANALYSIS/DCE/'
     CED_directory = '/qtim/users/data/CED/ANALYSIS/DCE/PREPARATION_FILES/'
@@ -655,13 +666,14 @@ if __name__ == '__main__':
 
     ALT_AIF_directory = '/home/abeers/Data/DCE_Package/Test_Results/DCE_Echo1/AIFS'
 
-    output_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Patient_Level_Statistics_old.csv'
-    paired_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Visit_Level_Statistics_old.csv'
-    cov_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Repeatability_Measures_old.csv'
+    output_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Patient_Level_Statistics_old_blur.csv'
+    paired_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Visit_Level_Statistics_old_blur.csv'
+    cov_csv = '/home/abeers/Requests/Jayashree/DCE_Repeatability_Data/DCE_Assay_Repeatability_Measures_old_blur.csv'
 
-    r2_thresholds = [0.01, .5, .6, .7, .8, .9]
+    r2_thresholds = [0.6]
     for r2 in r2_thresholds:
 
+        Rename_Files(data_directory)
         Preprocess_Volumes(data_directory, preprocess_directory, r2_threshold = r2)
         # Determine_R2_Cutoff_Point(data_directory, ROI_directory)
         # Create_Average_AIF(ALT_AIF_directory, ALT_AIF_directory)

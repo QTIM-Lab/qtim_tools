@@ -1,11 +1,56 @@
 import numpy as np
+import os
 
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti
+from qtim_tools.test_data.load import load_test_file
+from qtim_tools.qtim_utilities.file_util import nifti_splitext, grab_files_recursive
 
 def correlation_analysis(input_volume):
 
     image_numpy = convert_input_2_numpy(input_volume)
+
+    displacement_list = np.mgrid[1:17:1, 1:17:1, 1:17:1].reshape(3,-1).T - 8
+
+    output_correlation_matrix = np.zeros((17,17,17), dtype=float)
+
+    for displacement in displacement_list:
+        print displacement
+        x, y, z = displacement
+        slice_list = []
+        displacement_slice_list = []
+
+        for axis in [x,y,z]:
+            if axis < 0:
+                slice_list += [slice(-axis, None, 1)]
+                displacement_slice_list += [slice(0, axis, 1)]
+            elif axis > 0:
+                slice_list += [slice(0, -axis, 1)]
+                displacement_slice_list += [slice(axis, None, 1)]
+            else:
+                slice_list += [slice(None)]
+                displacement_slice_list += [slice(None)]
+
+        print slice_list
+        print displacement_slice_list
+
+        compare_array_1 = image_numpy[slice_list]
+        compare_array_2 = image_numpy[displacement_slice_list]
+
+        print compare_array_1.shape
+        print compare_array_2.shape
+
+        correlation = np.corrcoef(compare_array_1.reshape(-1), compare_array_2.reshape(-1))
+        print correlation
+        print '\n'
+
+        output_correlation_matrix[x+8, y+8, z+8] = correlation[1,0]
+
+    save_numpy_2_nifti(output_correlation_matrix, None, nifti_splitext(os.path.basename(input_volume))[0] + '_array' + nifti_splitext(os.path.basename(input_volume))[-1])
+
+
+
+
 
 
 def dice_coeffecient(input_label_1, input_label_2):
@@ -73,3 +118,10 @@ def intensity_range(input_volume, percentiles=[.25,.75]):
     intensity_range = [np.percentile(image_numpy, percentiles[0], interpolation="nearest"), np.percentile(image_numpy, percentiles[1], interpolation="nearest")]
 
     return intensity_range
+
+if __name__ == '__main__':
+    # correlation_analysis(load_test_file('sample_mri'))
+    correlation_analysis('/qtim2/users/data/FMS/ANALYSIS/COREGISTRATION/FMS_01/VISIT_01/FMS_01-VISIT_01-MPRAGE_POST_r_T2.nii.gz')
+    correlation_analysis('/qtim2/users/data/FMS/ANALYSIS/COREGISTRATION/FMS_01/VISIT_01/FMS_01-VISIT_01-SUV_r_T2.nii.gz')
+    correlation_analysis('/qtim2/users/data/FMS/ANALYSIS/COREGISTRATION/FMS_01/VISIT_01/FMS_01-VISIT_01-DSC_GE_r_T2.nii.gz')
+    correlation_analysis('/qtim2/users/data/FMS/ANALYSIS/COREGISTRATION/FMS_01/VISIT_01/FMS_01-VISIT_01-FLAIR_r_T2.nii.gz')
