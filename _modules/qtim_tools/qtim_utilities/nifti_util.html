@@ -1,0 +1,728 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_utilities.nifti_util &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_utilities.nifti_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_utilities.nifti_util</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">copy</span><span class="p">,</span> <span class="n">move</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">misc</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage.morphology</span> <span class="k">import</span> <span class="n">binary_fill_holes</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+
+<div class="viewcode-block" id="return_nifti_attributes"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.return_nifti_attributes">[docs]</a><span class="k">def</span> <span class="nf">return_nifti_attributes</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This returns nibabel&#39;s version of the nifti header. Note that this</span>
+<span class="sd">        is NOT the full header! fslhd, from FSL, returns other things such</span>
+<span class="sd">        as the qform orientation code. TODO: add an option for returning fslhd</span>
+<span class="sd">        if installed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">img_nifti</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">img_nifti</span><span class="o">.</span><span class="n">header</span></div>
+
+<div class="viewcode-block" id="get_nifti_affine"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.get_nifti_affine">[docs]</a><span class="k">def</span> <span class="nf">get_nifti_affine</span><span class="p">(</span><span class="n">input_data</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="n">affine</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span><span class="o">.</span><span class="n">affine</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">affine</span> <span class="o">=</span> <span class="n">input_data</span><span class="o">.</span><span class="n">affine</span>
+
+    <span class="k">return</span> <span class="n">affine</span></div>
+
+<div class="viewcode-block" id="set_nifti_affine"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.set_nifti_affine">[docs]</a><span class="k">def</span> <span class="nf">set_nifti_affine</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">new_affine</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function takes in either a nibabel nifti object or a nifti</span>
+<span class="sd">        filepath and alters its affine matrix.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_data: str or nibabel object</span>
+<span class="sd">            If str, will be interpreted as a filepath. Otherwise, will be</span>
+<span class="sd">            interpreted as a nibabel nifti object.</span>
+<span class="sd">        new_affine: 4x4 numpy array</span>
+<span class="sd">            The new affine matrix to be set.</span>
+<span class="sd">        output_filepath: str</span>
+<span class="sd">            The output_filepath, if not the same as the input_filepath.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">output_filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output_filepath</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">input_data</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+        <span class="n">output_nifti</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">input_data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span> <span class="n">new_affine</span><span class="p">)</span>
+        <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output_nifti</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">input_data</span><span class="o">.</span><span class="n">affine</span> <span class="o">=</span> <span class="n">new_affine</span></div>
+
+<div class="viewcode-block" id="nifti_resave"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.nifti_resave">[docs]</a><span class="k">def</span> <span class="nf">nifti_resave</span><span class="p">(</span><span class="n">input_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Copies a file somewhere else. Effectively only used for compressing nifti files.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_filepath: str</span>
+<span class="sd">            Input filepath.</span>
+<span class="sd">        output_filepath: str</span>
+<span class="sd">            Output filepath to be copied to.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">input_filepath</span><span class="p">),</span> <span class="n">output_filepath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="nifti_2_numpy"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.nifti_2_numpy">[docs]</a><span class="k">def</span> <span class="nf">nifti_2_numpy</span><span class="p">(</span><span class="n">input_filepath</span><span class="p">,</span> <span class="n">return_header</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Copies a file somewhere else. Effectively only used for compressing nifti files.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_filepath: str</span>
+<span class="sd">            Input filepath.</span>
+<span class="sd">        return_header: bool</span>
+<span class="sd">            If true, returns header information in nibabel format.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        img: Numpy array</span>
+<span class="sd">            Untransformed image data.</span>
+<span class="sd">        header: list</span>
+<span class="sd">            A two item list. The first is the affine matrix in array format, the</span>
+<span class="sd">            second is </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="n">nifti</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">input_filepath</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">return_header</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nifti</span><span class="o">.</span><span class="n">get_data</span><span class="p">(),</span> <span class="p">[</span><span class="n">nifti</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">nifti</span><span class="o">.</span><span class="n">header</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nifti</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="create_4d_nifti_from_3d"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.create_4d_nifti_from_3d">[docs]</a><span class="k">def</span> <span class="nf">create_4d_nifti_from_3d</span><span class="p">(</span><span class="n">input_4d_numpy</span><span class="p">,</span> <span class="n">reference_nifti_filepath</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Sometimes, a reference nifti is only available in 3D form when trying to</span>
+<span class="sd">        generate a 4D volume. This function addresses that.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nifti_image</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">reference_nifti_filepath</span><span class="p">)</span>
+    <span class="n">image_affine</span> <span class="o">=</span> <span class="n">nifti_image</span><span class="o">.</span><span class="n">affine</span>
+    <span class="n">nifti_image</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">nifti_image</span><span class="o">.</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;dim&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_4d_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">output_nifti</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">input_4d_numpy</span><span class="p">,</span> <span class="n">image_affine</span><span class="p">)</span>
+    <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output_nifti</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="save_3d_numpy_from_4d_nifti"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.save_3d_numpy_from_4d_nifti">[docs]</a><span class="k">def</span> <span class="nf">save_3d_numpy_from_4d_nifti</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">reference_nifti</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">):</span>
+
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="save_numpy_2_nifti"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.save_numpy_2_nifti">[docs]</a><span class="k">def</span> <span class="nf">save_numpy_2_nifti</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">reference_nifti_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This is a bit convoluted.</span>
+
+<span class="sd">        TODO: Documentation, rearrange reference_nifti and output_filepath, and</span>
+<span class="sd">        propagate changes to the rest of qtim_tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">reference_nifti_filepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference_nifti_filepath</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+            <span class="n">nifti_image</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">reference_nifti_filepath</span><span class="p">)</span>
+            <span class="n">image_affine</span> <span class="o">=</span> <span class="n">nifti_image</span><span class="o">.</span><span class="n">affine</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image_affine</span> <span class="o">=</span> <span class="n">reference_nifti_filepath</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Warning: no reference nifti file provided. Generating empty header.&#39;</span>
+        <span class="n">image_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="n">output_nifti</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">image_affine</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">output_nifti</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output_nifti</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">)</span></div>
+
+<span class="sd">&quot;&quot;&quot; All functions below will eventually be moved into other modules. They remain</span>
+<span class="sd">    for now, because it takes time to figure out which other functions reference</span>
+<span class="sd">    them.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="coerce_levels"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.coerce_levels">[docs]</a><span class="k">def</span> <span class="nf">coerce_levels</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;divide&quot;</span><span class="p">,</span> <span class="n">reference_image</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">reference_norm_range</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">075</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">coerce_positive</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; In volumes with huge outliers, the divide method will</span>
+<span class="sd">        likely result in many zero values. This happens in practice</span>
+<span class="sd">        quite often. TO-DO: find a better method to bin image values.</span>
+<span class="sd">        I&#39;m sure there are a thousand such algorithms out there to do</span>
+<span class="sd">        so. Maybe something based on median&#39;s, rather than means. This,</span>
+<span class="sd">        of course, loses the &#39;Extremeness&#39; of extreme values. An open</span>
+<span class="sd">        question of how to reconcile this -- maybe best left to the user.</span>
+<span class="sd">        Note that there is some dubious +1s and -1s in this function. It</span>
+<span class="sd">        may be better to clean these up in the future. I have also built-in</span>
+<span class="sd">        the coerce-positive function into this function. The other one</span>
+<span class="sd">        was not working for mysterious reasons.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">coerce_positive</span><span class="p">:</span>
+        <span class="n">reference_image</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+        <span class="n">image_numpy</span><span class="p">[</span><span class="n">image_numpy</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">]</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+
+    <span class="n">levels</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;divide&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">reference_image</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">image_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">reference_image</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">image_numpy</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">]</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">:</span>
+                        <span class="n">image_numpy</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">image_numpy</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">]</span> <span class="o">/</span> <span class="n">image_max</span><span class="p">)</span> <span class="o">*</span> <span class="n">levels</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="sd">&quot;&quot;&quot; Another method is to bin values based on their z-score. I provide</span>
+<span class="sd">        two options: within-ROI normalization, and whole-image normalization.</span>
+<span class="sd">        The output is always the ROI image, but in the latter option z-scores</span>
+<span class="sd">        are generated from the range of intensities across the entire image</span>
+<span class="sd">        within some range of percentages. This range is currently determined</span>
+<span class="sd">        from the mean, but it may make more sense to do it from the median;</span>
+<span class="sd">        this protects the algorithm from extreme values. On the other hand,</span>
+<span class="sd">        using the median could white out an otherwise heterogenous hotspot.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;z_score&quot;</span><span class="p">:</span>
+
+        <span class="c1"># check_image_2d(image_numpy, mode=&quot;maximal_slice&quot;, mask_value=mask_value)</span>
+
+        <span class="c1">## Note that this is a bad way to check this variable.</span>
+        <span class="k">if</span> <span class="n">reference_image</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">masked_image_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">)</span>
+            <span class="n">z_image_numpy</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">zscore</span><span class="p">(</span><span class="n">masked_image_numpy</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># image_range = [np.min(z_image_numpy), np.max(z_image_numpy)]</span>
+            <span class="n">image_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">z_image_numpy</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">z_image_numpy</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">z_image_numpy</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">z_image_numpy</span><span class="p">)]</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">image_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">image_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">levels</span><span class="p">)</span>
+
+            <span class="c1"># distribution = stats.norm(loc=np.mean(z_image_numpy), scale=np.var(z_image_numpy))</span>
+
+            <span class="c1"># # percentile point, the range for the inverse cumulative distribution function:</span>
+            <span class="c1"># bounds_for_range = distribution.cdf([0, 100])</span>
+
+            <span class="c1"># # Linspace for the inverse cdf:</span>
+            <span class="c1"># pp = np.linspace(*bounds_for_range, num=levels)</span>
+
+            <span class="c1"># bins = distribution.ppf(pp)</span>
+            <span class="c1"># print bins</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">masked_reference_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">reference_image</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">)</span>
+            <span class="n">masked_reference_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="n">masked_reference_image</span><span class="p">,</span> <span class="n">reference_norm_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">reference_image</span><span class="p">))</span>
+            <span class="n">masked_reference_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_greater</span><span class="p">(</span><span class="n">masked_reference_image</span><span class="p">,</span> <span class="n">reference_norm_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">reference_image</span><span class="p">))</span>
+            <span class="n">masked_image_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">)</span>
+            <span class="n">z_image_numpy</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">zmap</span><span class="p">(</span><span class="n">masked_image_numpy</span><span class="p">,</span> <span class="n">masked_reference_image</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="n">z_reference_image</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">zscore</span><span class="p">(</span><span class="n">masked_reference_image</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># distribution = stats.norm(loc=np.mean(z_reference_image), scale=np.var(z_reference_image))</span>
+
+            <span class="c1"># # percentile point, the range for the inverse cumulative distribution function:</span>
+            <span class="c1"># bounds_for_range = distribution.cdf([0, 100])</span>
+
+            <span class="c1"># # Linspace for the inverse cdf:</span>
+            <span class="c1"># pp = np.linspace(*bounds_for_range, num=levels)</span>
+
+            <span class="c1"># bins = distribution.ppf(pp)</span>
+
+            <span class="c1"># image_range = [np.mean(z_reference_image) - np.std(z_reference_image), np.mean(z_reference_image) + np.std(z_reference_image)]</span>
+            <span class="n">image_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">z_reference_image</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">z_reference_image</span><span class="p">)]</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">image_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">image_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">levels</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">image_numpy</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">]</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">:</span>
+                        <span class="n">image_numpy</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">bins</span><span class="o">-</span><span class="n">z_image_numpy</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">]))</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># check_image_2d(image_numpy, mode=&quot;maximal_slice&quot;, mask_value=mask_value)</span>
+    <span class="n">image_numpy</span><span class="p">[</span><span class="n">image_numpy</span> <span class="o">==</span> <span class="n">mask_value</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">image_numpy</span></div>
+
+<div class="viewcode-block" id="coerce_positive"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.coerce_positive">[docs]</a><span class="k">def</span> <span class="nf">coerce_positive</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Required by GLCM. Not sure of the implications for other algorithms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">image_min</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">image_numpy</span> <span class="o">=</span> <span class="n">image_numpy</span> <span class="o">-</span> <span class="n">image_min</span>
+    <span class="k">return</span> <span class="n">image_numpy</span></div>
+
+<div class="viewcode-block" id="remove_islands"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.remove_islands">[docs]</a><span class="k">def</span> <span class="nf">remove_islands</span><span class="p">():</span>
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="erode_label"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.erode_label">[docs]</a><span class="k">def</span> <span class="nf">erode_label</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; For each iteration, removes all voxels not completely surrounded by</span>
+<span class="sd">        other voxels. This might be a bit of an aggressive erosion. Also I</span>
+<span class="sd">        would bet it is incredibly ineffecient. Also custom erosions in</span>
+<span class="sd">        multiple dimensions look a little bit messy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">iterations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">iterations</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">iterations</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;The erosion parameter does not have enough dimensions (3). Using the first value in the eroison parameter.&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">iterations</span> <span class="o">==</span> <span class="p">[</span><span class="n">iterations</span><span class="p">,</span> <span class="n">iterations</span><span class="p">,</span> <span class="n">iterations</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">iterations</span><span class="p">)):</span>
+
+        <span class="n">kernel_center</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">edges_kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">iterations</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">iterations</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">kernel_center</span> <span class="o">+=</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">iterations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">iterations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">kernel_center</span> <span class="o">+=</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">iterations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">iterations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">kernel_center</span> <span class="o">+=</span> <span class="mi">2</span>
+
+        <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">kernel_center</span>
+
+        <span class="n">label_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+        <span class="n">label_numpy</span><span class="p">[</span><span class="n">label_numpy</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">label_numpy</span><span class="p">[</span><span class="n">label_numpy</span> <span class="o">==</span> <span class="n">mask_value</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">edge_image</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">label_numpy</span><span class="p">,</span> <span class="n">edges_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+        <span class="n">edge_image</span><span class="p">[</span><span class="n">edge_image</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">edge_image</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">edge_image</span> <span class="o">&lt;=</span> <span class="n">kernel_center</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">edge_image</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">edge_image</span><span class="p">[</span><span class="n">edge_image</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">edge_image</span><span class="p">[</span><span class="n">edge_image</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">image_numpy</span><span class="p">[</span><span class="n">edge_image</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_value</span>
+
+    <span class="k">return</span> <span class="n">image_numpy</span></div>
+
+<div class="viewcode-block" id="check_image_2d"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.check_image_2d">[docs]</a><span class="k">def</span> <span class="nf">check_image_2d</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">second_image_numpy</span><span class="o">=</span><span class="p">[],</span> <span class="n">slice_view</span><span class="o">=</span><span class="s2">&quot;cycle&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">slice_axis</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; A useful utiltiy for spot checks. TODO: Add utility for dynamic axis viewing. Also TODO: make</span>
+<span class="sd">        a check_image_3d</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">second_image_numpy</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">a</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">imgplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">[:,:,</span><span class="n">i</span><span class="o">*</span><span class="n">step</span><span class="p">],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+            <span class="n">a</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">imgplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">second_image_numpy</span><span class="p">[:,:,</span><span class="n">i</span><span class="o">*</span><span class="n">step</span><span class="p">],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">slice_view</span> <span class="o">==</span> <span class="s2">&quot;cycle&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+                <span class="n">imgplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">slice_view</span> <span class="o">==</span> <span class="s2">&quot;first&quot;</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">imgplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">slice_view</span> <span class="o">==</span> <span class="s2">&quot;maximal_slice&quot;</span><span class="p">:</span>
+
+            <span class="n">maximal</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)]</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+            
+                <span class="n">image_slice</span> <span class="o">=</span> <span class="n">image_numpy</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span>
+
+                <span class="n">test_maximal</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_slice</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">test_maximal</span> <span class="o">&gt;=</span> <span class="n">maximal</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">maximal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_maximal</span>
+                    <span class="n">maximal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_slice</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">imgplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">maximal</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">imgplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">[</span><span class="n">slice_view</span><span class="p">,:,:],</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="check_tumor_histogram"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.check_tumor_histogram">[docs]</a><span class="k">def</span> <span class="nf">check_tumor_histogram</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">second_image_numpy</span><span class="o">=</span><span class="p">[],</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">image_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; TODO: Make more general, edit out the word tumor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">second_image_numpy</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">tumor_ROI</span> <span class="o">=</span> <span class="n">image_numpy</span><span class="p">[</span><span class="n">image_numpy</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">]</span>
+        <span class="n">whole_brain</span> <span class="o">=</span> <span class="n">second_image_numpy</span><span class="p">[</span><span class="n">second_image_numpy</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">second_image_numpy</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">*</span><span class="mf">0.075</span><span class="p">)]</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">second_image_numpy</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">*</span><span class="mf">0.075</span><span class="p">,</span> <span class="n">second_image_numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mi">100</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+        <span class="n">brain_hist</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">brain_hist</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">whole_brain</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Whole Brain &gt; 7.5 Percent Intensity&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">image_name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">image_name</span><span class="p">)</span>
+
+        <span class="n">tumor_hist</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">tumor_hist</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">tumor_ROI</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Tumor ROI(s)&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Tumor ROI(s)&#39;</span><span class="p">)</span>
+
+        <span class="c1"># plt.legend(loc=&#39;upper right&#39;)</span>
+        <span class="c1"># plt.show()</span>
+        <span class="k">if</span> <span class="n">image_name</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;TMZ&#39;</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">image_name</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;Melanoma_&quot;</span> <span class="o">+</span> <span class="n">image_name</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tumor_ROI</span> <span class="o">=</span> <span class="n">image_numpy</span><span class="p">[</span><span class="n">image_numpy</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">]</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">tumor_ROI</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Gaussian Histogram&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Frequency&quot;</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="assert_3D"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.assert_3D">[docs]</a><span class="k">def</span> <span class="nf">assert_3D</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">image_numpy</span> <span class="o">=</span> <span class="n">image_numpy</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="assert_nD"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.assert_nD">[docs]</a><span class="k">def</span> <span class="nf">assert_nD</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">arg_name</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    This script is currently directly copied from scikit-image.</span>
+
+<span class="sd">    Verify an array meets the desired ndims.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : array-like</span>
+<span class="sd">        Input array to be validated</span>
+<span class="sd">    ndim : int or iterable of ints</span>
+<span class="sd">        Allowable ndim or ndims for the array.</span>
+<span class="sd">    arg_name : str, optional</span>
+<span class="sd">        The name of the array in the original function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The parameter `</span><span class="si">%s</span><span class="s2">` must be a </span><span class="si">%s</span><span class="s2">-dimensional array&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ndim</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="p">[</span><span class="n">ndim</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">in</span> <span class="n">ndim</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">arg_name</span><span class="p">,</span> <span class="s1">&#39;-or-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ndim</span><span class="p">])))</span></div>
+
+<div class="viewcode-block" id="fill_in_convex_outline"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.fill_in_convex_outline">[docs]</a><span class="k">def</span> <span class="nf">fill_in_convex_outline</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">outline_lower_threshold</span><span class="o">=</span><span class="p">[],</span> <span class="n">outline_upper_threshold</span><span class="o">=</span><span class="p">[],</span> <span class="n">outline_color</span><span class="o">=</span><span class="p">[],</span> <span class="n">output_label_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">reference_nifti</span><span class="o">=</span><span class="p">[]):</span>
+
+    <span class="n">outline_upper_threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">outline_upper_threshold</span><span class="p">)</span>
+    <span class="n">outline_lower_threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">outline_lower_threshold</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nii&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;nii.gz&#39;</span><span class="p">):</span>
+        <span class="k">return</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">image_file</span> <span class="o">=</span> <span class="n">misc</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">label_file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image_file</span><span class="p">)</span>
+        <span class="c1"># print image_file.shape</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_file</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">row_section</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">fill_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_file</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">pixel</span> <span class="o">=</span> <span class="n">image_file</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+                
+                <span class="k">if</span> <span class="n">outline_upper_threshold</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="n">outline_lower_threshold</span> <span class="o">!=</span> <span class="p">[]:</span>
+                    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">pixel</span> <span class="o">&gt;</span> <span class="n">outline_lower_threshold</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">pixel</span> <span class="o">&lt;</span> <span class="n">outline_upper_threshold</span><span class="p">):</span>
+                        <span class="n">match</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">outline_color</span> <span class="o">!=</span> <span class="p">[]:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">pixel</span> <span class="o">==</span> <span class="n">outline_color</span><span class="p">):</span>
+                        <span class="n">match</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s1">&#39;Error. Please provide a valid outline color or threshold.&#39;</span>
+                    <span class="k">return</span>
+
+                <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                    <span class="n">label_file</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_label_num</span>                    
+
+        <span class="k">if</span> <span class="n">reference_nifti</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="n">label_file</span> <span class="o">=</span> <span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">label_file</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">label_file</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">*</span><span class="mi">255</span>
+            <span class="n">misc</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">label_file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label_file</span> <span class="o">=</span> <span class="n">label_file</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span> <span class="n">reference_nifti</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="replace_slice"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.nifti_util.replace_slice">[docs]</a><span class="k">def</span> <span class="nf">replace_slice</span><span class="p">(</span><span class="n">input_nifti_slice_filepath</span><span class="p">,</span> <span class="n">reference_nifti_filepath</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">slice_number</span><span class="p">,</span> <span class="n">orientation_commands</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">]):</span>
+
+    <span class="sd">&quot;&quot;&quot; Orients a 1-D label nifti, likely created by the convex outline function, with respect to a reference</span>
+<span class="sd">        3-D nifti. Saves out a 3-D nifti of the same shape with just the one ROI slice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">refererence_numpy</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">reference_nifti_filepath</span><span class="p">)</span>
+    <span class="n">input_numpy_slice</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">input_nifti_slice_filepath</span><span class="p">)</span>
+    <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">refererence_numpy</span><span class="p">)</span>
+
+    <span class="c1"># Some rotations may be necessary to get the labelmap in the right orientation.</span>
+    <span class="c1"># It is not obvious from the starting jpgs what those rotations should be.</span>
+
+    <span class="k">for</span> <span class="n">transformation_function</span> <span class="ow">in</span> <span class="n">orientation_commands</span><span class="p">:</span>
+        <span class="n">input_numpy_slice</span> <span class="o">=</span> <span class="n">transformation_function</span><span class="p">(</span><span class="n">input_numpy_slice</span><span class="p">)</span>
+
+    <span class="n">output_numpy</span><span class="p">[:,:,</span><span class="n">slice_number</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_numpy_slice</span><span class="p">[:,:]</span>
+
+    <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="n">reference_nifti_filepath</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

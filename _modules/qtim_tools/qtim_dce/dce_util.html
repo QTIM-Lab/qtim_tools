@@ -1,0 +1,844 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_dce.dce_util &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_dce.dce_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_dce.dce_util</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Reusable utility functions associated with DCE analysis. TODO</span>
+<span class="sd">    clean up this file.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities.nifti_util</span> <span class="k">import</span> <span class="n">save_numpy_2_nifti</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">freeze_support</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<div class="viewcode-block" id="parker_model_AIF"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.dce_util.parker_model_AIF">[docs]</a><span class="k">def</span> <span class="nf">parker_model_AIF</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">image_numpy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timepoints</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">output_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Creates and AIF of a set duration and with a set bolus arrival time using the Parker model.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+
+    <span class="k">if</span> <span class="n">timepoints</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">timepoints</span> <span class="o">=</span> <span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">output_shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">timepoints</span><span class="p">,)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_shape</span> <span class="o">=</span> <span class="n">output_shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">timepoints</span><span class="p">,)</span>
+
+    <span class="n">AIF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_shape</span><span class="p">)</span>
+
+    <span class="n">bolus_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">injection_start_time_seconds</span> <span class="o">/</span> <span class="n">scan_time_seconds</span><span class="p">)</span> <span class="o">*</span> <span class="n">timepoints</span><span class="p">))</span>
+
+    <span class="n">time_series_minutes</span> <span class="o">=</span> <span class="n">time_interval_seconds</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">timepoints</span><span class="o">-</span><span class="n">bolus_time</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span>
+
+    <span class="c1"># Parker parameters. Taken from their orginal published paper.</span>
+    <span class="n">a1</span> <span class="o">=</span> <span class="mf">0.809</span>
+    <span class="n">a2</span> <span class="o">=</span> <span class="mf">0.330</span>
+    <span class="n">T1</span> <span class="o">=</span> <span class="mf">0.17406</span>
+    <span class="n">T2</span> <span class="o">=</span> <span class="mf">0.365</span>
+    <span class="n">sigma1</span> <span class="o">=</span> <span class="mf">0.0563</span>
+    <span class="n">sigma2</span> <span class="o">=</span> <span class="mf">0.132</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.050</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.1685</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="mf">38.078</span>
+    <span class="n">tau</span> <span class="o">=</span> <span class="mf">0.483</span>
+
+    <span class="n">term_0</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">time_series_minutes</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">s</span><span class="o">*</span><span class="p">(</span><span class="n">time_series_minutes</span><span class="o">-</span><span class="n">tau</span><span class="p">)))</span>
+    
+    <span class="n">A1</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">/</span> <span class="p">(</span><span class="n">sigma1</span> <span class="o">*</span> <span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**.</span><span class="mi">5</span><span class="p">))</span>
+    <span class="n">B1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">time_series_minutes</span><span class="o">-</span><span class="n">T1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sigma1</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">term_1</span> <span class="o">=</span> <span class="n">A1</span> <span class="o">*</span> <span class="n">B1</span>
+
+    <span class="n">A2</span> <span class="o">=</span> <span class="n">a2</span> <span class="o">/</span> <span class="p">(</span><span class="n">sigma2</span> <span class="o">*</span> <span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**.</span><span class="mi">5</span><span class="p">))</span>
+    <span class="n">B2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">time_series_minutes</span><span class="o">-</span><span class="n">T2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sigma2</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">term_2</span> <span class="o">=</span> <span class="n">A2</span> <span class="o">*</span> <span class="n">B2</span>
+
+    <span class="n">post_bolus_AIF</span> <span class="o">=</span> <span class="n">term_0</span> <span class="o">+</span> <span class="n">term_1</span> <span class="o">+</span> <span class="n">term_2</span>
+
+    <span class="n">AIF</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">bolus_time</span><span class="p">:]</span> <span class="o">=</span> <span class="n">post_bolus_AIF</span>
+
+    <span class="k">return</span> <span class="n">AIF</span></div>
+
+<div class="viewcode-block" id="convert_intensity_to_concentration"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.dce_util.convert_intensity_to_concentration">[docs]</a><span class="k">def</span> <span class="nf">convert_intensity_to_concentration</span><span class="p">(</span><span class="n">data_numpy</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="p">,</span> <span class="n">TR</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">relaxivity</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">hematocrit</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">T1_map</span> <span class="o">=</span> <span class="p">[]):</span>
+
+    <span class="c1"># error suppression</span>
+    <span class="n">old_settings</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+
+    <span class="n">flip_angle_radians</span> <span class="o">=</span> <span class="n">flip_angle_degrees</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span>
+
+    <span class="k">if</span> <span class="n">T1_map</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">R1_pre</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">T1_map</span><span class="p">)</span>
+        <span class="n">R1_pre</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">R1_pre</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+    <span class="k">elif</span> <span class="n">T1_blood</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">R1_pre</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">T1_tissue</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">R1_pre</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">T1_blood</span><span class="p">)</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">TR</span> <span class="o">*</span> <span class="n">R1_pre</span><span class="p">)</span>
+    <span class="n">relative_term</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">flip_angle_radians</span><span class="p">))</span>
+
+    <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data_numpy</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">injection_start_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">))])</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="n">data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">dim</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dim</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data_numpy</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">injection_start_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="n">dim</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="p">(</span><span class="n">baseline</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dim</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Dimension error. Please enter an array with dimensions between 1 and 4.&#39;</span>
+
+    <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">data_numpy</span><span class="p">)</span>
+
+    <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">output_numpy</span> <span class="o">/</span> <span class="n">baseline</span><span class="p">)</span>
+
+    <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">output_numpy</span> <span class="o">*</span> <span class="n">relative_term</span>
+
+    <span class="n">output_numpy</span> <span class="o">=</span> <span class="p">(</span><span class="n">output_numpy</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">output_numpy</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">flip_angle_radians</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">output_numpy</span><span class="p">[</span><span class="n">output_numpy</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">output_numpy</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">relaxivity</span> <span class="o">*</span> <span class="n">TR</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">)</span>
+
+    <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">)</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="o">**</span><span class="n">old_settings</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">T1_blood</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">output_numpy</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">output_numpy</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">hematocrit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_numpy</span></div>
+
+<div class="viewcode-block" id="estimate_concentration_general"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.dce_util.estimate_concentration_general">[docs]</a><span class="k">def</span> <span class="nf">estimate_concentration_general</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="p">,</span> <span class="n">time_interval_minutes</span><span class="p">):</span>
+
+    <span class="c1"># A non-optimized version of estimate_concentration that uses numpy. Can take in arbitrary arrays of ktrans and ve.</span>
+
+    <span class="n">e</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">e</span>
+
+    <span class="n">ktrans</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ve</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">kep</span> <span class="o">=</span> <span class="n">ktrans</span> <span class="o">/</span> <span class="n">ve</span>
+
+    <span class="n">time_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">contrast_AIF_numpy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">ktrans</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">estimated_concentration</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ktrans</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">time_points</span><span class="p">,))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">estimated_concentration</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+
+    <span class="n">time_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">time_points</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">/</span> <span class="n">time_interval_minutes</span><span class="p">)</span>
+
+    <span class="n">log_e</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">kep</span> <span class="o">*</span> <span class="n">time_interval_minutes</span>
+    <span class="n">capital_E</span> <span class="o">=</span> <span class="n">e</span><span class="o">**</span><span class="n">log_e</span>
+    <span class="n">log_e_2</span> <span class="o">=</span> <span class="n">log_e</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="n">block_A</span> <span class="o">=</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">-</span> <span class="n">log_e</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">block_B</span> <span class="o">=</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">-</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">*</span> <span class="n">log_e</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">block_ktrans</span> <span class="o">=</span> <span class="n">ktrans</span> <span class="o">*</span> <span class="n">time_interval_minutes</span> <span class="o">/</span> <span class="n">log_e_2</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">contrast_AIF_numpy</span><span class="p">)):</span>
+        <span class="n">term_A</span> <span class="o">=</span> <span class="n">contrast_AIF_numpy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_A</span>
+        <span class="n">term_B</span> <span class="o">=</span> <span class="n">contrast_AIF_numpy</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_B</span>
+        <span class="n">estimated_concentration</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">estimated_concentration</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">capital_E</span> <span class="o">+</span> <span class="n">block_ktrans</span> <span class="o">*</span> <span class="p">(</span><span class="n">term_A</span> <span class="o">-</span> <span class="n">term_B</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">estimated_concentration</span></div>
+
+<div class="viewcode-block" id="estimate_concentration"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.dce_util.estimate_concentration">[docs]</a><span class="k">def</span> <span class="nf">estimate_concentration</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="p">,</span> <span class="n">time_interval_minutes</span><span class="p">):</span>
+
+    <span class="c1"># Notation is very inexact here. Clean it up later.</span>
+
+    <span class="n">estimated_concentration</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">append</span> <span class="o">=</span> <span class="n">estimated_concentration</span><span class="o">.</span><span class="n">append</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">e</span>
+    <span class="n">time_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">/</span> <span class="n">time_interval_minutes</span><span class="p">)</span>
+
+    <span class="n">ktrans</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ve</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">kep</span> <span class="o">=</span> <span class="n">ktrans</span> <span class="o">/</span> <span class="n">ve</span>
+
+    <span class="n">log_e</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">kep</span> <span class="o">*</span> <span class="n">time_interval_minutes</span>
+    <span class="n">capital_E</span> <span class="o">=</span> <span class="n">e</span><span class="o">**</span><span class="n">log_e</span>
+    <span class="n">log_e_2</span> <span class="o">=</span> <span class="n">log_e</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="n">block_A</span> <span class="o">=</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">-</span> <span class="n">log_e</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">block_B</span> <span class="o">=</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">-</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">*</span> <span class="n">log_e</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">block_ktrans</span> <span class="o">=</span> <span class="n">ktrans</span> <span class="o">*</span> <span class="n">time_interval_minutes</span> <span class="o">/</span> <span class="n">log_e_2</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">contrast_AIF_numpy</span><span class="p">)):</span>
+        <span class="n">term_A</span> <span class="o">=</span> <span class="n">contrast_AIF_numpy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_A</span>
+        <span class="n">term_B</span> <span class="o">=</span> <span class="n">contrast_AIF_numpy</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_B</span>
+        <span class="n">append</span><span class="p">(</span><span class="n">estimated_concentration</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">capital_E</span> <span class="o">+</span> <span class="n">block_ktrans</span> <span class="o">*</span> <span class="p">(</span><span class="n">term_A</span> <span class="o">-</span> <span class="n">term_B</span><span class="p">))</span>
+
+    <span class="c1"># Quick, error prone convolution method</span>
+    <span class="c1"># print estimated_concentration</span>
+    <span class="c1"># res = np.exp(-1*kep*time_series)</span>
+    <span class="c1"># estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]</span>
+    <span class="c1"># estimated_concentration = estimated_concentration[0:np.size(res)]</span>
+
+    <span class="k">return</span> <span class="n">estimated_concentration</span></div>
+
+<div class="viewcode-block" id="revert_concentration_to_intensity"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.dce_util.revert_concentration_to_intensity">[docs]</a><span class="k">def</span> <span class="nf">revert_concentration_to_intensity</span><span class="p">(</span><span class="n">data_numpy</span><span class="p">,</span> <span class="n">reference_data_numpy</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="p">,</span> <span class="n">TR</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">relaxivity</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">hematocrit</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">T1_map</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">static_baseline</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="c1"># Note that this function currently has a broken section.</span>
+    <span class="c1"># Add functionality for a static baseline T1 i.e. reference_dat</span>
+
+    <span class="k">if</span> <span class="n">T1_map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">R1_pre</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">T1_map</span>
+        <span class="n">R1_pre</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">R1_pre</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">R1_pre</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">T1_tissue</span>
+
+    <span class="n">flip_angle_radians</span> <span class="o">=</span> <span class="n">flip_angle_degrees</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">TR</span> <span class="o">*</span> <span class="n">R1_pre</span><span class="p">)</span>
+    <span class="n">relative_term</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">flip_angle_radians</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">static_baseline</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">injection_start_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">))])</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">injection_start_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="p">(</span><span class="n">baseline</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">injection_start_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="p">(</span><span class="n">baseline</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">baseline</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">reference_data_numpy</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">injection_start_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">baseline</span><span class="p">,</span> <span class="p">(</span><span class="n">baseline</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">baseline</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">baseline</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">reference_data_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="n">static_baseline</span>
+
+    <span class="n">data_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">data_numpy</span> <span class="o">/</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">relaxivity</span><span class="o">*</span><span class="n">TR</span><span class="p">)))</span>
+    <span class="n">data_numpy</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_numpy</span> <span class="o">*</span> <span class="n">a</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">data_numpy</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">flip_angle_radians</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">data_numpy</span> <span class="o">=</span> <span class="n">data_numpy</span> <span class="o">/</span> <span class="n">relative_term</span>
+    <span class="n">data_numpy</span> <span class="o">=</span> <span class="n">data_numpy</span> <span class="o">*</span> <span class="n">baseline</span>
+    <span class="c1">###</span>
+
+    <span class="k">return</span> <span class="n">data_numpy</span></div>
+
+<div class="viewcode-block" id="generate_AIF"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.dce_util.generate_AIF">[docs]</a><span class="k">def</span> <span class="nf">generate_AIF</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">image_numpy</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_label_numpy</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_value_data</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_mode</span><span class="o">=</span><span class="s1">&#39;label_average&#39;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">AIF_label_value</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function attempts to create AIFs both from 2D and 3D ROIs, or reroutes to population AIFs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># It&#39;s not clear how to draw labels for 2-D DCE phantoms. For now, I assume that people draw their label at time-point zero.</span>
+
+    <span class="k">if</span> <span class="n">AIF_mode</span> <span class="o">==</span> <span class="s1">&#39;label_average&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">image_numpy</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="k">if</span> <span class="n">AIF_label_numpy</span> <span class="o">!=</span> <span class="p">[]:</span>
+
+                <span class="n">AIF_subregion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">dimension</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+
+                    <span class="c1"># Acquiring label mask...</span>
+                    <span class="n">label_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">AIF_label_numpy</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">AIF_label_value</span><span class="p">)</span>
+
+                    <span class="c1"># Reshaped for array broadcasting purposes...</span>
+                    <span class="n">label_mask</span> <span class="o">=</span> <span class="n">label_mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">AIF_label_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)))</span>
+
+                    <span class="c1"># Making use of numpy&#39;s confusing array tiling dynamic to mask all time points with the label...</span>
+                    <span class="n">masked_AIF_subregion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">AIF_subregion</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">label_mask</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span><span class="o">*</span><span class="p">(</span><span class="n">dimension</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">AIF_subregion</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],)))</span>
+
+                    <span class="c1"># Reshaping for ease of calculating the mean...</span>
+                    <span class="n">masked_AIF_subregion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">masked_AIF_subregion</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">masked_AIF_subregion</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">masked_AIF_subregion</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+                    <span class="n">AIF</span> <span class="o">=</span> <span class="n">masked_AIF_subregion</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">AIF</span>
+
+                <span class="k">elif</span> <span class="n">dimension</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                    <span class="n">label_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">AIF_label_numpy</span> <span class="o">!=</span> <span class="n">AIF_label_value</span><span class="p">)</span>
+                    <span class="n">broadcast_label_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">label_mask</span><span class="p">[:,:,:,</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">AIF_subregion</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                    <span class="n">masked_AIF_subregion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">AIF_subregion</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">broadcast_label_mask</span><span class="p">)</span>             
+                    <span class="n">masked_AIF_subregion</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">masked_AIF_subregion</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">masked_AIF_subregion</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">masked_AIF_subregion</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="n">AIF</span> <span class="o">=</span> <span class="n">masked_AIF_subregion</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">AIF</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s1">&#39;Error: too many or too few dimensions to calculate AIF currently. Unable to calculate AIF.&#39;</span>
+                    <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="s1">&#39;Error: no AIF label detected. Unable to calculate AIF.&#39;</span>
+                <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;No image provided to AIF function. Set AIF_mode to </span><span class="se">\&#39;</span><span class="s1">population</span><span class="se">\&#39;</span><span class="s1"> to use a population AIF. Unable to calculate AIF.&#39;</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">AIF_mode</span> <span class="o">==</span> <span class="s1">&#39;population&#39;</span><span class="p">:</span>
+        <span class="n">AIF</span> <span class="o">=</span> <span class="n">parker_model_AIF</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">image_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">AIF</span>
+
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="create_gradient_phantom"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.dce_util.create_gradient_phantom">[docs]</a><span class="k">def</span> <span class="nf">create_gradient_phantom</span><span class="p">(</span><span class="n">output_prefix</span><span class="p">,</span> <span class="n">output_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">),</span> <span class="n">ktrans_range</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">5</span><span class="p">],</span> <span class="n">ve_range</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">8</span><span class="p">],</span> <span class="n">scan_time_seconds</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">TR</span><span class="o">=</span><span class="mf">6.8</span><span class="p">,</span> <span class="n">relaxivity</span><span class="o">=.</span><span class="mi">0045</span><span class="p">,</span> <span class="n">hematocrit</span><span class="o">=.</span><span class="mi">45</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="o">=</span><span class="mi">1350</span><span class="p">,</span> <span class="n">aif</span><span class="o">=</span><span class="s1">&#39;population&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; TO-DO: Fix the ktrans variation so that it correctly ends in 0.35, instead of whatever</span>
+<span class="sd">        it currently ends in. Also parameterize and generalize everything for more interesting</span>
+<span class="sd">        phantoms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Initialize variables</span>
+    <span class="n">timepoints</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">)</span>
+    <span class="n">time_series_minutes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">timepoints</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">/</span> <span class="n">time_interval_seconds</span><span class="p">)</span>
+    <span class="n">time_interval_minutes</span> <span class="o">=</span> <span class="n">time_interval_seconds</span> <span class="o">/</span> <span class="mi">60</span>
+    <span class="nb">print</span> <span class="n">time_interval_minutes</span>
+
+    <span class="c1"># Create empty phantom, labels, and outputs</span>
+    <span class="n">output_phantom_concentration</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">output_phantom_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">output_phantom_concentration</span><span class="p">)</span>
+
+    <span class="n">output_AIF_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="p">,))</span>
+    <span class="n">output_region_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">output_AIF_mask</span><span class="p">)</span>
+    <span class="n">output_AIF_mask</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">output_region_mask</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">output_ktrans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">output_AIF_mask</span><span class="p">)</span>
+    <span class="n">output_ve</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">output_AIF_mask</span><span class="p">)</span>
+
+    <span class="c1"># Create Parker AIF</span>
+    <span class="n">AIF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">parker_model_AIF</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">timepoints</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="o">/</span><span class="n">time_interval_seconds</span><span class="p">)))</span>
+    <span class="n">AIF</span> <span class="o">=</span> <span class="n">AIF</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">output_phantom_concentration</span><span class="p">[:,:,</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">AIF</span>
+
+    <span class="c1"># Fill in answers</span>
+    <span class="k">for</span> <span class="n">ve_idx</span><span class="p">,</span> <span class="n">ve</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ktrans_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ktrans_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="k">for</span> <span class="n">ktrans_idx</span><span class="p">,</span> <span class="n">ktrans</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">ve_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ve_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+            <span class="n">output_ktrans</span><span class="p">[</span><span class="n">ve_idx</span><span class="p">,</span> <span class="n">ktrans_idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ktrans</span><span class="p">)</span>
+            <span class="n">output_ve</span><span class="p">[</span><span class="n">ve_idx</span><span class="p">,</span> <span class="n">ktrans_idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ve</span><span class="p">)</span>
+
+            <span class="c1"># print np.squeeze(AIF).shape</span>
+            <span class="nb">print</span> <span class="n">ve_idx</span><span class="p">,</span> <span class="n">ktrans_idx</span>
+            <span class="nb">print</span> <span class="n">ktrans</span><span class="p">,</span> <span class="n">ve</span>
+            <span class="c1"># conc = estimate_concentration([ktrans,ve], np.squeeze(AIF)[:], time_series_minutes)</span>
+            <span class="c1"># print len(conc)</span>
+            <span class="c1"># print conc[-1]</span>
+            <span class="c1"># print len(conc[-1])</span>
+            <span class="n">output_phantom_concentration</span><span class="p">[</span><span class="n">ve_idx</span><span class="p">,</span> <span class="n">ktrans_idx</span><span class="p">,</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">estimate_concentration</span><span class="p">([</span><span class="n">ktrans</span><span class="p">,</span><span class="n">ve</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">AIF</span><span class="p">),</span> <span class="n">time_interval_minutes</span><span class="p">)</span>
+
+    <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_phantom_concentration</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_prefix</span> <span class="o">+</span> <span class="s1">&#39;_concentrations.nii.gz&#39;</span><span class="p">)</span>
+    <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_ktrans</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_prefix</span> <span class="o">+</span> <span class="s1">&#39;_ktrans.nii.gz&#39;</span><span class="p">)</span>
+    <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_ve</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_prefix</span> <span class="o">+</span> <span class="s1">&#39;_ve.nii.gz&#39;</span><span class="p">)</span>
+
+    <span class="n">output_phantom_signal</span> <span class="o">=</span> <span class="n">revert_concentration_to_intensity</span><span class="p">(</span><span class="n">data_numpy</span><span class="o">=</span><span class="n">output_phantom_concentration</span><span class="p">,</span> <span class="n">reference_data_numpy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="o">=</span><span class="n">T1_tissue</span><span class="p">,</span> <span class="n">TR</span><span class="o">=</span><span class="n">TR</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="o">=</span><span class="n">flip_angle_degrees</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="o">=</span><span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">relaxivity</span><span class="o">=</span><span class="n">relaxivity</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="o">=</span><span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">hematocrit</span><span class="o">=</span><span class="n">hematocrit</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">T1_map</span> <span class="o">=</span> <span class="p">[],</span> <span class="n">static_baseline</span><span class="o">=</span><span class="mi">140</span><span class="p">)</span>
+
+    <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_phantom_signal</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_prefix</span> <span class="o">+</span> <span class="s1">&#39;_phantom.nii.gz&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># def create_4d_from_3d(filepath, stacks=5):</span>
+
+<span class="c1"># 	&quot;&quot;&quot; Mainly to make something work with NordicICE. TO-DO: Make work with anything but the Tofts phantom.</span>
+<span class="c1"># 		Also move to nifti_util when that is finished.</span>
+<span class="c1"># 	&quot;&quot;&quot;</span>
+
+<span class="c1"># 	nifti_3d = nib.load(filepath)</span>
+<span class="c1"># 	numpy_3d = nifti_3d.get_data()</span>
+<span class="c1"># 	numpy_4d = np.zeros((numpy_3d.shape[0], numpy_3d.shape[1], stacks, numpy_3d.shape[2]), dtype=float)</span>
+<span class="c1"># 	numpy_3d = np.reshape(numpy_3d, (numpy_3d.shape[0], numpy_3d.shape[1], 1, numpy_3d.shape[2]))</span>
+
+<span class="c1"># 	numpy_4d = np.tile(numpy_3d, (1,1,stacks,1))</span>
+
+<span class="c1"># 	t1_map = np.zeros((numpy_3d.shape[0], numpy_3d.shape[1], stacks), dtype=float)</span>
+<span class="c1"># 	t1_map[0:50,0:70,:] = 1000</span>
+<span class="c1"># 	t1_map[t1_map == 0] = 1440</span>
+
+<span class="c1"># 	# t1_map = np.reshape(t1_map, (t1_map.shape[0], t1_map.shape[1], 1, t1_map.shape[2]))</span>
+<span class="c1"># 	# t1_map = np.tile(t1_map, (1,1,5,1))</span>
+
+<span class="c1"># 	nifti_util.save_numpy_2_nifti(numpy_4d, filepath, &#39;tofts_4d.nii&#39;)</span>
+<span class="c1"># 	nifti_util.save_numpy_2_nifti(t1_map, filepath, &#39;tofts_t1map.nii&#39;)</span>
+
+<span class="c1"># def revert_concentration_to_intensity(data_numpy, reference_data_numpy, T1_tissue, TR, flip_angle_degrees, injection_start_time_seconds, relaxivity, time_interval_seconds, hematocrit, T1_blood=0, T1_map = []):</span>
+
+<span class="c1"># 	if T1_map != []:</span>
+<span class="c1"># 		R1_pre = 1 / T1_map</span>
+<span class="c1"># 		R1_pre = np.reshape(R1_pre.shape + (1,))</span>
+<span class="c1"># 	else:</span>
+<span class="c1"># 		R1_pre = 1 / T1_tissue</span>
+
+<span class="c1"># 	flip_angle_radians = flip_angle_degrees*np.pi/180</span>
+<span class="c1"># 	a = np.exp(-1 * TR * R1_pre)</span>
+<span class="c1"># 	relative_term = (1-a) / (1-a*np.cos(flip_angle_radians))</span>
+
+<span class="c1"># 	if len(reference_data_numpy.shape) == 1:</span>
+<span class="c1"># 		baseline = np.mean(reference_data_numpy[0:int(np.round(injection_start_time_seconds/time_interval_seconds))])</span>
+<span class="c1"># 		baseline = np.tile(baseline, reference_data_numpy.shape[-1])</span>
+<span class="c1"># 	if len(reference_data_numpy.shape) == 2:</span>
+<span class="c1"># 		baseline = np.mean(reference_data_numpy[:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=1)</span>
+<span class="c1"># 		baseline = np.tile(np.reshape(baseline, (baseline.shape[0], 1)), (1,reference_data_numpy.shape[-1]))</span>
+<span class="c1"># 	if len(reference_data_numpy.shape) == 3:</span>
+<span class="c1"># 		baseline = np.mean(reference_data_numpy[:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=2)</span>
+<span class="c1"># 		baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1], 1)), (1,1,reference_data_numpy.shape[-1]))</span>
+<span class="c1"># 	if len(reference_data_numpy.shape) == 4:</span>
+<span class="c1"># 		baseline = np.mean(reference_data_numpy[:,:,:,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=3)</span>
+<span class="c1"># 		baseline = np.tile(np.reshape(baseline, (baseline.shape[0],baseline.shape[1],baseline.shape[2], 1)), (1,1,1,reference_data_numpy.shape[-1]))</span>
+
+<span class="c1"># 	data_numpy = np.exp(data_numpy / (-1 / (relaxivity*TR)))</span>
+<span class="c1"># 	data_numpy = (data_numpy * a -1) / (data_numpy * a * np.cos(flip_angle_radians) - 1)</span>
+<span class="c1"># 	data_numpy = data_numpy / relative_term</span>
+<span class="c1"># 	data_numpy = data_numpy * baseline</span>
+<span class="c1"># 	###</span>
+
+<span class="c1"># 	return data_numpy</span>
+
+<span class="c1"># def estimate_concentration(params, contrast_AIF_numpy, time_interval):</span>
+
+<span class="c1">#     # Notation is very inexact here. Clean it up later.</span>
+
+<span class="c1">#     estimated_concentration = [0]</span>
+<span class="c1">#     # if params[0] &gt; 10 or params[1] &gt; 10:</span>
+<span class="c1">#     #   return estimated_concentration</span>
+
+<span class="c1">#     append = estimated_concentration.append</span>
+<span class="c1">#     e = math.e</span>
+
+<span class="c1">#     ktrans = e**params[0]</span>
+<span class="c1">#     ve = 1 / (1 + e**(-params[1]))</span>
+<span class="c1">#     kep = ktrans / ve</span>
+
+<span class="c1">#     log_e = -1 * kep * time_interval</span>
+<span class="c1">#     capital_E = e**log_e</span>
+<span class="c1">#     log_e_2 = log_e**2</span>
+
+<span class="c1">#     block_A = (capital_E - log_e - 1)</span>
+<span class="c1">#     block_B = (capital_E - (capital_E * log_e) - 1)</span>
+<span class="c1">#     block_ktrans = ktrans * time_interval / log_e_2</span>
+
+<span class="c1">#     for i in xrange(1, np.size(contrast_AIF_numpy)):</span>
+<span class="c1">#         term_A = contrast_AIF_numpy[i] * block_A</span>
+<span class="c1">#         term_B = contrast_AIF_numpy[i-1] * block_B</span>
+<span class="c1">#         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))</span>
+
+<span class="c1">#     # Quick, error prone convolution method</span>
+<span class="c1">#     # print estimated_concentration</span>
+<span class="c1">#         # res = np.exp(-1*kep*time_series)</span>
+<span class="c1">#         # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]</span>
+<span class="c1">#         # estimated_concentration = estimated_concentration[0:np.size(res)]</span>
+
+<span class="c1">#     return estimated_concentration</span>
+
+<span class="c1">#     # # Gratuitous plotting snippet for sanity checks</span>
+<span class="c1">#     # if True and (ve &gt; 0.2):</span>
+<span class="c1">#     # # if False and index[0] == 0 and index[1] &gt; 11:</span>
+
+<span class="c1">#     #     # optimization_path = np.zeros((len(allvecs), 2), dtype=float)</span>
+<span class="c1">#     #     # for a_idx, allvec in enumerate(allvecs):</span>
+<span class="c1">#     #     #     optimization_path[a_idx, :] = allvec</span>
+<span class="c1">#     #     #     print allvec</span>
+
+<span class="c1">#     #     # time_series = np.arange(0, contrast_AIF_numpy.size)</span>
+<span class="c1">#     #     # estimated_concentration = estimate_concentration(result_params, contrast_AIF_numpy, time_interval)</span>
+
+<span class="c1">#     #     # difference_term = observed_concentration - estimated_concentration</span>
+<span class="c1">#     #     # # print sum(power(difference_term, 2))</span>
+<span class="c1">#     #     # print [ktrans, ve]</span>
+<span class="c1">#     #     # plt.plot(time_series, estimated_concentration, &#39;r--&#39;, time_series, observed_concentration, &#39;b--&#39;)</span>
+<span class="c1">#     #     # plt.show()</span>
+
+<span class="c1">#     #     # time_series = np.arange(0, contrast_AIF_numpy.size)</span>
+<span class="c1">#     #     # estimated_concentration = estimate_concentration([.1, .01], contrast_AIF_numpy, time_interval)</span>
+
+<span class="c1">#     #     # time_series = np.arange(0, contrast_AIF_numpy.size)</span>
+<span class="c1">#     #     # estimated_concentration2 = estimate_concentration([.25, .01], contrast_AIF_numpy, time_interval)</span>
+
+<span class="c1">#     #     # difference_term = observed_concentration - estimated_concentration</span>
+<span class="c1">#     #     # # print sum(power(difference_term, 2))</span>
+
+<span class="c1">#     #     # plt.plot(time_series, estimated_concentration, &#39;r--&#39;, time_series, estimated_concentration2, &#39;g--&#39;, time_series, observed_concentration, &#39;b--&#39;)</span>
+<span class="c1">#     #     # plt.show()</span>
+
+<span class="c1">#     #     delta = .01</span>
+<span class="c1">#     #     x = np.arange(0, .35, delta)</span>
+<span class="c1">#     #     delta = .01</span>
+<span class="c1">#     #     y = np.arange(0, .5, delta)</span>
+<span class="c1">#     #     X, Y = np.meshgrid(x, y)</span>
+<span class="c1">#     #     Z = np.copy(X)</span>
+
+<span class="c1">#     #     W = x</span>
+<span class="c1">#     #     x1 = np.copy(x)</span>
+<span class="c1">#     #     y1 = np.copy(x)</span>
+
+<span class="c1">#     #     for k_idx, ktrans in enumerate(x):</span>
+<span class="c1">#     #         for v_idx, ve in enumerate(y):</span>
+<span class="c1">#     #             estimated_concentration = estimate_concentration([ktrans, ve], contrast_AIF_numpy, time_interval)</span>
+<span class="c1">#     #             difference_term = observed_concentration - estimated_concentration</span>
+<span class="c1">#     #             Z[v_idx, k_idx] = sum(power(difference_term, 2))</span>
+
+<span class="c1">#     #         estimated_concentration = estimate_concentration([ktrans, .1], contrast_AIF_numpy, time_interval)</span>
+<span class="c1">#     #         difference_term = observed_concentration - estimated_concentration</span>
+<span class="c1">#     #         W[k_idx] = sum(power(difference_term, 2))</span>
+
+<span class="c1">#     #     CS = plt.contourf(X,Y,Z, 30)</span>
+<span class="c1">#     #     plt.clabel(CS, inline=1, fontsize=10)</span>
+<span class="c1">#     #     plt.show()</span>
+
+<span class="c1">#     #     # plt.plot(optimization_path)</span>
+<span class="c1">#     #     # plt.show()</span>
+
+<span class="c1"># def estimate_concentration(params, contrast_AIF_numpy, time_interval):</span>
+
+<span class="c1">#     # Notation is very inexact here. Clean it up later.</span>
+
+<span class="c1">#     estimated_concentration = [0]</span>
+<span class="c1">#     # if params[0] &gt; 10 or params[1] &gt; 10:</span>
+<span class="c1">#     #   return estimated_concentration</span>
+
+<span class="c1">#     append = estimated_concentration.append</span>
+<span class="c1">#     e = math.e</span>
+
+<span class="c1">#     ktrans = params[0]</span>
+<span class="c1">#     ve = params[1]</span>
+<span class="c1">#     kep = ktrans / ve</span>
+
+<span class="c1">#     log_e = -1 * kep * time_interval</span>
+<span class="c1">#     capital_E = e**log_e</span>
+<span class="c1">#     log_e_2 = log_e**2</span>
+
+<span class="c1">#     block_A = (capital_E - log_e - 1)</span>
+<span class="c1">#     block_B = (capital_E - (capital_E * log_e) - 1)</span>
+<span class="c1">#     block_ktrans = ktrans * time_interval / log_e_2</span>
+
+<span class="c1">#     for i in xrange(1, np.size(contrast_AIF_numpy)):</span>
+<span class="c1">#         term_A = contrast_AIF_numpy[i] * block_A</span>
+<span class="c1">#         term_B = contrast_AIF_numpy[i-1] * block_B</span>
+<span class="c1">#         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))</span>
+
+<span class="c1">#     # Quick, error prone convolution method</span>
+<span class="c1">#     # print estimated_concentration</span>
+<span class="c1">#         # res = np.exp(-1*kep*time_series)</span>
+<span class="c1">#         # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]</span>
+<span class="c1">#         # estimated_concentration = estimated_concentration[0:np.size(res)]</span>
+
+<span class="c1">#     return estimated_concentration</span>
+
+
+<span class="c1"># def integration_test(contrast_sample_numpy, contrast_AIF_numpy, time_interval_seconds, bolus_time, mask_value):</span>
+
+<span class="c1">#     observed_concentration = contrast_sample_numpy</span>
+<span class="c1">#     time_series = np.arange(0, contrast_AIF_numpy.size) / (60 / time_interval_seconds)</span>
+<span class="c1">#     time_interval = time_series[1]</span>
+
+<span class="c1">#     power = np.power</span>
+<span class="c1">#     sum = np.sum</span>
+<span class="c1">#     e = math.e</span>
+
+<span class="c1">#     def cost_function_bad(params):</span>
+
+<span class="c1">#         # The estimate concentration function is repeated locally to eke out every last bit of efficiency</span>
+<span class="c1">#         # from this massively looping program. As much as possible is calculated outside the loop for</span>
+<span class="c1">#         # performance reasons. Appending is faster than pre-allocating space in this case - who knew.</span>
+
+<span class="c1">#         estimated_concentration = [0]</span>
+
+<span class="c1">#         append = estimated_concentration.append</span>
+
+<span class="c1">#         ktrans = params[0]</span>
+<span class="c1">#         ve = params[1]</span>
+<span class="c1">#         kep = ktrans / ve</span>
+
+<span class="c1">#         log_e = -1 * kep * time_interval</span>
+<span class="c1">#         capital_E = e**log_e</span>
+<span class="c1">#         log_e_2 = log_e**2</span>
+
+<span class="c1">#         block_A = (capital_E - log_e - 1)</span>
+<span class="c1">#         block_B = (capital_E - (capital_E * log_e) - 1)</span>
+<span class="c1">#         block_ktrans = ktrans * time_interval / log_e_2</span>
+
+<span class="c1">#         # for i in xrange(1, np.size(contrast_AIF_numpy)):</span>
+<span class="c1">#         #     term_A = contrast_AIF_numpy[i] * block_A</span>
+<span class="c1">#         #     term_B = contrast_AIF_numpy[i-1] * block_B</span>
+<span class="c1">#         #     append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))</span>
+
+<span class="c1">#         # This is a much faster, but less accurate curve generation method</span>
+<span class="c1">#         res = np.exp(-1*kep*time_series)</span>
+<span class="c1">#         estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]</span>
+<span class="c1">#         estimated_concentration = estimated_concentration[0:np.size(res)]        </span>
+
+<span class="c1">#         difference_term = observed_concentration- estimated_concentration</span>
+<span class="c1">#         difference_term = power(difference_term, 2)</span>
+
+<span class="c1">#         return difference_term, observed_concentration, estimated_concentration</span>
+
+<span class="c1">#     def cost_function_good(params):</span>
+
+<span class="c1">#         # The estimate concentration function is repeated locally to eke out every last bit of efficiency</span>
+<span class="c1">#         # from this massively looping program. As much as possible is calculated outside the loop for</span>
+<span class="c1">#         # performance reasons. Appending is faster than pre-allocating space in this case - who knew.</span>
+
+<span class="c1">#         estimated_concentration = [0]</span>
+
+<span class="c1">#         append = estimated_concentration.append</span>
+
+<span class="c1">#         ktrans = params[0]</span>
+<span class="c1">#         ve = params[1]</span>
+<span class="c1">#         kep = ktrans / ve</span>
+
+<span class="c1">#         log_e = -1 * kep * time_interval</span>
+<span class="c1">#         capital_E = e**log_e</span>
+<span class="c1">#         log_e_2 = log_e**2</span>
+
+<span class="c1">#         block_A = (capital_E - log_e - 1)</span>
+<span class="c1">#         block_B = (capital_E - (capital_E * log_e) - 1)</span>
+<span class="c1">#         block_ktrans = ktrans * time_interval / log_e_2</span>
+
+<span class="c1">#         for i in xrange(1, np.size(contrast_AIF_numpy)):</span>
+<span class="c1">#             term_A = contrast_AIF_numpy[i] * block_A</span>
+<span class="c1">#             term_B = contrast_AIF_numpy[i-1] * block_B</span>
+<span class="c1">#             append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))</span>
+
+<span class="c1">#         # This is a much faster, but less accurate curve generation method</span>
+<span class="c1">#         # res = np.exp(-1*kep*time_series)</span>
+<span class="c1">#         # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]</span>
+<span class="c1">#         # estimated_concentration = estimated_concentration[0:np.size(res)]        </span>
+
+<span class="c1">#         difference_term = observed_concentration- estimated_concentration</span>
+<span class="c1">#         difference_term = power(difference_term, 2)</span>
+
+<span class="c1">#         return difference_term, observed_concentration, estimated_concentration</span>
+
+<span class="c1">#     good_difference_term, good_observed_concentration, good_estimated_concentration = cost_function_good([.02,.01])</span>
+<span class="c1">#     bad_difference_term, bad_observed_concentration, bad_estimated_concentration = cost_function_bad([.02, .01])</span>
+
+<span class="c1">#     output_numpy = np.zeros((good_observed_concentration.size,3), dtype=float)</span>
+<span class="c1">#     output_numpy = [good_observed_concentration, good_estimated_concentration, bad_estimated_concentration]</span>
+<span class="c1">#     with open(&#39;C:/Users/azb22/Documents/Scripting/CED_NHX_DCE_Comparisons/Integration_Curves.csv&#39;, &#39;wb&#39;) as writefile:</span>
+<span class="c1">#         csvfile = csv.writer(writefile, delimiter=&#39;,&#39;)</span>
+<span class="c1">#         for row in output_numpy:</span>
+<span class="c1">#             csvfile.writerow(row)</span>
+
+
+<span class="c1">#     # plt.plot(time_series, good_difference_term, &#39;r--&#39;, time_series, bad_difference_term, &#39;g--&#39;)</span>
+<span class="c1">#     # plt.show()</span>
+
+<span class="c1">#     # plt.plot(time_series, good_estimated_concentration, &#39;r--&#39;, time_series, bad_estimated_concentration, &#39;g--&#39;, time_series, observed_concentration, &#39;b--&#39;)</span>
+<span class="c1">#     # plt.show()</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="k">pass</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

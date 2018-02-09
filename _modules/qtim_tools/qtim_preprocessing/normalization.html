@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_preprocessing.normalization &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_preprocessing.normalization</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_preprocessing.normalization</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; A general module for normalization methods. Likely to</span>
+<span class="sd">	be borrowing heavily from other packages. TODO: Fill in</span>
+<span class="sd">	these methods.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">..qtim_utilities.format_util</span> <span class="k">import</span> <span class="n">convert_input_2_numpy</span>
+<span class="kn">from</span> <span class="nn">..qtim_utilities.nifti_util</span> <span class="k">import</span> <span class="n">save_numpy_2_nifti</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="zero_mean_unit_variance"><a class="viewcode-back" href="../../../qtim_tools.qtim_preprocessing.html#qtim_tools.qtim_preprocessing.normalization.zero_mean_unit_variance">[docs]</a><span class="k">def</span> <span class="nf">zero_mean_unit_variance</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">input_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Normalizes an image by subtracting its mean and dividing by its standard</span>
+<span class="sd">        deviation. If provided a mask, the normalization will only occur within the</span>
+<span class="sd">        mask.</span>
+
+<span class="sd">        TODO: Add support for not-equal-to masking.</span>
+<span class="sd">        TODO: Add support for other replacement_values, a-la scikit-learn.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        input_data: N-dimensional array or str</span>
+<span class="sd">            The volume to be normalized. Can be filename or numpy array.</span>
+<span class="sd">        input_mask: N-dimensional array or str</span>
+<span class="sd">            A label mask. Must be the same size as input_data</span>
+<span class="sd">        output_filename: str</span>
+<span class="sd">            Optional, save output to filename.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        input_numpy: array</span>
+<span class="sd">            Transformed input array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">input_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_mask</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mask_numpy</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">mask_numpy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">vol_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">)</span>
+        <span class="n">vol_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">)</span>
+        <span class="n">output_numpy</span> <span class="o">=</span> <span class="p">(</span><span class="n">input_numpy</span> <span class="o">-</span> <span class="n">vol_mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">vol_std</span>        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">masked_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">mask_numpy</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">input_numpy</span><span class="p">)</span>
+        <span class="n">vol_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">masked_numpy</span><span class="p">)</span>
+        <span class="n">vol_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">masked_numpy</span><span class="p">)</span>
+        <span class="n">output_numpy</span> <span class="o">=</span> <span class="p">(</span><span class="n">masked_numpy</span> <span class="o">-</span> <span class="n">vol_mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">vol_std</span>
+        <span class="n">output_numpy</span><span class="p">[</span><span class="n">mask_numpy</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">output_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+            <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="n">input_volume</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">output_numpy</span></div>
+
+
+<div class="viewcode-block" id="histogram_normalization"><a class="viewcode-back" href="../../../qtim_tools.qtim_preprocessing.html#qtim_tools.qtim_preprocessing.normalization.histogram_normalization">[docs]</a><span class="k">def</span> <span class="nf">histogram_normalization</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;uniform&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; TODO</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="k">pass</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

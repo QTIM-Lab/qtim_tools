@@ -1,0 +1,583 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_utilities.transform_util &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_utilities.transform_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_utilities.transform_util</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># from nifti_util import save_numpy_2_nifti</span>
+<span class="kn">from</span> <span class="nn">format_util</span> <span class="k">import</span> <span class="n">convert_input_2_numpy</span>
+
+<span class="kn">from</span> <span class="nn">scipy.ndimage.interpolation</span> <span class="k">import</span> <span class="n">affine_transform</span><span class="p">,</span> <span class="n">geometric_transform</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">call</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+
+<div class="viewcode-block" id="save_numpy_2_nifti"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.save_numpy_2_nifti">[docs]</a><span class="k">def</span> <span class="nf">save_numpy_2_nifti</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">reference_nifti_filepath</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="p">[]):</span>
+
+    <span class="sd">&quot;&quot;&quot; Temporary duplication</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">reference_nifti_filepath</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">nifti_image</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">reference_nifti_filepath</span><span class="p">)</span>
+        <span class="n">image_affine</span> <span class="o">=</span> <span class="n">nifti_image</span><span class="o">.</span><span class="n">affine</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Warning: no reference nifti file provided. Generating empty header.&#39;</span>
+        <span class="n">image_affine</span> <span class="o">=</span> <span class="n">generate_identity_affine</span><span class="p">()</span>
+
+    <span class="n">output_nifti</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">image_affine</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_path</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="n">output_nifti</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">output_nifti</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="itk_2_vtk_transform"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.itk_2_vtk_transform">[docs]</a><span class="k">def</span> <span class="nf">itk_2_vtk_transform</span><span class="p">(</span><span class="n">affine</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Transforms from itk to vtk. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">affine</span><span class="p">)</span>
+    <span class="n">output_affine</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+
+    <span class="n">input_center</span> <span class="o">=</span> <span class="n">affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+    <span class="n">input_offset</span> <span class="o">=</span> <span class="n">affine</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">output_offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">output_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">input_center</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">output_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">affine</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">input_center</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+
+    <span class="n">output_affine</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_offset</span>
+
+    <span class="k">return</span> <span class="n">output_affine</span></div>
+
+<div class="viewcode-block" id="generate_identity_affine"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.generate_identity_affine">[docs]</a><span class="k">def</span> <span class="nf">generate_identity_affine</span><span class="p">(</span><span class="n">timepoints</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; A convenient function for generating an identity affine matrix. Can be</span>
+<span class="sd">        used for saving blank niftis.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Needlessly complicated.</span>
+
+    <span class="k">if</span> <span class="n">timepoints</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]),</span> <span class="p">(</span><span class="n">timepoints</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="generate_rotation_affine"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.generate_rotation_affine">[docs]</a><span class="k">def</span> <span class="nf">generate_rotation_affine</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rotation_degrees</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function creates an affine transformation matrix with a set rotation at a set axis.</span>
+<span class="sd">        Code ripped from: https://www.learnopencv.com/rotation-matrix-to-euler-angles/. Needs</span>
+<span class="sd">        added functionality to set a center point. There is a method available in OpenCV to</span>
+<span class="sd">        do this, but for now I am holding off on making OpenCV a requirement for qtim_tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+     
+    <span class="n">rotation_radians</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">rotation_degrees</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                        <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span> <span class="mi">0</span> <span class="p">],</span>
+                        <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span> <span class="mi">0</span>  <span class="p">],</span>
+                        <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>  
+    
+    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">)</span>  <span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+    
+    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>                 
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_radians</span><span class="p">),</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Error, can only accept axes 0-2 as input to axis parameter.&#39;</span>
+        <span class="k">return</span> <span class="p">[]</span>
+ 
+    <span class="k">return</span> <span class="n">R</span></div>
+
+<div class="viewcode-block" id="generate_translation_affine"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.generate_translation_affine">[docs]</a><span class="k">def</span> <span class="nf">generate_translation_affine</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">translation_distance</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function creates an affine transformation matrix with a set translation at a set axis.</span>
+<span class="sd">        Code ripped from: https://www.learnopencv.com/rotation-matrix-to-euler-angles/. Needs</span>
+<span class="sd">        added functionality to set a center point. There is a method available in OpenCV to</span>
+<span class="sd">        do this, but for now I am holding off on making OpenCV a requirement for qtim_tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="n">translation_distance</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+    
+    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="n">translation_distance</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+    
+    <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">translation_distance</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Error, can only accept axes 0-2 as input to axis parameter.&#39;</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="apply_affine"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.apply_affine">[docs]</a><span class="k">def</span> <span class="nf">apply_affine</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">affine_matrix</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="n">Slicer_path</span><span class="o">=</span><span class="s2">&quot;Slicer&quot;</span><span class="p">,</span> <span class="n">reference_file</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Provides methods for applying an affine matrix to a 3D volume. TODO:</span>
+<span class="sd">        extend this past 3D volumes. Also has a method to apply the matrix in</span>
+<span class="sd">        Slicer, if Slice is available. Slicer will be much faster, but requires</span>
+<span class="sd">        a special array format.</span>
+
+<span class="sd">        TODO: Get this working for 4D Volumes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;python&#39;</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">affine_calculation</span><span class="p">(</span><span class="n">output_coords</span><span class="p">):</span>
+            <span class="n">output_coords</span> <span class="o">=</span> <span class="n">output_coords</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">affine_matrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">output_coords</span><span class="p">))[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">geometric_transform</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">,</span> <span class="n">affine_calculation</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;slicer&#39;</span><span class="p">:</span>
+
+        <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">,</span> <span class="n">reference_file</span><span class="p">,</span> <span class="s1">&#39;temp.nii.gz&#39;</span><span class="p">)</span>
+        <span class="n">save_affine</span><span class="p">(</span><span class="n">affine_matrix</span><span class="p">,</span> <span class="s1">&#39;temp.txt&#39;</span><span class="p">)</span>
+
+        <span class="n">Slicer_Command</span> <span class="o">=</span> <span class="p">[</span><span class="n">Slicer_path</span><span class="p">,</span> <span class="s1">&#39;--launch&#39;</span><span class="p">,</span> <span class="s1">&#39;ResampleScalarVectorDWIVolume&#39;</span><span class="p">,</span> <span class="s1">&#39;temp.nii.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;temp_out.nii.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;temp.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;bs&#39;</span><span class="p">]</span>
+
+        <span class="n">call</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Slicer_Command</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">output_array</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="s1">&#39;temp_out.nii.gz&#39;</span><span class="p">)</span>
+        
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;temp.nii.gz&#39;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;temp.txt&#39;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;temp_out.nii.gz&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output_array</span>
+
+    <span class="c1"># return convert_input_2_numpy(&#39;temp_out.nii.gz&#39;)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Invalid method parameter. Returning []&#39;</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="compose_affines"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.compose_affines">[docs]</a><span class="k">def</span> <span class="nf">compose_affines</span><span class="p">(</span><span class="n">affine_matrix_1</span><span class="p">,</span> <span class="n">affine_matrix_2</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Simple matrix multiplication. For time series, matrix multiplication</span>
+<span class="sd">        is component-wise. Questionable if there are use cased for 4D+ dimnesions</span>
+<span class="sd">        but those currently do not work.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">affine_matrix_1</span><span class="p">,</span> <span class="n">affine_matrix_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">affine_matrix_1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">affine_matrix_2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">affine_matrix_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">affine_matrix_1</span><span class="p">,</span> <span class="n">affine_matrix_2</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">affine_matrix_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+
+        <span class="n">output_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">affine_matrix_1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">affine_matrix_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">output_matrix</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">affine_matrix_1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">t</span><span class="p">],</span> <span class="n">affine_matrix_2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="n">t</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">output_matrix</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Error: input matrix has incorrect number of dimensions (4x4xN) for comptuation&#39;</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="save_affine"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.save_affine">[docs]</a><span class="k">def</span> <span class="nf">save_affine</span><span class="p">(</span><span class="n">affine_matrix</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;itk_affine&quot;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Saves a numpy affine matrix to ITK format for use in other programs,</span>
+<span class="sd">        e.g. 3D Slicer. This method is not complete - there is a lot of mapping</span>
+<span class="sd">        to do from data types to transform types.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s2">&quot;itk_affine&quot;</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;#Insight Transform File V1.0 </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Transform: AffineTransform_double_3_3 </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="n">rotate_string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">translate_string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">affine_matrix</span><span class="p">:</span>
+            <span class="n">rotate_string</span> <span class="o">=</span> <span class="n">rotate_string</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">row</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span>
+        
+        <span class="n">translate_string</span> <span class="o">=</span> <span class="s1">&#39;0 0 0&#39;</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Parameters: &#39;</span> <span class="o">+</span> <span class="n">rotate_string</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;FixedParameters: &#39;</span> <span class="o">+</span> <span class="n">translate_string</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Invalid output format. Returning []&#39;</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="generate_motion_jerk"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.generate_motion_jerk">[docs]</a><span class="k">def</span> <span class="nf">generate_motion_jerk</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="n">timepoint</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rotation_peaks</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">total_timepoints</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">input_motion_array</span><span class="o">=</span><span class="p">[]):</span>
+
+    <span class="sd">&quot;&quot;&quot; Generates an affine jerk that smoothly moves between an affine displacement and back again.</span>
+<span class="sd">        TODO: Allow custom ordering of rotations. Currently all rotations go first by x, then by y,</span>
+<span class="sd">        then by z, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">input_motion_array</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">total_timepoints</span> <span class="o">=</span> <span class="n">input_motion_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">total_timepoints</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">total_timepoints</span> <span class="o">=</span> <span class="n">duration</span>
+
+    <span class="n">endpoint</span> <span class="o">=</span> <span class="n">timepoint</span> <span class="o">+</span> <span class="n">duration</span>
+    <span class="n">midpoint</span> <span class="o">=</span> <span class="n">timepoint</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">endpoint</span> <span class="o">-</span> <span class="n">timepoint</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">rotation_matrix_increment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">timepoint</span><span class="o">-</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rotation_peaks</span><span class="p">])</span>
+
+    <span class="nb">print</span> <span class="n">timepoint</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">total_timepoints</span>
+
+    <span class="k">if</span> <span class="n">endpoint</span> <span class="o">&gt;</span> <span class="n">total_timepoints</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Invalid timepoint, longer than the duration of the volume&#39;</span>
+
+    <span class="n">rotation_direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">output_motion_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="n">total_timepoints</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">total_timepoints</span><span class="p">):</span>
+
+        <span class="n">current_rotation_matrix</span> <span class="o">=</span> <span class="n">generate_identity_affine</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">timepoint</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">endpoint</span><span class="p">:</span>
+            
+            <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">midpoint</span><span class="p">:</span>
+                <span class="n">rotation_direction</span> <span class="o">=</span> <span class="n">rotation_direction</span> <span class="o">-</span> <span class="n">rotation_matrix_increment</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">midpoint</span><span class="p">:</span>
+                <span class="n">rotation_direction</span> <span class="o">=</span> <span class="n">rotation_direction</span> <span class="o">+</span> <span class="n">rotation_matrix_increment</span>
+
+            <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rotation_direction</span><span class="p">):</span>
+                <span class="n">current_rotation_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">current_rotation_matrix</span><span class="p">,</span> <span class="n">generate_rotation_affine</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">input_motion_array</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">output_motion_array</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">input_motion_array</span><span class="p">,</span> <span class="n">current_rotation_matrix</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_motion_array</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_rotation_matrix</span>
+
+    <span class="k">return</span> <span class="n">output_motion_array</span></div>
+
+<div class="viewcode-block" id="generate_motion_tilt"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.generate_motion_tilt">[docs]</a><span class="k">def</span> <span class="nf">generate_motion_tilt</span><span class="p">(</span><span class="n">timepoint</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">rotation_peaks</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">input_filepath</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">reference_nifti</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Generates an affine jerk that smoothly moves between an affine displacement, and then stays there. </span>
+<span class="sd">        TODO: Allow custom ordering of rotations. Currently all rotations go first by x, then by y,</span>
+<span class="sd">        then by z, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">input_motion_array</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">total_timepoints</span> <span class="o">=</span> <span class="n">input_motion_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">total_timepoints</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">total_timepoints</span> <span class="o">=</span> <span class="n">duration</span>
+
+    <span class="n">endpoint</span> <span class="o">=</span> <span class="n">timepoint</span> <span class="o">+</span> <span class="n">duration</span>
+    <span class="n">midpoint</span> <span class="o">=</span> <span class="n">timepoint</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">endpoint</span> <span class="o">-</span> <span class="n">timepoint</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">rotation_matrix_increment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">timepoint</span><span class="o">-</span><span class="n">endpoint</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rotation_peaks</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">endpoint</span> <span class="o">&gt;</span> <span class="n">total_timepoints</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Invalid timepoint, longer than the duration of the volume&#39;</span>
+
+    <span class="n">rotation_direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">output_motion_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="n">total_timepoints</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">total_timepoints</span><span class="p">):</span>
+
+        <span class="n">current_rotation_matrix</span> <span class="o">=</span> <span class="n">generate_identity_affine</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">timepoint</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">endpoint</span><span class="p">:</span>
+            
+            <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">midpoint</span><span class="p">:</span>
+                <span class="n">rotation_direction</span> <span class="o">=</span> <span class="n">rotation_direction</span> <span class="o">-</span> <span class="n">rotation_matrix_increment</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">midpoint</span><span class="p">:</span>
+                <span class="n">rotation_direction</span> <span class="o">=</span> <span class="n">rotation_direction</span> <span class="o">+</span> <span class="n">rotation_matrix_increment</span>
+
+            <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rotation_direction</span><span class="p">):</span>
+                <span class="n">current_rotation_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">current_rotation_matrix</span><span class="p">,</span> <span class="n">generate_rotation_affine</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">input_motion_array</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">output_motion_array</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">input_motion_array</span><span class="p">,</span> <span class="n">current_rotation_matrix</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_motion_array</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_rotation_matrix</span>
+
+    <span class="k">return</span> <span class="n">output_motion_array</span></div>
+
+<div class="viewcode-block" id="generate_noisy_motion"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.generate_noisy_motion">[docs]</a><span class="k">def</span> <span class="nf">generate_noisy_motion</span><span class="p">():</span>
+
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="get_jacobian_determinant"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.get_jacobian_determinant">[docs]</a><span class="k">def</span> <span class="nf">get_jacobian_determinant</span><span class="p">(</span><span class="n">input_volume</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Takes in an vector-valued space, calculates that spaces gradients and jacobian matrices,</span>
+<span class="sd">        and returns a scalar-valued space with the jacobian determinants.</span>
+
+<span class="sd">        TODO: Does not seem to work in the 1D case, where jacobian determinant is equal to the</span>
+<span class="sd">        gradient.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="n">jacobian_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">)</span>
+
+    <span class="n">temp_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">temp_jacobian</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">c</span><span class="p">])[</span><span class="n">r</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">temp_jacobian</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="return_jacobian_matrix"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.transform_util.return_jacobian_matrix">[docs]</a><span class="k">def</span> <span class="nf">return_jacobian_matrix</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Returns a Jacobian matrix for a certain index. This function is currently broken and not very</span>
+<span class="sd">        generalizable. TODO: fix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="n">jacobian_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">)</span>
+
+    <span class="n">temp_jacobian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">input_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">temp_jacobian</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="n">r</span><span class="p">,</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">input_numpy</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">c</span><span class="p">])[</span><span class="n">r</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">temp_jacobian</span><span class="p">[</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">index</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">:,:]</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

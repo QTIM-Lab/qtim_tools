@@ -1,0 +1,422 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_preprocessing package &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="index.html"/>
+        <link rel="next" title="qtim_tools.qtim_utilities package" href="qtim_tools.qtim_utilities.html"/>
+        <link rel="prev" title="qtim_tools.qtim_pipelines package" href="qtim_tools.qtim_pipelines.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">qtim_tools.qtim_preprocessing package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_preprocessing.image">qtim_tools.qtim_preprocessing.image module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_preprocessing.normalization">qtim_tools.qtim_preprocessing.normalization module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_preprocessing.registration">qtim_tools.qtim_preprocessing.registration module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_preprocessing.signal">qtim_tools.qtim_preprocessing.signal module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_preprocessing.threshold">qtim_tools.qtim_preprocessing.threshold module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_preprocessing">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="qtim_tools.html">Docs</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_preprocessing package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/qtim_tools.qtim_preprocessing.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="qtim-tools-qtim-preprocessing-package">
+<h1>qtim_tools.qtim_preprocessing package<a class="headerlink" href="#qtim-tools-qtim-preprocessing-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qtim_tools.qtim_preprocessing.image">
+<span id="qtim-tools-qtim-preprocessing-image-module"></span><h2>qtim_tools.qtim_preprocessing.image module<a class="headerlink" href="#module-qtim_tools.qtim_preprocessing.image" title="Permalink to this headline">¶</a></h2>
+<p>This preprocessing module is a little vague. As currently construed, it is meant to
+work on images received in .PNG, .JPG format, etc.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.image.fill_in_convex_outline">
+<code class="descclassname">qtim_tools.qtim_preprocessing.image.</code><code class="descname">fill_in_convex_outline</code><span class="sig-paren">(</span><em>input_data, output_file=None, reference_nifti=None, threshold_limit=[0, 100], color_threshold_limits=[[100, 300], [0, 100], [0, 100]], output_label_num=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/image.html#fill_in_convex_outline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.image.fill_in_convex_outline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thresholds a jpg according to certain color parameters. Uses a hole-filling algorithm to color in
+regions of interest.</p>
+<p>TODO: Reorganize into two separate tracks, instead of two winding tracks.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.image.split_islands">
+<code class="descclassname">qtim_tools.qtim_preprocessing.image.</code><code class="descname">split_islands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/image.html#split_islands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.image.split_islands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_preprocessing.normalization">
+<span id="qtim-tools-qtim-preprocessing-normalization-module"></span><h2>qtim_tools.qtim_preprocessing.normalization module<a class="headerlink" href="#module-qtim_tools.qtim_preprocessing.normalization" title="Permalink to this headline">¶</a></h2>
+<p>A general module for normalization methods. Likely to
+be borrowing heavily from other packages. TODO: Fill in
+these methods.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.normalization.histogram_normalization">
+<code class="descclassname">qtim_tools.qtim_preprocessing.normalization.</code><code class="descname">histogram_normalization</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>mode='uniform'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/normalization.html#histogram_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.normalization.histogram_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.normalization.zero_mean_unit_variance">
+<code class="descclassname">qtim_tools.qtim_preprocessing.normalization.</code><code class="descname">zero_mean_unit_variance</code><span class="sig-paren">(</span><em>input_volume</em>, <em>input_mask=None</em>, <em>output_filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/normalization.html#zero_mean_unit_variance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.normalization.zero_mean_unit_variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes an image by subtracting its mean and dividing by its standard
+deviation. If provided a mask, the normalization will only occur within the
+mask.</p>
+<p>TODO: Add support for not-equal-to masking.
+TODO: Add support for other replacement_values, a-la scikit-learn.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_data: N-dimensional array or str</strong></p>
+<blockquote>
+<div><p>The volume to be normalized. Can be filename or numpy array.</p>
+</div></blockquote>
+<p><strong>input_mask: N-dimensional array or str</strong></p>
+<blockquote>
+<div><p>A label mask. Must be the same size as input_data</p>
+</div></blockquote>
+<p><strong>output_filename: str</strong></p>
+<blockquote>
+<div><p>Optional, save output to filename.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">input_numpy: array</p>
+<blockquote class="last">
+<div><p>Transformed input array.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_preprocessing.registration">
+<span id="qtim-tools-qtim-preprocessing-registration-module"></span><h2>qtim_tools.qtim_preprocessing.registration module<a class="headerlink" href="#module-qtim_tools.qtim_preprocessing.registration" title="Permalink to this headline">¶</a></h2>
+<p>This is a wrapper script for BRAINSFit registration by 3D Slicer. In the future, there could be an all-Python
+implementation of registration in this function. In the meantime, one will need 3D Slicer (or a Docker container
+with 3DSlicer inside).</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.registration.register_all_to_one">
+<code class="descclassname">qtim_tools.qtim_preprocessing.registration.</code><code class="descname">register_all_to_one</code><span class="sig-paren">(</span><em>fixed_volume</em>, <em>moving_volume_folder</em>, <em>output_folder=''</em>, <em>output_suffix='_r'</em>, <em>file_regex='*.nii*'</em>, <em>exclusion_phrase='label'</em>, <em>software='slicer_brainsfit'</em>, <em>Slicer_Path='Slicer'</em>, <em>transform_type='Rigid</em>, <em>ScaleVersor3D</em>, <em>ScaleSkewVersor3D</em>, <em>Affine'</em>, <em>transform_mode='useMomentsAlign'</em>, <em>interpolation_mode='Linear'</em>, <em>sampling_percentage=0.02</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/registration.html#register_all_to_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.registration.register_all_to_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a folder of volumes to one pre-specified volumes using the BRAINSFit module in 3DSlicer. Must already have 3DSlicer installed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.registration.register_volume">
+<code class="descclassname">qtim_tools.qtim_preprocessing.registration.</code><code class="descname">register_volume</code><span class="sig-paren">(</span><em>moving_volume</em>, <em>fixed_volume</em>, <em>output_volume_filename=None</em>, <em>output_transform_filename=None</em>, <em>method='slicer_brainsfit'</em>, <em>Slicer_Path='Slicer'</em>, <em>transform_type='Rigid</em>, <em>ScaleVersor3D</em>, <em>ScaleSkewVersor3D</em>, <em>Affine'</em>, <em>transform_mode='useMomentsAlign'</em>, <em>interpolation_mode='Linear'</em>, <em>sampling_percentage=0.02</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/registration.html#register_volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.registration.register_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a folder of volumes to one pre-specified volumes using the BRAINSFit module in 3DSlicer. Must already have 3DSlicer installed.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_preprocessing.signal">
+<span id="qtim-tools-qtim-preprocessing-signal-module"></span><h2>qtim_tools.qtim_preprocessing.signal module<a class="headerlink" href="#module-qtim_tools.qtim_preprocessing.signal" title="Permalink to this headline">¶</a></h2>
+<p>This module is a series of scripts relating to extracting signal from noise
+in medical imaging files. Blurring, PCA, other scripts (most likely using
+scikit) will be put here.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.signal.PCA_reduce">
+<code class="descclassname">qtim_tools.qtim_preprocessing.signal.</code><code class="descname">PCA_reduce</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>PCA_levels=10</em>, <em>PCA_axis=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/signal.html#PCA_reduce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.signal.PCA_reduce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recomposes spatial-curve data based on however many PCA_levels are specified.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.signal.create_PCA_maps">
+<code class="descclassname">qtim_tools.qtim_preprocessing.signal.</code><code class="descname">create_PCA_maps</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>PCA_levels=10</em>, <em>PCA_axis=-1</em>, <em>return_eigenvalues=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/signal.html#create_PCA_maps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.signal.create_PCA_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in an image with pixels/voxels that change over time, or some other final axis,
+and return an image with the specified amount of PCA levels, ordered from most important
+to least important.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.signal.gaussian_blur">
+<code class="descclassname">qtim_tools.qtim_preprocessing.signal.</code><code class="descname">gaussian_blur</code><span class="sig-paren">(</span><em>image_numpy=[]</em>, <em>gaussian_blur=0</em>, <em>gaussian_blur_axes=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/signal.html#gaussian_blur"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.signal.gaussian_blur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gaussian blurring greatly improves fitting performance on DCE
+phantom data. Consider removing, adds almost nothing to scipy’s
+function.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_preprocessing.threshold">
+<span id="qtim-tools-qtim-preprocessing-threshold-module"></span><h2>qtim_tools.qtim_preprocessing.threshold module<a class="headerlink" href="#module-qtim_tools.qtim_preprocessing.threshold" title="Permalink to this headline">¶</a></h2>
+<p>This module should be used for functions that null out values in an array
+based on a condition. Primarily used for masking.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.threshold.crop_with_mask">
+<code class="descclassname">qtim_tools.qtim_preprocessing.threshold.</code><code class="descname">crop_with_mask</code><span class="sig-paren">(</span><em>input_data</em>, <em>label_data</em>, <em>output_filename=''</em>, <em>mask_value=0</em>, <em>return_labels=None</em>, <em>replacement_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/threshold.html#crop_with_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.threshold.crop_with_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Crops and image with a predefined mask image. Values equal to mask value
+are replaced with replacement_value.</p>
+<p>TODO: Add support for not-equal-to masking.
+TODO: Add support for other replacement_values, a-la scikit-learn.
+TODO: Add support for multiple return_labels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_data: N-dimensional array or str</strong></p>
+<blockquote>
+<div><p>The volume to be cropped. Can be filename or numpy array.</p>
+</div></blockquote>
+<p><strong>label_data: N-dimensional array or str</strong></p>
+<blockquote>
+<div><p>A label mask. Must be the same size as input_data</p>
+</div></blockquote>
+<p><strong>mask_value: int or float</strong></p>
+<blockquote>
+<div><p>Values equal to mask_value will be replaced with replacement_value.</p>
+</div></blockquote>
+<p><strong>return_labels: float or list</strong></p>
+<blockquote>
+<div><p>Label values to be preserved at the exclusion of other values.</p>
+</div></blockquote>
+<p><strong>replacement_value: int or float</strong></p>
+<blockquote>
+<div><p>Values equal to mask_value or not in return_labels will be replaced with replacement_value.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">input_numpy: array</p>
+<blockquote class="last">
+<div><p>Transformed input array.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_preprocessing.threshold.run_test">
+<code class="descclassname">qtim_tools.qtim_preprocessing.threshold.</code><code class="descname">run_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_preprocessing/threshold.html#run_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_preprocessing.threshold.run_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_preprocessing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qtim_tools.qtim_preprocessing" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="qtim_tools.qtim_utilities.html" class="btn btn-neutral float-right" title="qtim_tools.qtim_utilities package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="qtim_tools.qtim_pipelines.html" class="btn btn-neutral" title="qtim_tools.qtim_pipelines package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

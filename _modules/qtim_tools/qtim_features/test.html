@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_features.test &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_features.test</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_features.test</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">extract_features</span>
+
+<div class="viewcode-block" id="test"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.test.test">[docs]</a><span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+
+    <span class="c1"># This code should be run from the folder above the main &quot;qtim_tools&quot; folder using the command &quot;python -m qtim_tools.qtim_features.test&quot;</span>
+
+	<span class="c1"># All niftis in this folder will be processed. The program searches for a nifti file, and then checks if there is a matching labelmap file with the suffix &#39;-label&#39;.</span>
+	<span class="c1"># It currently loads from some built in data from the qtim_tools project, but you can change the filepath below to anywhere.</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Intensity&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># If labels is set to False, the whole image will be processed. This can take a very long time for GLCM features especially, so it is best we stick to labels.</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># The only available features are &#39;GLCM&#39;, &#39;morphology&#39;, and &#39;statistics&#39; for now.</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">]</span>
+
+    <span class="c1"># In order for GLCM to work correctly, an image has to be reduced to a set amount of gray-levels. Using all available levels in an image will most likely produce a useless result.</span>
+    <span class="c1"># More levels will result in more intensive computation. </span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="c1"># This will save a spreadsheet of all requested feature results.</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="s1">&#39;test_feature_results_intensity.csv&#39;</span>
+
+    <span class="c1"># If your label is for some reason masked with a value other than zero, change this parameter.</span>
+    <span class="n">mask_value</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># The erode parameter will take [x,y,z] pixels off in each dimension. On many volumes, it is not useful to erode in the z (axial) slice because of high slice thickness.</span>
+    <span class="c1"># Currently, the erode parameter only applies to GLCM. It does not apply to intensity statistic features, although maybe it should.</span>
+    <span class="n">erode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># If overwrite is False, then the program will try to save to the chosen filename with &#39;_copy&#39; appended if the chosen filename already exists.</span>
+    <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">extract_features</span><span class="o">.</span><span class="n">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">outfile</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="n">erode</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_parallel"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.test.test_parallel">[docs]</a><span class="k">def</span> <span class="nf">test_parallel</span><span class="p">():</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_GLCM&#39;</span><span class="p">))</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="s1">&#39;/home/administrator/data/tbData/tbType/TrainingSet&#39;</span>
+    <span class="n">generate_feature_list_parallel</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;lung_features_results_parallel_500.csv&#39;</span><span class="p">,</span><span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">35</span><span class="p">)</span>
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="parse_command_line"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.test.parse_command_line">[docs]</a><span class="k">def</span> <span class="nf">parse_command_line</span><span class="p">(</span><span class="n">argv</span><span class="p">):</span>
+
+    <span class="c1"># This code should be run from the folder above the main &quot;qtim_tools&quot; folder using the command &quot;python -m qtim_tools.qtim_features.test&quot;</span>
+
+    <span class="c1"># All niftis in this folder will be processed. The program searches for a nifti file, and then checks if there is a matching labelmap file with the suffix &#39;-label&#39;.</span>
+    <span class="c1"># It currently loads from some built in data from the qtim_tools project, but you can change the filepath below to anywhere.</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Intensity&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># If labels is set to False, the whole image will be processed. This can take a very long time for GLCM features especially, so it is best we stick to labels.</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># The only available features are &#39;GLCM&#39;, &#39;morphology&#39;, and &#39;statistics&#39; for now.</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">]</span>
+
+    <span class="c1"># In order for GLCM to work correctly, an image has to be reduced to a set amount of gray-levels. Using all available levels in an image will most likely produce a useless result.</span>
+    <span class="c1"># More levels will result in more intensive computation. </span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="c1"># This will save a spreadsheet of all requested feature results.</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="s1">&#39;test_feature_results_intensity.csv&#39;</span>
+
+    <span class="c1"># If your label is for some reason masked with a value other than zero, change this parameter.</span>
+    <span class="n">mask_value</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># The erode parameter will take [x,y,z] pixels off in each dimension. On many volumes, it is not useful to erode in the z (axial) slice because of high slice thickness.</span>
+    <span class="c1"># Currently, the erode parameter only applies to GLCM. It does not apply to intensity statistic features, although maybe it should.</span>
+    <span class="n">erode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># If overwrite is False, then the program will try to save to the chosen filename with &#39;_copy&#39; appended if the chosen filename already exists.</span>
+    <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">extract_features</span><span class="o">.</span><span class="n">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">outfile</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="n">erode</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_2"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.test.test_2">[docs]</a><span class="k">def</span> <span class="nf">test_2</span><span class="p">():</span>
+
+    <span class="c1"># This code should be run from the folder above the main &quot;qtim_tools&quot; folder using the command &quot;python -m qtim_tools.qtim_features.test&quot;</span>
+
+    <span class="c1"># All niftis in this folder will be processed. The program searches for a nifti file, and then checks if there is a matching labelmap file with the suffix &#39;-label&#39;.</span>
+    <span class="c1"># It currently loads from some built in data from the qtim_tools project, but you can change the filepath below to anywhere.</span>
+    <span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Intensity&#39;</span><span class="p">))</span>
+    
+    <span class="c1"># If labels is set to False, the whole image will be processed. This can take a very long time for GLCM features especially, so it is best we stick to labels.</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># The only available features are &#39;GLCM&#39;, &#39;morphology&#39;, and &#39;statistics&#39; for now.</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span><span class="s1">&#39;morphology&#39;</span><span class="p">,</span> <span class="s1">&#39;statistics&#39;</span><span class="p">]</span>
+
+    <span class="c1"># In order for GLCM to work correctly, an image has to be reduced to a set amount of gray-levels. Using all available levels in an image will most likely produce a useless result.</span>
+    <span class="c1"># More levels will result in more intensive computation. </span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="c1"># This will save a spreadsheet of all requested feature results.</span>
+    <span class="n">outfile</span> <span class="o">=</span> <span class="s1">&#39;test_feature_results_intensity.csv&#39;</span>
+
+    <span class="c1"># If your label is for some reason masked with a value other than zero, change this parameter.</span>
+    <span class="n">mask_value</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># The erode parameter will take [x,y,z] pixels off in each dimension. On many volumes, it is not useful to erode in the z (axial) slice because of high slice thickness.</span>
+    <span class="c1"># Currently, the erode parameter only applies to GLCM. It does not apply to intensity statistic features, although maybe it should.</span>
+    <span class="n">erode</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># If overwrite is False, then the program will try to save to the chosen filename with &#39;_copy&#39; appended if the chosen filename already exists.</span>
+    <span class="n">overwrite</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">generate_feature_list_batch</span><span class="p">(</span><span class="n">folder</span><span class="o">=</span><span class="n">test_folder</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">outfile</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">erode</span><span class="o">=</span><span class="n">erode</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;maximal_slice&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span> <span class="s1">&#39;new test now&#39;</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="n">test_method</span><span class="p">()</span>
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

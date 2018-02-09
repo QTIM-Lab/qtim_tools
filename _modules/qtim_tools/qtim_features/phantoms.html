@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_features.phantoms &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_features.phantoms</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_features.phantoms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; This program is meant to generate phantom data for testing purposes.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities</span> <span class="k">import</span> <span class="n">nifti_util</span>
+
+<div class="viewcode-block" id="size_cube_phantom"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.phantoms.size_cube_phantom">[docs]</a><span class="k">def</span> <span class="nf">size_cube_phantom</span><span class="p">(</span><span class="n">reference_image</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">):</span>
+
+	<span class="sd">&quot;&quot;&quot; Takes an input image and outputs</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">nifti_3d</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">reference_image</span><span class="p">)</span>
+	<span class="n">image_3d</span> <span class="o">=</span> <span class="n">nifti_3d</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+	<span class="k">for</span> <span class="n">size_ratio</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">):</span>
+		<span class="n">phantom_3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">image_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">image_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+		<span class="n">phantom_3d</span><span class="p">[(</span><span class="n">phantom_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">size_ratio</span><span class="o">/</span><span class="mi">2</span><span class="p">)):(</span><span class="n">phantom_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">phantom_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">size_ratio</span><span class="o">/</span><span class="mi">2</span><span class="p">))),</span> <span class="p">(</span><span class="n">phantom_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">size_ratio</span><span class="o">/</span><span class="mi">2</span><span class="p">)):(</span><span class="n">phantom_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">phantom_3d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">size_ratio</span><span class="o">/</span><span class="mi">2</span><span class="p">))),</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">nifti_util</span><span class="o">.</span><span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">phantom_3d</span><span class="p">,</span> <span class="n">reference_image</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s1">&#39;Size_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">size_ratio</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39;_Phantom.nii.gz&#39;</span><span class="p">))</span>
+		<span class="n">nifti_util</span><span class="o">.</span><span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">phantom_3d</span><span class="p">,</span> <span class="n">reference_image</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s1">&#39;Size_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">size_ratio</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39;_Phantom-label.nii.gz&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="glcm_cube_phantom"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.phantoms.glcm_cube_phantom">[docs]</a><span class="k">def</span> <span class="nf">glcm_cube_phantom</span><span class="p">(</span><span class="n">reference_image</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">):</span>
+
+	<span class="n">nifti_3d</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">reference_image</span><span class="p">)</span>
+	<span class="n">image_3d</span> <span class="o">=</span> <span class="n">nifti_3d</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+	<span class="k">for</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Vertical&#39;</span><span class="p">,</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">,</span> <span class="s1">&#39;Grid&#39;</span><span class="p">]:</span>
+		<span class="k">for</span> <span class="n">alternation_rate</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+			<span class="n">phantom_3d</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">label_3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">phantom_3d</span><span class="p">)</span>
+			<span class="n">label_3d</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">20</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="n">phantom_3d</span><span class="p">[</span><span class="n">phantom_3d</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+			<span class="n">indice_list</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">both_indice_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">200</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="p">(</span><span class="n">alternation_rate</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">alternation_rate</span><span class="p">:</span>
+					<span class="n">indice_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span>
+					<span class="c1"># both_indice_list ++ [i, i, 1]</span>
+					<span class="c1"># both_indice_list ++ [i, i, 2]</span>
+
+			<span class="k">if</span> <span class="n">alternation_rate</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="k">pass</span>
+			<span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
+				<span class="n">phantom_3d</span><span class="p">[</span><span class="n">indice_list</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="mi">100</span>
+			<span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
+				<span class="n">phantom_3d</span><span class="p">[:,</span> <span class="n">indice_list</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="mi">100</span>
+			<span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;Grid&#39;</span><span class="p">:</span>
+				<span class="k">for</span> <span class="n">indice</span> <span class="ow">in</span> <span class="n">indice_list</span><span class="p">:</span>
+					<span class="n">phantom_3d</span><span class="p">[</span><span class="n">indice</span><span class="p">,</span> <span class="n">indice_list</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="mi">100</span>
+
+			<span class="n">nifti_util</span><span class="o">.</span><span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">phantom_3d</span><span class="p">,</span> <span class="n">reference_image</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s1">&#39;GLCM_&#39;</span> <span class="o">+</span> <span class="n">direction</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">alternation_rate</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_Phantom.nii.gz&#39;</span><span class="p">))</span>
+			<span class="n">nifti_util</span><span class="o">.</span><span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">label_3d</span><span class="p">,</span> <span class="n">reference_image</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s1">&#39;GLCM_&#39;</span> <span class="o">+</span> <span class="n">direction</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">alternation_rate</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_Phantom-label.nii.gz&#39;</span><span class="p">))</span>
+
+			<span class="nb">print</span> <span class="p">[</span><span class="n">direction</span><span class="p">,</span> <span class="n">alternation_rate</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="intensity_cube_phantom"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.phantoms.intensity_cube_phantom">[docs]</a><span class="k">def</span> <span class="nf">intensity_cube_phantom</span><span class="p">(</span><span class="n">reference_image</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">):</span>
+
+	<span class="n">nifti_3d</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">reference_image</span><span class="p">)</span>
+	<span class="n">image_3d</span> <span class="o">=</span> <span class="n">nifti_3d</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+	<span class="k">for</span> <span class="n">phantom_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span><span class="s1">&#39;split&#39;</span><span class="p">,</span><span class="s1">&#39;checker&#39;</span><span class="p">,</span><span class="s1">&#39;noisy_grey&#39;</span><span class="p">,</span><span class="s1">&#39;one_spot&#39;</span><span class="p">]:</span>
+		<span class="n">phantom_3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+		<span class="n">label_3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">phantom_3d</span><span class="p">)</span>
+		<span class="n">label_3d</span><span class="p">[</span><span class="mi">70</span><span class="p">:</span><span class="mi">130</span><span class="p">,</span> <span class="mi">70</span><span class="p">:</span><span class="mi">130</span><span class="p">,:]</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">phantom_3d</span><span class="p">[</span><span class="n">phantom_3d</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+		<span class="k">if</span> <span class="n">phantom_type</span> <span class="o">==</span> <span class="s1">&#39;grey&#39;</span><span class="p">:</span>
+			<span class="n">phantom_3d</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mi">100</span>
+
+		<span class="k">elif</span> <span class="n">phantom_type</span> <span class="o">==</span> <span class="s1">&#39;split&#39;</span><span class="p">:</span>
+			<span class="n">phantom_3d</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">100</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="mi">50</span>
+			<span class="n">phantom_3d</span><span class="p">[</span><span class="mi">100</span><span class="p">:,:,:]</span> <span class="o">=</span> <span class="mi">150</span>
+
+		<span class="k">elif</span> <span class="n">phantom_type</span> <span class="o">==</span> <span class="s1">&#39;checker&#39;</span><span class="p">:</span>
+			<span class="n">indice_list</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">200</span><span class="p">):</span>
+				<span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+					<span class="n">indice_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span>
+			<span class="n">phantom_3d</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mi">50</span>
+			<span class="k">for</span> <span class="n">indice</span> <span class="ow">in</span> <span class="n">indice_list</span><span class="p">:</span>
+				<span class="n">phantom_3d</span><span class="p">[</span><span class="n">indice</span><span class="p">,</span> <span class="n">indice_list</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">150</span>
+
+		<span class="k">elif</span> <span class="n">phantom_type</span> <span class="o">==</span> <span class="s1">&#39;noisy_grey&#39;</span><span class="p">:</span>
+			<span class="n">phantom_3d</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">phantom_3d</span><span class="p">[</span><span class="n">phantom_3d</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+		<span class="k">elif</span> <span class="n">phantom_type</span> <span class="o">==</span> <span class="s1">&#39;one_spot&#39;</span><span class="p">:</span>
+			<span class="n">phantom_3d</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="mi">100</span>
+			<span class="n">phantom_3d</span><span class="p">[</span><span class="mi">80</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span> <span class="mi">80</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">150</span>
+
+		<span class="n">nifti_util</span><span class="o">.</span><span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">phantom_3d</span><span class="p">,</span> <span class="n">reference_image</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s1">&#39;Intensity_&#39;</span> <span class="o">+</span> <span class="n">phantom_type</span> <span class="o">+</span> <span class="s1">&#39;_Phantom.nii.gz&#39;</span><span class="p">))</span>
+		<span class="n">nifti_util</span><span class="o">.</span><span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">label_3d</span><span class="p">,</span> <span class="n">reference_image</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="s1">&#39;Intensity_&#39;</span> <span class="o">+</span> <span class="n">phantom_type</span> <span class="o">+</span> <span class="s1">&#39;_Phantom-label.nii.gz&#39;</span><span class="p">))</span>
+
+		<span class="nb">print</span> <span class="p">[</span><span class="n">phantom_type</span><span class="p">]</span>
+
+	<span class="k">return</span></div>
+
+<div class="viewcode-block" id="get_phantom_filepath"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.phantoms.get_phantom_filepath">[docs]</a><span class="k">def</span> <span class="nf">get_phantom_filepath</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+
+	<span class="k">if</span> <span class="nb">input</span> <span class="o">==</span> <span class="s1">&#39;intensity_square&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Intensity&#39;</span><span class="p">))</span>
+	<span class="k">elif</span> <span class="nb">input</span> <span class="o">==</span> <span class="s1">&#39;glcm_square&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_GLCM&#39;</span><span class="p">))</span>
+	<span class="k">elif</span> <span class="nb">input</span> <span class="o">==</span> <span class="s1">&#39;size_square&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Size&#39;</span><span class="p">))</span>
+	<span class="k">elif</span> <span class="nb">input</span> <span class="o">==</span> <span class="s1">&#39;size_mri&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;MR_Tumor_Size&#39;</span><span class="p">))</span>
+	<span class="k">elif</span> <span class="nb">input</span> <span class="o">==</span> <span class="s1">&#39;shape_mri&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;MR_Tumor_Shape&#39;</span><span class="p">))</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="nb">print</span> <span class="s1">&#39;Sorry, there is no available phantom data by that keyword. Available keywords: &quot;intensity_square&quot;, &quot;glcm_square&quot;, &quot;size_square&quot;, &quot;size_mri&quot;, &quot;shape_mri&quot;.&#39;</span>
+		<span class="k">return</span> <span class="s1">&#39;&#39;</span></div>
+
+<div class="viewcode-block" id="test_method"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.phantoms.test_method">[docs]</a><span class="k">def</span> <span class="nf">test_method</span><span class="p">():</span>
+	<span class="k">return</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="c1"># test_method()</span>
+
+	<span class="n">test_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;MR_Tumor_Size&#39;</span><span class="p">,</span><span class="s1">&#39;MR_BrainTumor_SizeTest.nii.gz&#39;</span><span class="p">))</span>
+	<span class="n">test_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span><span class="s1">&#39;..&#39;</span><span class="p">,</span><span class="s1">&#39;test_data&#39;</span><span class="p">,</span><span class="s1">&#39;test_data_features&#39;</span><span class="p">,</span><span class="s1">&#39;Phantom_Intensity&#39;</span><span class="p">))</span>
+
+	<span class="n">intensity_cube_phantom</span><span class="p">(</span><span class="n">test_file</span><span class="p">,</span> <span class="n">test_folder</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

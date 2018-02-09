@@ -1,0 +1,537 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_utilities.array_util &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_utilities.array_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_utilities.array_util</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; This utility module contains functions meant to do more complex operations</span>
+<span class="sd">    on arrays. Functions here will frequently be wrapper functions around other</span>
+<span class="sd">    packages. Numpy is the presumed array standard. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities.format_util</span> <span class="k">import</span> <span class="n">convert_input_2_numpy</span>
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities.nifti_util</span> <span class="k">import</span> <span class="n">save_numpy_2_nifti</span>
+
+<span class="kn">from</span> <span class="nn">scipy.ndimage.interpolation</span> <span class="k">import</span> <span class="n">affine_transform</span><span class="p">,</span> <span class="n">geometric_transform</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">stats</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">misc</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">measure</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="n">filters</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">skimage</span> <span class="k">import</span> <span class="nb">filter</span> <span class="k">as</span> <span class="n">filters</span>
+
+<div class="viewcode-block" id="staple_algorithm"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.staple_algorithm">[docs]</a><span class="k">def</span> <span class="nf">staple_algorithm</span><span class="p">(</span><span class="n">input_label_list</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; TODO</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="match_array_orientation"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.match_array_orientation">[docs]</a><span class="k">def</span> <span class="nf">match_array_orientation</span><span class="p">(</span><span class="n">image1</span><span class="p">,</span> <span class="n">image2</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; TODO function. Write some smart way to match flips and</span>
+<span class="sd">        90 degree rotations between ararys with different orientations</span>
+<span class="sd">        This may require the existence of a header construct.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="pad_image_segment"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.pad_image_segment">[docs]</a><span class="k">def</span> <span class="nf">pad_image_segment</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">reference_image</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Many people store their label maps in Niftis with dimensions smaller</span>
+<span class="sd">        than the corresponding image. This is also that natural output of DICOM-SEG</span>
+<span class="sd">        nifti conversions. Padding these arrays with empty values so that they are</span>
+<span class="sd">        comparable requires knowledge of that image&#39;s origin. TODO: write a function</span>
+<span class="sd">        that can do this with some specifications from either a reference image or</span>
+<span class="sd">        header.</span>
+
+<span class="sd">        It may be better to put a version of this function specifically for DICOMSEG</span>
+<span class="sd">        into the dicom_util module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="get_arbitrary_axis_slice"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.get_arbitrary_axis_slice">[docs]</a><span class="k">def</span> <span class="nf">get_arbitrary_axis_slice</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">slice_num</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Returns a slice of numpy array according to an arbitrary axis. This is a</span>
+<span class="sd">        convencience function mostly because I find Python&#39;s slice notation a bit</span>
+<span class="sd">        cumbersome.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="n">image_slice</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">axis</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">slice_num</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="n">image_slice</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">slice_num</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">slice_num</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image_slice</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">slice_num</span><span class="p">,</span> <span class="n">slice_num</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image_slice</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">image_numpy</span><span class="p">[</span><span class="n">image_slice</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="truncate_image"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.truncate_image">[docs]</a><span class="k">def</span> <span class="nf">truncate_image</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">return_mask</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">output_mask_filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function takes in an N-dimensional array and truncates all rows/columns/etc</span>
+<span class="sd">        that contain only mask values. Useful for reducing computation time on functions</span>
+<span class="sd">        whose running time scales exponentially with dimensions size.</span>
+
+<span class="sd">        BUG: Currently seems to fail on axes with length 1.</span>
+<span class="sd">        TODO: Truncate only on some axes.</span>
+<span class="sd">        TODO: Add the option to add buffer pixels to meet output_dimensions.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        input_volume: N-dimensional array</span>
+<span class="sd">            The volume to be truncated. Will be truncated in every axis.</span>
+<span class="sd">        mask_value: int or float</span>
+<span class="sd">            Vectors in an axis that are composed entirely of mask_value will be truncated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">truncate_ranges</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">axis_length</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dims</span><span class="p">):</span>
+        <span class="n">start_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">axis_length</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">get_arbitrary_axis_slice</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">==</span> <span class="n">mask_value</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">start_flag</span><span class="p">:</span>
+                    <span class="n">truncate_ranges</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">start_flag</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">truncate_ranges</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">padding</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">truncate_ranges</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">padding</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="n">axis</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">padding</span><span class="p">)]</span> <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">truncate_ranges</span><span class="p">)]</span>
+
+    <span class="n">truncate_slices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">truncate_ranges</span><span class="p">]</span>
+
+    <span class="n">truncate_image_numpy</span> <span class="o">=</span> <span class="n">image_numpy</span><span class="p">[</span><span class="n">truncate_slices</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">return_mask</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">truncate_image_numpy</span><span class="p">,</span> <span class="n">mask_numpy</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">truncate_image_numpy</span></div>
+
+<div class="viewcode-block" id="truncate_to_maximum_image"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.truncate_to_maximum_image">[docs]</a><span class="k">def</span> <span class="nf">truncate_to_maximum_image</span><span class="p">(</span><span class="n">input_volume_list</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Finds the smallest bounding-box which will fit all images.</span>
+<span class="sd">        For now</span>
+
+<span class="sd">        UNIMPLEMENTED</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="return_connected_components"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.return_connected_components">[docs]</a><span class="k">def</span> <span class="nf">return_connected_components</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">return_split</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">truncate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">truncate_padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">output_filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function takes in an N-dimensional array and uses scikit-image&#39;s measure.label function</span>
+<span class="sd">        to split it into individual connected components. One can either return a split version of</span>
+<span class="sd">        the original label, which will be stackd in a new batch dimension (N, ...), or return a renumbered</span>
+<span class="sd">        version of the original label. One can also choose to truncate the output of the original image,</span>
+<span class="sd">        instead returning a list of arrays of different sizes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        input_volume: N-dimensional array</span>
+<span class="sd">            The volume to be queried.</span>
+<span class="sd">        mask_value: int or float</span>
+<span class="sd">            Islands composed of &quot;mask_value&quot; will be ignored.</span>
+<span class="sd">        return_split: bool</span>
+<span class="sd">            Whether to a return a stacked output of equal-size binary arrays for each island,</span>
+<span class="sd">            or to return one array with differently-labeled islands for each output.</span>
+<span class="sd">        truncate: bool</span>
+<span class="sd">            Whether or not to truncate the output. Irrelevant if return_split is False</span>
+<span class="sd">        truncate_padding: int</span>
+<span class="sd">            How many voxels of padding to leave when truncating.</span>
+<span class="sd">        output_filepath: str</span>
+<span class="sd">            If return_split is False, output will be saved to this file. If return_split</span>
+<span class="sd">            is True, output will be save to this file with the suffix &quot;_[#]&quot; for island</span>
+<span class="sd">            number</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        output_array: N+1 or N-dimensional array</span>
+<span class="sd">            Output array(s) depending on return_split</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="n">connected_components</span> <span class="o">=</span> <span class="n">measure</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">connectivity</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">return_split</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">output_filepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">connected_components</span><span class="p">,</span> <span class="n">input_volume</span><span class="p">,</span> <span class="n">output_filepath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">connected_components</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">all_islands</span> <span class="o">=</span> <span class="n">split_image</span><span class="p">(</span><span class="n">connected_components</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">island</span> <span class="ow">in</span> <span class="n">all_islands</span><span class="p">:</span>
+            <span class="n">all_islands</span><span class="p">[</span><span class="n">island</span><span class="p">]</span> <span class="o">=</span> <span class="n">truncate_image</span><span class="p">(</span><span class="n">island</span><span class="p">,</span> <span class="n">truncate_padding</span><span class="o">=</span><span class="n">truncate_padding</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">output_filepath</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">island_idx</span><span class="p">,</span> <span class="n">island</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_islands</span><span class="p">):</span>
+                <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">connected_components</span><span class="p">,</span> <span class="n">input_volume</span><span class="p">,</span> <span class="n">replace_suffix</span><span class="p">(</span><span class="n">output_filepath</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">island_idx</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">all_islands</span></div>
+
+<div class="viewcode-block" id="split_image"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.split_image">[docs]</a><span class="k">def</span> <span class="nf">split_image</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">input_label_volume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function takes in an image, optionally a label image, and optionally a set of indices,</span>
+<span class="sd">        and returns one duplicate masked image for each given label. Useful for analyzing,</span>
+<span class="sd">        say, multiple tumors, although expensive in memory. Useful when paired with the</span>
+<span class="sd">        truncate_image function to reduce array memory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+    <span class="n">label_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_label_volume</span><span class="p">)</span>
+
+    <span class="n">masked_images</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="nb">print</span> <span class="n">label_indices</span>
+
+    <span class="k">if</span> <span class="n">label_indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">label_numpy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">label_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">label_numpy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mask_value</span> <span class="ow">in</span> <span class="n">label_indices</span><span class="p">:</span>
+        <span class="n">label_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">label_indices</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">label_indices</span><span class="o">==</span><span class="n">mask_value</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">label_indices</span><span class="p">:</span>
+        <span class="n">masked_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+        <span class="n">masked_image</span><span class="p">[</span><span class="n">label_numpy</span> <span class="o">!=</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_value</span>
+        <span class="n">masked_images</span> <span class="o">+=</span> <span class="p">[</span><span class="n">masked_image</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">masked_images</span></div>
+
+<div class="viewcode-block" id="extract_maximal_slice"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.extract_maximal_slice">[docs]</a><span class="k">def</span> <span class="nf">extract_maximal_slice</span><span class="p">(</span><span class="n">input_volume</span><span class="p">,</span> <span class="n">input_label_volume</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;max_intensity&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Extracts one slice from a presumably 3D volume. Either take the slice whose label</span>
+<span class="sd">        has the greatest area (mode=&#39;max_label&#39;), or whos sum of voxels has the greatest </span>
+<span class="sd">        intensity (mode=&#39;max_intensity&#39;), according to the provided axis variable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">image_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_volume</span><span class="p">)</span>
+
+    <span class="n">sum_dimensions</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="n">axis</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;max_intensity&#39;</span><span class="p">:</span>
+        <span class="n">flattened_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">sum_dimensions</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;max_label&#39;</span><span class="p">:</span>
+        <span class="n">label_numpy</span> <span class="o">=</span> <span class="n">convert_input_2_numpy</span><span class="p">(</span><span class="n">input_label_volume</span><span class="p">)</span>
+        <span class="n">flattened_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">label_numpy</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">sum_dimensions</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;non_mask&#39;</span><span class="p">:</span>
+        <span class="n">flattened_image</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_numpy</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">sum_dimensions</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Invalid mode entered to extract_maximal_slice_3d. Returning original array..&#39;</span>
+        <span class="k">return</span> <span class="n">image_numpy</span>
+
+    <span class="c1"># TODO: Put in support for </span>
+    <span class="n">highest_slice_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">flattened_image</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">highest_slice_index</span> <span class="o">=</span> <span class="n">highest_slice_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">return_index</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">get_arbitrary_axis_slice</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">highest_slice_index</span><span class="p">),</span> <span class="n">highest_slice_index</span>
+
+    <span class="k">return</span> <span class="n">get_arbitrary_axis_slice</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">highest_slice_index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="generate_label_outlines"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.array_util.generate_label_outlines">[docs]</a><span class="k">def</span> <span class="nf">generate_label_outlines</span><span class="p">(</span><span class="n">label_numpy</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Assumes labels are &gt; 0 and integers.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        input_volume: N-dimensional array</span>
+<span class="sd">            The volume to be queried.</span>
+<span class="sd">        mask_value: int or float</span>
+<span class="sd">            Islands composed of &quot;mask_value&quot; will be ignored.</span>
+<span class="sd">        return_split: bool</span>
+<span class="sd">            Whether to a return a stacked output of equal-size binary arrays for each island,</span>
+<span class="sd">            or to return one array with differently-labeled islands for each output.</span>
+<span class="sd">        truncate: bool</span>
+<span class="sd">            Whether or not to truncate the output. Irrelevant if return_split is False</span>
+<span class="sd">        truncate_padding: int</span>
+<span class="sd">            How many voxels of padding to leave when truncating.</span>
+<span class="sd">        output_filepath: str</span>
+<span class="sd">            If return_split is False, output will be saved to this file. If return_split</span>
+<span class="sd">            is True, output will be save to this file with the suffix &quot;_[#]&quot; for island</span>
+<span class="sd">            number</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        output_array: N+1 or N-dimensional array</span>
+<span class="sd">            Output array(s) depending on return_split</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+        
+    <span class="n">edges_kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">edges_kernel</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="n">outline_label_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">label_numpy</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">label_number</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">label_numpy</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">label_number</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">:</span>
+            <span class="n">sublabel_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">label_numpy</span><span class="p">)</span>
+            <span class="n">sublabel_numpy</span><span class="p">[</span><span class="n">sublabel_numpy</span> <span class="o">!=</span> <span class="n">label_number</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">edge_image</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">sublabel_numpy</span><span class="p">,</span> <span class="n">edges_kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">edge_image</span><span class="p">[</span><span class="n">sublabel_numpy</span> <span class="o">!=</span> <span class="n">label_number</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">edge_image</span><span class="p">[</span><span class="n">edge_image</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_number</span>
+            <span class="n">outline_label_numpy</span> <span class="o">+=</span> <span class="n">edge_image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">outline_label_numpy</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

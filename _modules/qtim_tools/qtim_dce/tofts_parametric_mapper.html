@@ -1,0 +1,678 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_dce.tofts_parametric_mapper &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_dce.tofts_parametric_mapper</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_dce.tofts_parametric_mapper</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; TODO: Fill in docstring (sorry...)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+
+<span class="c1"># TODO Clean up these imports..</span>
+<span class="c1"># Import nifti_util. It only fails if this is script is not loaded as a package, which it should be.</span>
+
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities.nifti_util</span> <span class="k">import</span> <span class="n">save_numpy_2_nifti</span><span class="p">,</span> <span class="n">nifti_2_numpy</span>
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_dce.dce_util</span> <span class="k">import</span> <span class="n">convert_intensity_to_concentration</span><span class="p">,</span> <span class="n">parker_model_AIF</span><span class="p">,</span> <span class="n">generate_AIF</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+<span class="kn">import</span> <span class="nn">scipy.ndimage</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="k">import</span> <span class="n">trapz</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+
+<span class="kn">from</span> <span class="nn">Queue</span> <span class="k">import</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="k">import</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">freeze_support</span>
+
+<div class="viewcode-block" id="calc_DCE_properties_single"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.calc_DCE_properties_single">[docs]</a><span class="k">def</span> <span class="nf">calc_DCE_properties_single</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="n">relaxivity</span><span class="o">=.</span><span class="mi">0045</span><span class="p">,</span> <span class="n">TR</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">TE</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">scan_time_seconds</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="o">*</span><span class="mi">60</span><span class="p">),</span> <span class="n">hematocrit</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">label_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">label_suffix</span><span class="o">=</span><span class="p">[],</span> <span class="n">label_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">T1_map_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">T1_map_suffix</span><span class="o">=</span><span class="s1">&#39;-T1Map&#39;</span><span class="p">,</span> <span class="n">AIF_label_file</span><span class="o">=</span><span class="p">[],</span>  <span class="n">AIF_value_data</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_value_suffix</span><span class="o">=</span><span class="p">[],</span> <span class="n">convert_AIF_values</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">AIF_mode</span><span class="o">=</span><span class="s1">&#39;label_average&#39;</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_label_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label_mode</span><span class="o">=</span><span class="s1">&#39;separate&#39;</span><span class="p">,</span> <span class="n">param_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">default_population_AIF</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ktrans&#39;</span><span class="p">,</span><span class="s1">&#39;ve&#39;</span><span class="p">,</span><span class="s1">&#39;auc&#39;</span><span class="p">],</span> <span class="n">outfile_prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">gaussian_blur</span><span class="o">=.</span><span class="mi">65</span><span class="p">,</span> <span class="n">gaussian_blur_axis</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This is a master function that creates ktrans, ve, and auc values from raw intensity 1D-4D volumes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+    <span class="c1"># NaN values are cleaned for ease of calculation.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+
+    <span class="c1"># Unlikely that this circumstance will apply to 4D images in the future..</span>
+    <span class="n">dimension</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dimension</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Error: Images greater than dimension 4 are currently not supported. Skipping this volume...&#39;</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="c1"># Convenience variables created from input parameters.</span>
+    <span class="n">flip_angle_radians</span> <span class="o">=</span> <span class="n">flip_angle_degrees</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span>
+    <span class="n">time_interval_seconds</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">scan_time_seconds</span> <span class="o">/</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">dimension</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">timepoints</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">bolus_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">injection_start_time_seconds</span> <span class="o">/</span> <span class="n">scan_time_seconds</span><span class="p">)</span> <span class="o">*</span> <span class="n">timepoints</span><span class="p">))</span>
+
+    <span class="c1"># This step applies a gaussian blur to the provided axes. Blurring greatly increases DCE accuracy on noisy data.</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">preprocess_dce</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gaussian_blur</span><span class="o">=</span><span class="n">gaussian_blur</span><span class="p">,</span> <span class="n">gaussian_blur_axis</span><span class="o">=</span><span class="n">gaussian_blur_axis</span><span class="p">)</span>
+
+    <span class="c1"># Data store in other files may be relevant to DCE calculations. This utility function collects them and stores them in local variables.</span>
+    <span class="n">AIF_label_image</span><span class="p">,</span> <span class="n">label_image</span><span class="p">,</span> <span class="n">T1_image</span><span class="p">,</span> <span class="n">AIF</span> <span class="o">=</span> <span class="n">retreive_data_from_files</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">label_file</span><span class="p">,</span> <span class="n">label_mode</span><span class="p">,</span> <span class="n">label_suffix</span><span class="p">,</span> <span class="n">label_value</span><span class="p">,</span> <span class="n">AIF_label_file</span><span class="p">,</span> <span class="n">AIF_label_value</span><span class="p">,</span> <span class="n">AIF_mode</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="p">,</span> <span class="n">T1_map_file</span><span class="p">,</span> <span class="n">T1_map_suffix</span><span class="p">,</span> <span class="n">AIF_value_data</span><span class="p">,</span> <span class="n">AIF_value_suffix</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+    <span class="c1"># If no pre-set AIF text file is provided, one must be generated either from a label-map or a population AIF.</span>
+    <span class="k">if</span> <span class="n">AIF</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="n">AIF</span> <span class="o">=</span> <span class="n">generate_AIF</span><span class="p">(</span><span class="n">scan_time_seconds</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">AIF_label_image</span><span class="p">,</span> <span class="n">AIF_value_data</span><span class="p">,</span> <span class="n">AIF_mode</span><span class="p">,</span> <span class="n">dimension</span><span class="p">,</span> <span class="n">AIF_label_value</span><span class="p">)</span>
+
+    <span class="c1"># Error-catching for broken AIFs.</span>
+    <span class="k">if</span> <span class="n">AIF</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Problem calculating AIF. Skipping this volume...&#39;</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="c1"># Signal conversion is required in order for raw data to interface with the Tofts model.</span>
+    <span class="n">contrast_image</span> <span class="o">=</span> <span class="n">convert_intensity_to_concentration</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="p">,</span> <span class="n">TR</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">relaxivity</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">hematocrit</span><span class="p">)</span>
+
+    <span class="c1"># Depending on where the AIF is derived from, AIF values may also need to be convered into Gd concentration.</span>
+    <span class="k">if</span> <span class="n">AIF_mode</span> <span class="o">==</span> <span class="s1">&#39;population&#39;</span><span class="p">:</span>
+        <span class="n">contrast_AIF</span> <span class="o">=</span> <span class="n">AIF</span>
+    <span class="k">elif</span> <span class="n">AIF_value_data</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="n">convert_AIF_values</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">contrast_AIF</span> <span class="o">=</span> <span class="n">AIF</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">contrast_AIF</span> <span class="o">=</span> <span class="n">convert_intensity_to_concentration</span><span class="p">(</span><span class="n">AIF</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="p">,</span> <span class="n">TR</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">relaxivity</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">hematocrit</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="n">T1_blood</span><span class="p">)</span>
+
+    <span class="c1"># The optimization portion of the program is run here.</span>
+    <span class="n">parameter_maps</span> <span class="o">=</span> <span class="n">simplex_optimize</span><span class="p">(</span><span class="n">contrast_image</span><span class="p">,</span> <span class="n">contrast_AIF</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">bolus_time</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">label_image</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">processes</span><span class="p">)</span>
+
+    <span class="c1"># Outputs are saved, and then returned.</span>
+    <span class="k">for</span> <span class="n">param_idx</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">outputs</span><span class="p">):</span>
+        <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">parameter_maps</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="n">param_idx</span><span class="p">],</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">outfile_prefix</span> <span class="o">+</span> <span class="n">param</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">outputs</span></div>
+
+<div class="viewcode-block" id="retreive_data_from_files"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.retreive_data_from_files">[docs]</a><span class="k">def</span> <span class="nf">retreive_data_from_files</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">label_file</span><span class="p">,</span> <span class="n">label_mode</span><span class="p">,</span> <span class="n">label_suffix</span><span class="p">,</span> <span class="n">label_value</span><span class="p">,</span> <span class="n">AIF_label_file</span><span class="p">,</span> <span class="n">AIF_label_value</span><span class="p">,</span> <span class="n">AIF_mode</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="p">,</span> <span class="n">T1_map_file</span><span class="p">,</span> <span class="n">T1_map_suffix</span><span class="p">,</span> <span class="n">AIF_value_data</span><span class="p">,</span> <span class="n">AIF_value_suffix</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="p">[]):</span>
+
+    <span class="sd">&quot;&quot;&quot; Check for associated data relevant to DCE calculation either via provided filenames or provided filename suffixes (e.g. &#39;-T1map&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: Clean up redundancies in this function.</span>
+
+    <span class="c1"># Check for a provided region of interest for calculating parameter values.</span>
+    <span class="k">if</span> <span class="n">label_mode</span> <span class="o">==</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+        <span class="n">label_image</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">elif</span> <span class="n">label_file</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">label_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">label_file</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">label_suffix</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">split_path</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">label_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">AIF_label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">):</span>
+            <span class="n">label_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;No labelmap found at provided label suffix. Continuing without...&quot;</span>
+            <span class="n">label_image</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">label_image</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Check for a provided region of interest for determining an AIF.</span>
+    <span class="k">if</span> <span class="n">AIF_mode</span> <span class="o">==</span> <span class="s1">&#39;label_average&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">AIF_label_file</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">AIF_label_file</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">AIF_label_suffix</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">split_path</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">AIF_label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">AIF_label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">AIF_label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">):</span>
+                <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">AIF_label_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;No AIF labelmap found at provided label suffix. Continuing without...&quot;</span>
+                <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">label_mode</span> <span class="o">==</span> <span class="s1">&#39;separate&#39;</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;No label found for this AIF. If AIF label is in the same file as ROI, change the label_mode parameter to </span><span class="se">\&#39;</span><span class="s1">combined</span><span class="se">\&#39;</span><span class="s1">. Skipping this volume...&#39;</span>
+            <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">label_mode</span> <span class="o">==</span> <span class="s1">&#39;combined&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">label_file</span> <span class="o">!=</span> <span class="p">[]:</span>
+                <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">label_image</span><span class="p">)</span>
+                <span class="n">AIF_label_image</span><span class="p">[</span><span class="n">label_image</span> <span class="o">!=</span> <span class="n">AIF_label_value</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s1">&#39;No label found for this AIF. If the AIF label is in a separate file from the ROI, change the label_mode parameter to </span><span class="se">\&#39;</span><span class="s1">separate</span><span class="se">\&#39;</span><span class="s1">. If not, be sure that the AIF_label_value parameter matches the AIF label value in your ROI. Skipping this volume...&#39;</span>
+                <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">elif</span> <span class="n">AIF_mode</span> <span class="o">==</span> <span class="s1">&#39;population&#39;</span><span class="p">:</span>
+        <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Invalid AIF_mode parameter. This volume will be skipped. </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">AIF_label_image</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Check for a provided T1 mapping file, which will be relevant to signal conversion.</span>
+    <span class="k">if</span> <span class="n">T1_map_file</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">T1_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">T1_map_file</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">T1_map_suffix</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">split_path</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">T1_map_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">T1_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">T1_map_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">T1_map_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">T1_image</span> <span class="o">=</span> <span class="n">nifti_2_numpy</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">T1_map_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span> <span class="o">+</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">T1_image</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="nb">print</span> <span class="s1">&#39;No T1 map found at provided T1 map file suffix. Continuing without... </span><span class="se">\n</span><span class="s1">&#39;</span>       
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">T1_image</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">T1_image</span> <span class="o">!=</span> <span class="p">[]</span> <span class="ow">and</span> <span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">T1_image</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="nb">print</span> <span class="s1">&#39;T1 map and DCE image are not the same shape. T1 map processing will be skipped. </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">T1_image</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+    <span class="c1"># This option is for text files that have AIF values in either raw or signal-converted format.</span>
+    <span class="c1"># TODO: Address different delimiters between files? Or maybe others have to do this.</span>
+    <span class="k">if</span> <span class="n">AIF_value_data</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="k">if</span> <span class="n">AIF_value_suffix</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">split_path</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;.nii&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">AIF_value_suffix</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">AIF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">split_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">AIF_value_suffix</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+                    <span class="n">AIF</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">AIF</span> <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">AIF</span><span class="p">)</span> <span class="o">!=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="nb">print</span> <span class="s1">&#39;AIF does not have as many timepoints as image. Assuming AIF timepoints are post-baseline, and filling pre-baseline points with zeros. </span><span class="se">\n</span><span class="s1">&#39;</span>
+                        <span class="n">new_AIF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                        <span class="n">new_AIF</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">AIF</span><span class="p">):]</span> <span class="o">=</span> <span class="n">AIF</span>
+                        <span class="n">AIF</span> <span class="o">=</span> <span class="n">new_AIF</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s2">&quot;Error reading AIF values file. AIF reader requires text files with semicolons (;) as delimiters. Skipping this volume... </span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">AIF</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">AIF_value_data</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="nb">print</span> <span class="s1">&#39;No AIF values found at provided AIF value suffix. Continuing without... </span><span class="se">\n</span><span class="s1">&#39;</span>   
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">AIF_value_data</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">AIF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">AIF_value_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+                <span class="n">AIF</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">AIF</span> <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">AIF</span><span class="p">)</span> <span class="o">!=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="nb">print</span> <span class="s1">&#39;AIF does not have as many timepoints as image. Assuming AIF timepoints are post-baseline, and filling pre-baseline points with zeros. </span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="n">new_AIF</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="n">new_AIF</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">AIF</span><span class="p">):]</span> <span class="o">=</span> <span class="n">AIF</span>
+                    <span class="n">AIF</span> <span class="o">=</span> <span class="n">new_AIF</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;Error reading AIF values file. AIF reader requires text files with semicolons (;) as delimiters. Skipping this volume... </span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">AIF</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">AIF_value_data</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">AIF</span> <span class="o">=</span> <span class="n">AIF_value_data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">AIF</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">AIF</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">return</span> <span class="n">AIF_label_image</span><span class="p">,</span> <span class="n">label_image</span><span class="p">,</span> <span class="n">T1_image</span><span class="p">,</span> <span class="n">AIF</span></div>
+
+<div class="viewcode-block" id="preprocess_dce"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.preprocess_dce">[docs]</a><span class="k">def</span> <span class="nf">preprocess_dce</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">=</span><span class="p">[],</span> <span class="n">gaussian_blur</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_blur_axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Apply pre-processing methods to incoming DCE data. Currently, only gaussian blurring is available, although</span>
+<span class="sd">        other methods might be available in the future. Gaussian blurring greatly improves fitting performance on</span>
+<span class="sd">        phantom data and increases repeatability on patient data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">gaussian_blur</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">)</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">gaussian_blur</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="c1"># check_image(output_numpy[...,0], mode=&quot;maximal_slice&quot;)</span>
+            <span class="n">blur_axes</span> <span class="o">=</span> <span class="p">[</span><span class="n">gaussian_blur</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">dims</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">gaussian_blur_axis</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">blur_axes</span><span class="p">[</span><span class="n">gaussian_blur_axis</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> 
+
+            <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">image_numpy</span><span class="p">,</span> <span class="n">blur_axes</span><span class="p">)</span>     
+            <span class="c1"># check_image(output_numpy[...,0], mode=&quot;maximal_slice&quot;)</span>
+
+        <span class="k">return</span> <span class="n">output_numpy</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">image_numpy</span></div>
+
+<div class="viewcode-block" id="simplex_optimize"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.simplex_optimize">[docs]</a><span class="k">def</span> <span class="nf">simplex_optimize</span><span class="p">(</span><span class="n">contrast_image_numpy</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">bolus_time</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="p">[],</span> <span class="n">label_image</span><span class="o">=</span><span class="p">[],</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ktrans&#39;</span><span class="p">,</span><span class="s1">&#39;ve&#39;</span><span class="p">],</span> <span class="n">processes</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; This function sets up parallel processing. Until this function is reimplemented in Cython, paralell processing</span>
+<span class="sd">        may be required to get semi-normal processing speeds.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># I am extremely skeptical about this broken masking method.</span>
+    <span class="k">if</span> <span class="n">label_image</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">contrast_image_numpy</span><span class="p">[</span><span class="n">label_image</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_value</span>
+
+    <span class="k">if</span> <span class="n">image</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">contrast_image_numpy</span><span class="p">[</span><span class="n">image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">mask_threshold</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_value</span>
+        <span class="n">contrast_image_numpy</span><span class="p">[</span><span class="n">image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">mask_value</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_value</span>
+
+    <span class="k">if</span> <span class="n">processes</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">subunits</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sublength</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">contrast_image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">processes</span><span class="p">)</span>
+
+        <span class="nb">print</span> <span class="s1">&#39;Dividing data into &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">processes</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; subgroups of length.. &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">sublength</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; units.&#39;</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">processes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">subunits</span> <span class="o">+=</span> <span class="p">[</span><span class="n">contrast_image_numpy</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">sublength</span><span class="p">):</span><span class="nb">int</span><span class="p">((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">sublength</span><span class="p">),</span><span class="o">...</span><span class="p">]]</span>
+
+        <span class="n">subunits</span> <span class="o">+=</span> <span class="p">[</span><span class="n">contrast_image_numpy</span><span class="p">[</span><span class="nb">int</span><span class="p">((</span><span class="n">processes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">sublength</span><span class="p">):,</span><span class="o">...</span><span class="p">]]</span>
+
+        <span class="n">subprocess</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">simplex_optimize_loop</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="o">=</span><span class="n">contrast_AIF_numpy</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="o">=</span><span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">bolus_time</span><span class="o">=</span><span class="n">bolus_time</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="o">=</span><span class="n">mask_threshold</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="o">=</span><span class="n">initial_fitting_function_parameters</span><span class="p">)</span>
+
+        <span class="n">optimization_pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">optimization_pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">subprocess</span><span class="p">,</span> <span class="n">subunits</span><span class="p">)</span>
+
+        <span class="n">output_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">contrast_image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">stitch_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">output_image</span><span class="p">[</span><span class="n">stitch_index</span><span class="p">:</span><span class="n">stitch_index</span><span class="o">+</span><span class="n">result</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="n">stitch_index</span> <span class="o">+=</span> <span class="n">result</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_image</span> <span class="o">=</span> <span class="n">simplex_optimize_loop</span><span class="p">(</span><span class="n">contrast_image_numpy</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">bolus_time</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output_image</span></div>
+
+<div class="viewcode-block" id="simplex_optimize_loop"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.simplex_optimize_loop">[docs]</a><span class="k">def</span> <span class="nf">simplex_optimize_loop</span><span class="p">(</span><span class="n">contrast_image_numpy</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="p">,</span> <span class="n">time_interval_seconds</span><span class="p">,</span> <span class="n">bolus_time</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]):</span>
+
+    <span class="n">contrast_AIF_numpy</span> <span class="o">=</span> <span class="n">contrast_AIF_numpy</span><span class="p">[</span><span class="n">bolus_time</span><span class="p">:]</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span>
+    <span class="nb">sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">e</span>
+
+    <span class="n">time_series</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">contrast_AIF_numpy</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">60</span> <span class="o">/</span> <span class="n">time_interval_seconds</span><span class="p">)</span>
+    <span class="n">time_interval</span> <span class="o">=</span> <span class="n">time_series</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">ktransmax</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">cost_function</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+
+        <span class="c1"># The estimate concentration function is repeated locally to eke out every last bit of efficiency</span>
+        <span class="c1"># from this massively looping program. As much as possible is calculated outside the loop for</span>
+        <span class="c1"># performance reasons. Appending is faster than pre-allocating space in this case - who knew.</span>
+
+        <span class="n">estimated_concentration</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">append</span> <span class="o">=</span> <span class="n">estimated_concentration</span><span class="o">.</span><span class="n">append</span>
+
+        <span class="n">ktrans</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ve</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">kep</span> <span class="o">=</span> <span class="n">ktrans</span> <span class="o">/</span> <span class="n">ve</span>
+
+        <span class="n">log_e</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">kep</span> <span class="o">*</span> <span class="n">time_interval</span>
+        <span class="n">capital_E</span> <span class="o">=</span> <span class="n">e</span><span class="o">**</span><span class="n">log_e</span>
+        <span class="n">log_e_2</span> <span class="o">=</span> <span class="n">log_e</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="n">block_A</span> <span class="o">=</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">-</span> <span class="n">log_e</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">block_B</span> <span class="o">=</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">-</span> <span class="p">(</span><span class="n">capital_E</span> <span class="o">*</span> <span class="n">log_e</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">block_ktrans</span> <span class="o">=</span> <span class="n">ktrans</span> <span class="o">*</span> <span class="n">time_interval</span> <span class="o">/</span> <span class="n">log_e_2</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">contrast_AIF_numpy</span><span class="p">)):</span>
+            <span class="n">term_A</span> <span class="o">=</span> <span class="n">contrast_AIF_numpy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_A</span>
+            <span class="n">term_B</span> <span class="o">=</span> <span class="n">contrast_AIF_numpy</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_B</span>
+            <span class="n">append</span><span class="p">(</span><span class="n">estimated_concentration</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">capital_E</span> <span class="o">+</span> <span class="n">block_ktrans</span> <span class="o">*</span> <span class="p">(</span><span class="n">term_A</span> <span class="o">-</span> <span class="n">term_B</span><span class="p">))</span>
+
+        <span class="c1"># This is a much faster, but less accurate curve generation method</span>
+        <span class="c1"># res = np.exp(-1*kep*time_series)</span>
+        <span class="c1"># estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]</span>
+        <span class="c1"># estimated_concentration = estimated_concentration[0:np.size(res)]        </span>
+
+        <span class="n">difference_term</span> <span class="o">=</span> <span class="n">observed_concentration</span><span class="o">-</span> <span class="n">estimated_concentration</span>
+        <span class="n">difference_term</span> <span class="o">=</span> <span class="n">power</span><span class="p">(</span><span class="n">difference_term</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">difference_term</span><span class="p">)</span>
+
+    <span class="c1"># These constraints are currently unused.</span>
+    <span class="k">def</span> <span class="nf">ve_constraint1</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1e-3</span>
+
+    <span class="k">def</span> <span class="nf">ve_constraint2</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">ktrans_constraint1</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1e-3</span>
+
+    <span class="k">def</span> <span class="nf">ktrans_constraint2</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ktransmax</span> <span class="o">-</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Remember to change later if there are different amounts of outputs.</span>
+    <span class="n">output_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">contrast_image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">space_dims</span> <span class="o">=</span> <span class="n">contrast_image_numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">space_dims</span><span class="p">):</span>
+
+        <span class="c1"># Need to think about how to implement masking. Maybe np.ma involved. Will likely require</span>
+        <span class="c1"># editing other np.math functions down the line.</span>
+        <span class="k">if</span> <span class="n">contrast_image_numpy</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)]</span> <span class="o">==</span> <span class="n">mask_value</span><span class="p">:</span>
+            <span class="n">output_image</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)]</span> <span class="o">=</span> <span class="o">-.</span><span class="mi">01</span>
+            <span class="n">output_image</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)]</span> <span class="o">=</span> <span class="o">-.</span><span class="mi">01</span>
+            <span class="n">output_image</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)]</span> <span class="o">=</span> <span class="o">-.</span><span class="mi">01</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Because multiprocessing divvies up the image into pieces, these indexed values</span>
+        <span class="c1"># do not have real-world meaning.</span>
+        <span class="c1"># print index</span>
+
+        <span class="n">observed_concentration</span> <span class="o">=</span> <span class="n">contrast_image_numpy</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="n">bolus_time</span><span class="p">:]</span>
+
+        <span class="c1"># I am currently unsure when to start calculating AUC. Perhaps have this specified by the user? TODO.</span>
+        <span class="n">auc</span> <span class="o">=</span> <span class="n">trapz</span><span class="p">(</span><span class="n">observed_concentration</span><span class="p">)</span>
+
+        <span class="c1"># with timewith(&#39;concentration estimator&#39;) as timer:</span>
+        <span class="n">initial_fitting_function_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">]</span>        
+        <span class="n">result_params</span><span class="p">,</span> <span class="n">fopt</span><span class="p">,</span> <span class="n">iterations</span><span class="p">,</span> <span class="n">funcalls</span><span class="p">,</span> <span class="n">warnflag</span><span class="p">,</span> <span class="n">allvecs</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">cost_function</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ftol</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">full_output</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">retall</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">ktrans</span> <span class="o">=</span> <span class="n">result_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ve</span> <span class="o">=</span> <span class="n">result_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="nb">print</span> <span class="p">[</span><span class="n">ktrans</span><span class="p">,</span> <span class="n">ve</span><span class="p">,</span> <span class="n">auc</span><span class="p">]</span>
+
+        <span class="n">output_image</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span><span class="p">,)]</span> <span class="o">=</span> <span class="n">ktrans</span>
+        <span class="n">output_image</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)]</span> <span class="o">=</span> <span class="n">ve</span>
+        <span class="n">output_image</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)]</span> <span class="o">=</span> <span class="n">auc</span>
+
+    <span class="c1"># These masking values are arbitrary and will likely differ between AIFs. TODO: Figure out a way to reconcile that.</span>
+    <span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">][</span><span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">.</span><span class="mi">05</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">][</span><span class="nb">abs</span><span class="p">(</span><span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e6</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">][</span><span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">95</span><span class="o">*</span><span class="n">ktransmax</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">][</span><span class="n">output_image</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">99</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">output_image</span></div>
+
+
+<div class="viewcode-block" id="calc_DCE_properties_batch"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.calc_DCE_properties_batch">[docs]</a><span class="k">def</span> <span class="nf">calc_DCE_properties_batch</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="n">relaxivity</span><span class="o">=.</span><span class="mi">0045</span><span class="p">,</span> <span class="n">TR</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">TE</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">scan_time_seconds</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="o">*</span><span class="mi">60</span><span class="p">),</span> <span class="n">hematocrit</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">label_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">label_suffix</span><span class="o">=</span><span class="p">[],</span> <span class="n">label_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">T1_map_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">T1_map_suffix</span><span class="o">=</span><span class="s1">&#39;-T1Map&#39;</span><span class="p">,</span> <span class="n">AIF_label_file</span><span class="o">=</span><span class="p">[],</span>  <span class="n">AIF_value_data</span><span class="o">=</span><span class="p">[],</span> <span class="n">convert_AIF_values</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">AIF_mode</span><span class="o">=</span><span class="s1">&#39;label_average&#39;</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_label_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label_mode</span><span class="o">=</span><span class="s1">&#39;separate&#39;</span><span class="p">,</span> <span class="n">param_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">default_population_AIF</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ktrans&#39;</span><span class="p">,</span><span class="s1">&#39;ve&#39;</span><span class="p">,</span><span class="s1">&#39;auc&#39;</span><span class="p">],</span> <span class="n">outfile_prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">gaussian_blur</span><span class="o">=.</span><span class="mi">65</span><span class="p">,</span> <span class="n">gaussian_blur_axis</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+
+    <span class="sd">&quot;&quot;&quot; Currently non-functional, although has not been tested since original writing. Meant to process DCE images in batch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">suffix_exclusion_regex</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">label_suffix</span><span class="p">,</span> <span class="n">T1_map_suffix</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="p">,</span> <span class="n">AIF_value_suffix</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">suffix</span> <span class="o">!=</span> <span class="p">[]:</span>
+            <span class="n">suffix_exclusion_regex</span> <span class="o">+=</span> <span class="p">[</span><span class="n">suffix</span><span class="p">]</span>
+    
+    <span class="n">volume_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">regex</span><span class="p">):</span>
+                <span class="n">volume_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">regex</span><span class="p">):</span>
+                <span class="n">volume_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">volume_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">suffix_exclusion_regex</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">suffix_exclusion_regex</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">volume</span><span class="p">:</span>
+
+                <span class="nb">print</span> <span class="s1">&#39;Working on volume located at... &#39;</span> <span class="o">+</span> <span class="n">volume</span>
+
+                <span class="n">calc_DCE_properties_single</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">T1_tissue</span><span class="p">,</span> <span class="n">T1_blood</span><span class="p">,</span> <span class="n">relaxivity</span><span class="p">,</span> <span class="n">TR</span><span class="p">,</span> <span class="n">TE</span><span class="p">,</span> <span class="n">scan_time_seconds</span><span class="p">,</span> <span class="n">hematocrit</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="p">,</span> <span class="n">label_file</span><span class="p">,</span> <span class="n">label_suffix</span><span class="p">,</span> <span class="n">label_value</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="p">,</span> <span class="n">T1_map_file</span><span class="p">,</span> <span class="n">T1_map_suffix</span><span class="p">,</span> <span class="n">AIF_label_file</span><span class="p">,</span>  <span class="n">AIF_value_data</span><span class="p">,</span> <span class="n">convert_AIF_values</span><span class="p">,</span> <span class="n">AIF_mode</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="p">,</span> <span class="n">AIF_label_value</span><span class="p">,</span> <span class="n">label_mode</span><span class="p">,</span> <span class="n">param_file</span><span class="p">,</span> <span class="n">default_population_AIF</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">outfile_prefix</span><span class="p">,</span> <span class="n">processes</span><span class="p">,</span> <span class="n">gaussian_blur</span><span class="p">,</span> <span class="n">gaussian_blur_axis</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_method_2d"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.test_method_2d">[docs]</a><span class="k">def</span> <span class="nf">test_method_2d</span><span class="p">():</span>
+    <span class="c1"># print &#39;hello&#39;</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="s1">&#39;C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz&#39;</span>
+    <span class="c1"># filepath = &#39;C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/gradient_toftsv6.nii&#39;</span>
+    <span class="c1"># filepath = &#39;C:/Users/azb22/Documents/GitHub/Public_qtim_tools/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v9_5SNR.nii&#39;</span>
+    <span class="c1"># filepath = &#39;C:/Users/abeers/Documents/GitHub/Public_QTIM/qtim_tools/qtim_tools/test_data/test_data_dce/tofts_v6.nii.gz&#39;</span>
+
+    <span class="n">calc_DCE_properties_single</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">label_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">param_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_label_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_value_data</span><span class="o">=</span><span class="p">[],</span> <span class="n">convert_AIF_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ktrans&#39;</span><span class="p">,</span><span class="s1">&#39;ve&#39;</span><span class="p">,</span><span class="s1">&#39;auc&#39;</span><span class="p">],</span> <span class="n">T1_tissue</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="n">relaxivity</span><span class="o">=.</span><span class="mi">0045</span><span class="p">,</span> <span class="n">TR</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">TE</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">scan_time_seconds</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="o">*</span><span class="mi">60</span><span class="p">),</span> <span class="n">hematocrit</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_mode</span><span class="o">=</span><span class="s1">&#39;label_average&#39;</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="o">=</span><span class="s1">&#39;-AIF-label&#39;</span><span class="p">,</span> <span class="n">AIF_label_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label_mode</span><span class="o">=</span><span class="s1">&#39;separate&#39;</span><span class="p">,</span> <span class="n">default_population_AIF</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">],</span> <span class="n">outfile_prefix</span><span class="o">=</span><span class="s1">&#39;tofts_v6_gradient&#39;</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">gaussian_blur</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_blur_axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+    <span class="c1"># calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=[], convert_AIF_values=False, outputs=[&#39;ktrans&#39;,&#39;ve&#39;,&#39;auc&#39;], T1_tissue=1000, T1_blood=1440, relaxivity=.0045, TR=5, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=60, flip_angle_degrees=30, label_suffix=[], AIF_mode=&#39;label_average&#39;, AIF_label_suffix=&#39;-AIF-label&#39;, AIF_label_value=1, label_mode=&#39;separate&#39;, default_population_AIF=False, initial_fitting_function_parameters=[.3,.3], outfile_prefix=&#39;tofts_v9_noblur_&#39;, processes=22, mask_threshold=-1, mask_value=-1, gaussian_blur=0, gaussian_blur_axis=-1)</span>
+
+
+<div class="viewcode-block" id="test_method_3d"><a class="viewcode-back" href="../../../qtim_tools.qtim_dce.html#qtim_tools.qtim_dce.tofts_parametric_mapper.test_method_3d">[docs]</a><span class="k">def</span> <span class="nf">test_method_3d</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="c1"># print &#39;hello&#39;</span>
+    <span class="c1"># These are params for NHX/CED data</span>
+    <span class="k">if</span> <span class="n">filepath</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="s1">&#39;C:/Users/azb22/Documents/Junk/dce_mc_st_corrected.nii&#39;</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="s1">&#39;C:/Users/azb22/Documents/Scripting/DCE_Motion_Phantom/DCE_MRI_Phantom_RawData.nii.gz&#39;</span>
+        <span class="n">AIF_filepath</span> <span class="o">=</span> <span class="s1">&#39;C:/Users/azb22/Documents/Scripting/DCE_Motion_Phantom/DCE_MRI_Phantom_AIF-label.nii.gz&#39;</span>
+        <span class="n">ROI</span> <span class="o">=</span> <span class="s1">&#39;C:/Users/azb22/Documents/Scripting/DCE_Motion_Phantom/DCE_MRI_Phantom_RawData_ROI.nii.gz&#39;</span>
+
+    <span class="n">AIF_value_data</span> <span class="o">=</span> <span class="s1">&#39;C:/Users/azb22/Documents/Junk/VISIT_01_autoAIF_bAIF.txt&#39;</span>
+    <span class="c1"># calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=AIF_value_data, convert_AIF_values=False, outputs=[&#39;ktrans&#39;,&#39;ve&#39;,&#39;auc&#39;], T1_tissue=1500, T1_blood=1440, relaxivity=.0039, TR=6.8, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=160, flip_angle_degrees=10, label_suffix=[], AIF_mode=&#39;population&#39;, AIF_label_suffix=&#39;-AIF-label&#39;, AIF_label_value=1, label_mode=&#39;separate&#39;, default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix=&#39;mead_cobyal_individual_ktrans_no_mask&#39;, processes=22, mask_threshold=20, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=2)</span>
+
+    <span class="n">calc_DCE_properties_single</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">label_file</span><span class="o">=</span><span class="n">ROI</span><span class="p">,</span> <span class="n">param_file</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_label_file</span><span class="o">=</span><span class="n">AIF_filepath</span><span class="p">,</span> <span class="n">AIF_value_data</span><span class="o">=</span><span class="p">[],</span> <span class="n">convert_AIF_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ktrans&#39;</span><span class="p">,</span><span class="s1">&#39;ve&#39;</span><span class="p">,</span><span class="s1">&#39;auc&#39;</span><span class="p">],</span> <span class="n">T1_tissue</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">T1_blood</span><span class="o">=</span><span class="mi">1440</span><span class="p">,</span> <span class="n">relaxivity</span><span class="o">=.</span><span class="mi">0045</span><span class="p">,</span> <span class="n">TR</span><span class="o">=</span><span class="mf">3.8</span><span class="p">,</span> <span class="n">TE</span><span class="o">=</span><span class="mf">2.1</span><span class="p">,</span> <span class="n">scan_time_seconds</span><span class="o">=</span><span class="mi">195</span><span class="p">,</span> <span class="n">hematocrit</span><span class="o">=</span><span class="mf">0.45</span><span class="p">,</span> <span class="n">injection_start_time_seconds</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">flip_angle_degrees</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">label_suffix</span><span class="o">=</span><span class="p">[],</span> <span class="n">AIF_mode</span><span class="o">=</span><span class="s1">&#39;label_average&#39;</span><span class="p">,</span> <span class="n">AIF_label_suffix</span><span class="o">=</span><span class="s1">&#39;-AIF-label&#39;</span><span class="p">,</span> <span class="n">AIF_label_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label_mode</span><span class="o">=</span><span class="s1">&#39;separate&#39;</span><span class="p">,</span> <span class="n">default_population_AIF</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initial_fitting_function_parameters</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">01</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">],</span> <span class="n">outfile_prefix</span><span class="o">=</span><span class="s1">&#39;mead_cobyal_individual_ktrans_no_mask&#39;</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">mask_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">gaussian_blur</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_blur_axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># freeze_support()</span>
+    <span class="c1"># np.set_printoptions(suppress=True, precision=4, threshold=np.nan)</span>
+    <span class="c1"># np.set_printoptions(suppress=True, precision=4)</span>
+
+    <span class="c1"># test_method_2d()</span>
+    <span class="n">test_method_3d</span><span class="p">()</span>
+    <span class="c1"># create_4d_from_3d(filepath)</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

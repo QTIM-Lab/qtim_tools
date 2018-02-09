@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_preprocessing.registration &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_preprocessing.registration</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_preprocessing.registration</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; This is a wrapper script for BRAINSFit registration by 3D Slicer. In the future, there could be an all-Python</span>
+<span class="sd">    implementation of registration in this function. In the meantime, one will need 3D Slicer (or a Docker container</span>
+<span class="sd">    with 3DSlicer inside).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">call</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">copy</span>
+
+<div class="viewcode-block" id="register_all_to_one"><a class="viewcode-back" href="../../../qtim_tools.qtim_preprocessing.html#qtim_tools.qtim_preprocessing.registration.register_all_to_one">[docs]</a><span class="k">def</span> <span class="nf">register_all_to_one</span><span class="p">(</span><span class="n">fixed_volume</span><span class="p">,</span> <span class="n">moving_volume_folder</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">output_suffix</span> <span class="o">=</span> <span class="s1">&#39;_r&#39;</span><span class="p">,</span> <span class="n">file_regex</span><span class="o">=</span><span class="s1">&#39;*.nii*&#39;</span><span class="p">,</span> <span class="n">exclusion_phrase</span><span class="o">=</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="n">software</span><span class="o">=</span><span class="s1">&#39;slicer_brainsfit&#39;</span><span class="p">,</span><span class="n">Slicer_Path</span><span class="o">=</span><span class="s1">&#39;Slicer&#39;</span><span class="p">,</span> <span class="n">transform_type</span><span class="o">=</span><span class="s1">&#39;Rigid,ScaleVersor3D,ScaleSkewVersor3D,Affine&#39;</span><span class="p">,</span> <span class="n">transform_mode</span> <span class="o">=</span> <span class="s1">&#39;useMomentsAlign&#39;</span><span class="p">,</span> <span class="n">interpolation_mode</span> <span class="o">=</span> <span class="s1">&#39;Linear&#39;</span><span class="p">,</span> <span class="n">sampling_percentage</span> <span class="o">=</span> <span class="o">.</span><span class="mi">02</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Registers a folder of volumes to one pre-specified volumes using the BRAINSFit module in 3DSlicer. Must already have 3DSlicer installed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">output_folder</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">output_folder</span> <span class="o">=</span> <span class="n">moving_volume_folder</span>
+
+    <span class="n">BRAINSFit_base_command</span> <span class="o">=</span> <span class="p">[</span><span class="n">Slicer_Path</span><span class="p">,</span><span class="s1">&#39;--launch&#39;</span><span class="p">,</span> <span class="s1">&#39;BRAINSFit&#39;</span><span class="p">,</span> <span class="s1">&#39;--fixedVolume&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">fixed_volume</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;--transformType&#39;</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="s1">&#39;--initializeTransformMode&#39;</span><span class="p">,</span> <span class="n">transform_mode</span><span class="p">,</span> <span class="s1">&#39;--interpolationMode&#39;</span><span class="p">,</span> <span class="n">interpolation_mode</span><span class="p">,</span> <span class="s1">&#39;--samplingPercentage&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sampling_percentage</span><span class="p">)]</span>
+
+    <span class="n">moving_volumes</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">moving_volume_folder</span> <span class="o">+</span> <span class="n">file_regex</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">moving_volumes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;No nifti volumes found in provided moving volume folder. Skipping this folder: &#39;</span> <span class="o">+</span> <span class="n">moving_volume_folder</span>
+
+    <span class="k">if</span> <span class="n">exclusion_phrase</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">moving_volumes</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">moving_volumes</span> <span class="k">if</span> <span class="n">exclusion_phrase</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">moving_volume</span> <span class="ow">in</span> <span class="n">moving_volumes</span><span class="p">:</span>
+
+        <span class="n">no_path</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">moving_volume</span> <span class="p">,</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">file_prefix</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">no_path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;.nii&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s1">&#39;.nii.gz&#39;</span> <span class="ow">in</span> <span class="n">moving_volume</span><span class="p">:</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="n">output_folder</span> <span class="o">+</span> <span class="n">file_prefix</span> <span class="o">+</span> <span class="n">output_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="n">output_folder</span> <span class="o">+</span> <span class="n">file_prefix</span> <span class="o">+</span> <span class="n">output_suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii&#39;</span>
+
+        <span class="n">BRAINSFit_specific_command</span> <span class="o">=</span> <span class="n">BRAINSFit_base_command</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;--movingVolume&#39;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">no_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span>  <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">no_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span><span class="s1">&#39;--outputVolume&#39;</span><span class="p">,</span><span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">output_filename</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BRAINSFit_specific_command</span><span class="p">)</span>
+            <span class="n">call</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BRAINSFit_specific_command</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;Registration command failed. Did you provide the correct path to your Slicer insallation? Provided Slicer Path: &#39;</span> <span class="o">+</span> <span class="n">Slicer_Path</span>
+            <span class="k">continue</span>
+
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="register_volume"><a class="viewcode-back" href="../../../qtim_tools.qtim_preprocessing.html#qtim_tools.qtim_preprocessing.registration.register_volume">[docs]</a><span class="k">def</span> <span class="nf">register_volume</span><span class="p">(</span><span class="n">moving_volume</span><span class="p">,</span> <span class="n">fixed_volume</span><span class="p">,</span> <span class="n">output_volume_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_transform_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;slicer_brainsfit&#39;</span><span class="p">,</span> <span class="n">Slicer_Path</span><span class="o">=</span><span class="s1">&#39;Slicer&#39;</span><span class="p">,</span> <span class="n">transform_type</span><span class="o">=</span><span class="s1">&#39;Rigid,ScaleVersor3D,ScaleSkewVersor3D,Affine&#39;</span><span class="p">,</span> <span class="n">transform_mode</span> <span class="o">=</span> <span class="s1">&#39;useMomentsAlign&#39;</span><span class="p">,</span> <span class="n">interpolation_mode</span> <span class="o">=</span> <span class="s1">&#39;Linear&#39;</span><span class="p">,</span> <span class="n">sampling_percentage</span> <span class="o">=</span> <span class="o">.</span><span class="mi">02</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Registers a folder of volumes to one pre-specified volumes using the BRAINSFit module in 3DSlicer. Must already have 3DSlicer installed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># A good reason to have a Class for qtim methods is to cut through all of this extra code.</span>
+
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;slicer_brainsfit&#39;</span><span class="p">:</span>
+
+        <span class="n">BRAINSFit_command</span> <span class="o">=</span> <span class="p">[</span><span class="n">Slicer_Path</span><span class="p">,</span><span class="s1">&#39;--launch&#39;</span><span class="p">,</span> <span class="s1">&#39;BRAINSFit&#39;</span><span class="p">,</span> <span class="s1">&#39;--fixedVolume&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">fixed_volume</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;--movingVolume&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">moving_volume</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;--transformType&#39;</span><span class="p">,</span> <span class="n">transform_type</span><span class="p">,</span> <span class="s1">&#39;--initializeTransformMode&#39;</span><span class="p">,</span> <span class="n">transform_mode</span><span class="p">,</span> <span class="s1">&#39;--interpolationMode&#39;</span><span class="p">,</span> <span class="n">interpolation_mode</span><span class="p">,</span> <span class="s1">&#39;--samplingPercentage&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sampling_percentage</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">output_volume_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">BRAINSFit_command</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;--outputVolume&#39;</span><span class="p">,</span> <span class="n">output_volume_filename</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">output_transform_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">BRAINSFit_command</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;--outputTransform&#39;</span><span class="p">,</span> <span class="n">output_transform_filename</span><span class="p">]</span>
+
+        <span class="nb">print</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BRAINSFit_command</span><span class="p">)</span>
+        <span class="n">call</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BRAINSFit_command</span><span class="p">),</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

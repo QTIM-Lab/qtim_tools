@@ -1,0 +1,668 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_features.GLCM &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_features.GLCM</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_features.GLCM</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; This is the beginning of a program meant to calculate GLCM features on 3D</span>
+<span class="sd">    arrays generated from NIFTI images. It is based off of the greycomatrix,</span>
+<span class="sd">    greycoprops and other GLCM utility code lifted straight from scikit-image.</span>
+<span class="sd">    Goals for this program: generalize sci-kit&#39;s 2D GLCM to 3D, optimize 3D</span>
+<span class="sd">    GLCM calculation, figure out a way to aggregate 2D calculations into a </span>
+<span class="sd">    useful measure within 3D images, and make a GLCM properties filtered image</span>
+<span class="sd">    from smaller GLCM calculations in subregions of the original image. No matter</span>
+<span class="sd">    what, this function could use a lot of cleaning.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+
+<span class="kn">from</span> <span class="nn">..qtim_utilities.nifti_util</span> <span class="k">import</span> <span class="n">assert_nD</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="glcm_2d_aggregate"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.GLCM.glcm_2d_aggregate">[docs]</a><span class="k">def</span> <span class="nf">glcm_2d_aggregate</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">aggregate_axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    
+    <span class="c1"># GLCM currently fails for &quot;1-d&quot; stacks of pixels, and for non-axial slices unless aggreggate_axis is set to -1.</span>
+    <span class="c1"># Will have to modify assertions checking dimensions to accomodate these situations.</span>
+
+    <span class="k">if</span> <span class="n">test</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+                <span class="n">image</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">*</span><span class="n">y</span>
+        <span class="k">return</span> <span class="n">glcm_2d</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">symmetric</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">)</span>
+
+    <span class="n">assert_nD</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="n">image_max</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Float images are not supported by greycomatrix. &quot;</span>
+                         <span class="s2">&quot;Convert the image to an unsigned integer type.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">levels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="mi">256</span>
+
+    <span class="c1"># for image type &gt; 8bit, levels must be set.</span>
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="ow">and</span> <span class="n">levels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The levels argument is required for data types &quot;</span>
+                         <span class="s2">&quot;other than uint8. The resulting matrix will be at &quot;</span>
+                         <span class="s2">&quot;least levels ** 2 in size.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">signedinteger</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">image</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Negative-valued images are not supported.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">image_max</span> <span class="o">&gt;=</span> <span class="n">levels</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The maximum grayscale value in the image should be &quot;</span>
+                         <span class="s2">&quot;smaller than the number of levels.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">aggregate_axis</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">aggregate_axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="s1">&#39;2-D GLCM aggregation axis chosen automatically at &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">aggregate_axis</span><span class="p">)</span>
+
+    <span class="n">nSlice</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">aggregate_axis</span><span class="p">]</span>
+    <span class="n">result_GLCM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">levels</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">angles</span><span class="p">)),</span>
+                 <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">normed</span><span class="p">:</span>
+        <span class="n">result_GLCM</span> <span class="o">=</span> <span class="n">result_GLCM</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;maximal_slice&quot;</span><span class="p">:</span>
+
+        <span class="n">image_slice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">image</span><span class="p">[[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">aggregate_axis</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">3</span><span class="p">)]])</span>
+        <span class="n">maximal</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">image_slice</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">nSlice</span><span class="p">):</span>
+            
+            <span class="c1"># Full disclosure: I&#39;m not entirely sure how this works, </span>
+            <span class="c1"># but this code slices and image by an arbitrary axis</span>
+            <span class="n">image_slice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">image</span><span class="p">[[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">aggregate_axis</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">3</span><span class="p">)]])</span>
+
+            <span class="n">test_maximal</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_slice</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">test_maximal</span> <span class="o">&gt;=</span> <span class="n">maximal</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">maximal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">test_maximal</span>
+                <span class="n">maximal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_slice</span>
+
+        <span class="n">result_GLCM</span> <span class="o">=</span> <span class="n">glcm_2d</span><span class="p">(</span><span class="n">maximal</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">symmetric</span><span class="p">,</span> <span class="n">normed</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_GLCM</span>
+
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;sum&quot;</span> <span class="ow">or</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;average&quot;</span><span class="p">:</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">nSlice</span><span class="p">):</span>
+            
+            <span class="c1"># Full disclosure: I&#39;m not entirely sure how this works, </span>
+            <span class="c1"># but this code slices an image by an arbitrary axis</span>
+            <span class="n">image_slice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">image</span><span class="p">[[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">aggregate_axis</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">3</span><span class="p">)]])</span>
+            <span class="n">slice_GLCM</span> <span class="o">=</span> <span class="n">glcm_2d</span><span class="p">(</span><span class="n">image_slice</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">symmetric</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="n">mask_value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;sum&quot;</span><span class="p">:</span>
+                <span class="n">result_GLCM</span> <span class="o">+=</span> <span class="n">slice_GLCM</span>
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;average&quot;</span><span class="p">:</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">result_GLCM</span> <span class="o">=</span> <span class="n">result_GLCM</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="n">slice_GLCM</span> <span class="o">-</span> <span class="n">result_GLCM</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">normed</span><span class="p">:</span>
+            <span class="n">result_GLCM</span> <span class="o">=</span> <span class="n">result_GLCM</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="n">glcm_sums</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">result_GLCM</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">glcm_sums</span><span class="p">[</span><span class="n">glcm_sums</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">result_GLCM</span> <span class="o">/=</span> <span class="n">glcm_sums</span>
+            
+        <span class="k">return</span> <span class="n">result_GLCM</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have chosen an invalid aggregation method. Accepted methods are </span><span class="se">\&#39;</span><span class="s2">sum</span><span class="se">\&#39;</span><span class="s2">, </span><span class="se">\&#39;</span><span class="s2">average</span><span class="se">\&#39;</span><span class="s2">, and </span><span class="se">\&#39;</span><span class="s2">maximal_slice.</span><span class="se">\&#39;</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="glcm_2d"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.GLCM.glcm_2d">[docs]</a><span class="k">def</span> <span class="nf">glcm_2d</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">normed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the grey-level co-occurrence matrix.</span>
+<span class="sd">    A grey level co-occurrence matrix is a histogram of co-occurring</span>
+<span class="sd">    greyscale values at a given offset over an image.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : array_like</span>
+<span class="sd">        Integer typed input image. Only positive valued images are supported.</span>
+<span class="sd">        If type is other than uint8, the argument `levels` needs to be set.</span>
+<span class="sd">    distances : array_like</span>
+<span class="sd">        List of pixel pair distance offsets.</span>
+<span class="sd">    angles : array_like</span>
+<span class="sd">        List of pixel pair angles in radians.</span>
+<span class="sd">    levels : int, optional</span>
+<span class="sd">        The input image should contain integers in [0, `levels`-1],</span>
+<span class="sd">        where levels indicate the number of grey-levels counted</span>
+<span class="sd">        (typically 256 for an 8-bit image). This argument is required for</span>
+<span class="sd">        16-bit images or higher and is typically the maximum of the image.</span>
+<span class="sd">        As the output matrix is at least `levels` x `levels`, it might</span>
+<span class="sd">        be preferable to use binning of the input image rather than</span>
+<span class="sd">        large values for `levels`.</span>
+<span class="sd">    symmetric : bool, optional</span>
+<span class="sd">        If True, the output matrix `P[:, :, d, theta]` is symmetric. This</span>
+<span class="sd">        is accomplished by ignoring the order of value pairs, so both</span>
+<span class="sd">        (i, j) and (j, i) are accumulated when (i, j) is encountered</span>
+<span class="sd">        for a given offset. The default is False.</span>
+<span class="sd">    normed : bool, optional</span>
+<span class="sd">        If True, normalize each matrix `P[:, :, d, theta]` by dividing</span>
+<span class="sd">        by the total number of accumulated co-occurrences for the given</span>
+<span class="sd">        offset. The elements of the resulting matrix sum to 1. The</span>
+<span class="sd">        default is False.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    P : 4-D ndarray</span>
+<span class="sd">        The grey-level co-occurrence histogram. The value</span>
+<span class="sd">        `P[i,j,d,theta]` is the number of times that grey-level `j`</span>
+<span class="sd">        occurs at a distance `d` and at an angle `theta` from</span>
+<span class="sd">        grey-level `i`. If `normed` is `False`, the output is of</span>
+<span class="sd">        type uint32, otherwise it is float64. The dimensions are:</span>
+<span class="sd">        levels x levels x number of distances x number of angles.</span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] The GLCM Tutorial Home Page,</span>
+<span class="sd">           http://www.fp.ucalgary.ca/mhallbey/tutorial.htm</span>
+<span class="sd">    .. [2] Pattern Recognition Engineering, Morton Nadler &amp; Eric P.</span>
+<span class="sd">           Smith</span>
+<span class="sd">    .. [3] Wikipedia, http://en.wikipedia.org/wiki/Co-occurrence_matrix</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Compute 2 GLCMs: One for a 1-pixel offset to the right, and one</span>
+<span class="sd">    for a 1-pixel offset upwards.</span>
+<span class="sd">    &gt;&gt;&gt; image = np.array([[0, 0, 1, 1],</span>
+<span class="sd">    ...                   [0, 0, 1, 1],</span>
+<span class="sd">    ...                   [0, 2, 2, 2],</span>
+<span class="sd">    ...                   [2, 2, 3, 3]], dtype=np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; result = greycomatrix(image, [1], [0, np.pi/4, np.pi/2, 3*np.pi/4],</span>
+<span class="sd">    ...                       levels=4)</span>
+<span class="sd">    &gt;&gt;&gt; result[:, :, 0, 0]</span>
+<span class="sd">    array([[2, 2, 1, 0],</span>
+<span class="sd">           [0, 2, 0, 0],</span>
+<span class="sd">           [0, 0, 3, 1],</span>
+<span class="sd">           [0, 0, 0, 1]], dtype=uint32)</span>
+<span class="sd">    &gt;&gt;&gt; result[:, :, 0, 1]</span>
+<span class="sd">    array([[1, 1, 3, 0],</span>
+<span class="sd">           [0, 1, 1, 0],</span>
+<span class="sd">           [0, 0, 0, 2],</span>
+<span class="sd">           [0, 0, 0, 0]], dtype=uint32)</span>
+<span class="sd">    &gt;&gt;&gt; result[:, :, 0, 2]</span>
+<span class="sd">    array([[3, 0, 2, 0],</span>
+<span class="sd">           [0, 2, 2, 0],</span>
+<span class="sd">           [0, 0, 1, 2],</span>
+<span class="sd">           [0, 0, 0, 0]], dtype=uint32)</span>
+<span class="sd">    &gt;&gt;&gt; result[:, :, 0, 3]</span>
+<span class="sd">    array([[2, 0, 0, 0],</span>
+<span class="sd">           [1, 1, 2, 0],</span>
+<span class="sd">           [0, 0, 2, 1],</span>
+<span class="sd">           [0, 0, 0, 0]], dtype=uint32)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">assert_nD</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">assert_nD</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;distances&#39;</span><span class="p">)</span>
+    <span class="n">assert_nD</span><span class="p">(</span><span class="n">angles</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;angles&#39;</span><span class="p">)</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="n">image_max</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Float images are not supported by greycomatrix. &quot;</span>
+                         <span class="s2">&quot;Convert the image to an unsigned integer type.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># for image type &gt; 8bit, levels must be set.</span>
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="ow">and</span> <span class="n">levels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The levels argument is required for data types &quot;</span>
+                         <span class="s2">&quot;other than uint8. The resulting matrix will be at &quot;</span>
+                         <span class="s2">&quot;least levels ** 2 in size.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">signedinteger</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">image</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Negative-valued images are not supported.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">levels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="mi">256</span>
+
+    <span class="k">if</span> <span class="n">image_max</span> <span class="o">&gt;=</span> <span class="n">levels</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The maximum grayscale value in the image should be &quot;</span>
+                         <span class="s2">&quot;smaller than the number of levels.&quot;</span><span class="p">)</span>
+
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">angles</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">levels</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">angles</span><span class="p">)),</span>
+                 <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+
+    <span class="c1"># count co-occurences</span>
+    <span class="n">_glcm_loop</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">)</span>
+
+    <span class="c1"># make each GLMC symmetric</span>
+    <span class="k">if</span> <span class="n">symmetric</span><span class="p">:</span>
+        <span class="n">Pt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">P</span> <span class="o">+</span> <span class="n">Pt</span>
+
+    <span class="c1"># normalize each GLMC</span>
+    <span class="k">if</span> <span class="n">normed</span><span class="p">:</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">glcm_sums</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">glcm_sums</span><span class="p">[</span><span class="n">glcm_sums</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">P</span> <span class="o">/=</span> <span class="n">glcm_sums</span>
+
+    <span class="k">return</span> <span class="n">P</span></div>
+
+<span class="k">def</span> <span class="nf">_glcm_loop</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform co-occurrence matrix accumulation.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image : ndarray</span>
+<span class="sd">        Integer typed input image. Only positive valued images are supported.</span>
+<span class="sd">        If type is other than uint8, the argument `levels` needs to be set.</span>
+<span class="sd">    distances : ndarray</span>
+<span class="sd">        List of pixel pair distance offsets.</span>
+<span class="sd">    angles : ndarray</span>
+<span class="sd">        List of pixel pair angles in radians.</span>
+<span class="sd">    levels : int</span>
+<span class="sd">        The input image should contain integers in [0, `levels`-1],</span>
+<span class="sd">        where levels indicate the number of grey-levels counted</span>
+<span class="sd">        (typically 256 for an 8-bit image).</span>
+<span class="sd">    out : ndarray</span>
+<span class="sd">        On input a 4D array of zeros, and on output it contains</span>
+<span class="sd">        the results of the GLCM computation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interesting note about calculating contrast at different distances. Contrast calculated at large</span>
+<span class="sd">    distances -- say, 10 pixels vs 1, will not count pixels that don&#39;t have neighbors 10 pixels apart</span>
+<span class="sd">    this will artifically deflate the number of hits in those situations. Unknown how to fix, or even</span>
+<span class="sd">    what fixing means in this situation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># with nogil:</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">configurations</span> <span class="o">=</span> <span class="p">[</span><span class="n">distances</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">angles</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">d_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">distances</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">d_idx</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">a_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">angles</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">angle</span> <span class="o">=</span> <span class="n">angles</span><span class="p">[</span><span class="n">a_idx</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">mask_value</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="c1"># compute the location of the offset pixel</span>
+                    <span class="n">row</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="n">distance</span><span class="p">))</span>
+                    <span class="n">col</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span> <span class="o">*</span> <span class="n">distance</span><span class="p">))</span>
+
+                    <span class="c1"># make sure the offset is within bounds</span>
+                    <span class="k">if</span> <span class="n">row</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">rows</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">&lt;</span> <span class="n">cols</span><span class="p">:</span>
+                        <span class="n">j</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+
+                        <span class="c1"># make sure values are within the level parameters, and that offset is not in the mask</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">levels</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">levels</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">mask_value</span><span class="p">:</span>
+                        <span class="c1"># if i &gt;= 0 and i &lt; levels and j &gt;= 0 and j &lt; levels:                            </span>
+                            <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">d_idx</span><span class="p">,</span> <span class="n">a_idx</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="glcm_features_calc"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.GLCM.glcm_features_calc">[docs]</a><span class="k">def</span> <span class="nf">glcm_features_calc</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;contrast&#39;</span><span class="p">,</span> <span class="s1">&#39;dissimilarity&#39;</span><span class="p">,</span> <span class="s1">&#39;homogeneity&#39;</span><span class="p">,</span> <span class="s1">&#39;ASM&#39;</span><span class="p">,</span><span class="s1">&#39;energy&#39;</span><span class="p">,</span><span class="s1">&#39;correlation&#39;</span><span class="p">],</span> <span class="n">distances</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate texture properties of a GLCM.</span>
+<span class="sd">    Compute a feature of a grey level co-occurrence matrix to serve as</span>
+<span class="sd">    a compact summary of the matrix. The properties are computed as</span>
+<span class="sd">    follows:</span>
+<span class="sd">    - &#39;contrast&#39;: :math:`\\sum_{i,j=0}^{levels-1} P_{i,j}(i-j)^2`</span>
+<span class="sd">    - &#39;dissimilarity&#39;: :math:`\\sum_{i,j=0}^{levels-1}P_{i,j}|i-j|`</span>
+<span class="sd">    - &#39;homogeneity&#39;: :math:`\\sum_{i,j=0}^{levels-1}\\frac{P_{i,j}}{1+(i-j)^2}`</span>
+<span class="sd">    - &#39;ASM&#39;: :math:`\\sum_{i,j=0}^{levels-1} P_{i,j}^2`</span>
+<span class="sd">    - &#39;energy&#39;: :math:`\\sqrt{ASM}`</span>
+<span class="sd">    - &#39;correlation&#39;:</span>
+<span class="sd">        .. math:: \\sum_{i,j=0}^{levels-1} P_{i,j}\\left[\\frac{(i-\\mu_i) \\</span>
+<span class="sd">                  (j-\\mu_j)}{\\sqrt{(\\sigma_i^2)(\\sigma_j^2)}}\\right]</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    P : ndarray</span>
+<span class="sd">        Input array. `P` is the grey-level co-occurrence histogram</span>
+<span class="sd">        for which to compute the specified property. The value</span>
+<span class="sd">        `P[i,j,d,theta]` is the number of times that grey-level j</span>
+<span class="sd">        occurs at a distance d and at an angle theta from</span>
+<span class="sd">        grey-level i.</span>
+<span class="sd">    prop : [&#39;contrast&#39;, &#39;dissimilarity&#39;, &#39;homogeneity&#39;, &#39;energy&#39;, \</span>
+<span class="sd">            &#39;correlation&#39;, &#39;ASM&#39;], optional</span>
+<span class="sd">        A string array of properties for the GLCM to compute. The default is all properties.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    results : 2-D ndarray</span>
+<span class="sd">        2-dimensional array. `results[d, a]` is the property &#39;prop&#39; for</span>
+<span class="sd">        the d&#39;th distance and the a&#39;th angle.</span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] The GLCM Tutorial Home Page,</span>
+<span class="sd">           http://www.fp.ucalgary.ca/mhallbey/tutorial.htm</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Compute the contrast for GLCMs with distances [1, 2] and angles</span>
+<span class="sd">    [0 degrees, 90 degrees]</span>
+<span class="sd">    &gt;&gt;&gt; image = np.array([[0, 0, 1, 1],</span>
+<span class="sd">    ...                   [0, 0, 1, 1],</span>
+<span class="sd">    ...                   [0, 2, 2, 2],</span>
+<span class="sd">    ...                   [2, 2, 3, 3]], dtype=np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; g = greycomatrix(image, [1, 2], [0, np.pi/2], levels=4,</span>
+<span class="sd">    ...                  normed=True, symmetric=True)</span>
+<span class="sd">    &gt;&gt;&gt; contrast = greycoprops(g, &#39;contrast&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; contrast</span>
+<span class="sd">    array([[ 0.58333333,  1.        ],</span>
+<span class="sd">           [ 1.25      ,  2.75      ]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">num_level</span><span class="p">,</span> <span class="n">num_level2</span><span class="p">,</span> <span class="n">num_dist</span><span class="p">,</span> <span class="n">num_angle</span><span class="p">)</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">assert</span> <span class="n">num_level</span> <span class="o">==</span> <span class="n">num_level2</span>
+    <span class="k">assert</span> <span class="n">num_dist</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">num_angle</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">[</span><span class="n">props</span><span class="p">,]</span>
+    <span class="n">num_props</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_dist</span><span class="p">,</span> <span class="n">num_angle</span><span class="p">,</span> <span class="n">num_props</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">p_idx</span><span class="p">,</span> <span class="n">current_prop</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">props</span><span class="p">):</span>
+
+        <span class="c1"># create weights for specified current_property</span>
+        <span class="n">I</span><span class="p">,</span> <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ogrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">num_level</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">num_level</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">current_prop</span> <span class="o">==</span> <span class="s1">&#39;contrast&#39;</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">I</span> <span class="o">-</span> <span class="n">J</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">current_prop</span> <span class="o">==</span> <span class="s1">&#39;dissimilarity&#39;</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">I</span> <span class="o">-</span> <span class="n">J</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">current_prop</span> <span class="o">==</span> <span class="s1">&#39;homogeneity&#39;</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="p">(</span><span class="n">I</span> <span class="o">-</span> <span class="n">J</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">current_prop</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ASM&#39;</span><span class="p">,</span> <span class="s1">&#39;energy&#39;</span><span class="p">,</span> <span class="s1">&#39;correlation&#39;</span><span class="p">]:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is an invalid property&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_prop</span><span class="p">))</span>
+
+        <span class="c1"># compute current_property for each GLCM</span>
+        <span class="c1"># Note that the defintion for &quot;Energy&quot; varies between studies.</span>
+        <span class="k">if</span> <span class="n">current_prop</span> <span class="o">==</span> <span class="s1">&#39;energy&#39;</span><span class="p">:</span>
+            <span class="n">asm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">P</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">results</span><span class="p">[:,:,</span><span class="n">p_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">asm</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">current_prop</span> <span class="o">==</span> <span class="s1">&#39;ASM&#39;</span><span class="p">:</span>
+            <span class="n">results</span><span class="p">[:,:,</span><span class="n">p_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">P</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">current_prop</span> <span class="o">==</span> <span class="s1">&#39;correlation&#39;</span><span class="p">:</span>
+            <span class="n">tempresults</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_dist</span><span class="p">,</span> <span class="n">num_angle</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_level</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">num_level</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">J</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_level</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_level</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">diff_i</span> <span class="o">=</span> <span class="n">I</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">I</span> <span class="o">*</span> <span class="n">P</span><span class="p">),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">diff_j</span> <span class="o">=</span> <span class="n">J</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">J</span> <span class="o">*</span> <span class="n">P</span><span class="p">),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">std_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">P</span> <span class="o">*</span> <span class="p">(</span><span class="n">diff_i</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span>
+                                               <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">std_j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">P</span> <span class="o">*</span> <span class="p">(</span><span class="n">diff_j</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span>
+                                               <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">P</span> <span class="o">*</span> <span class="p">(</span><span class="n">diff_i</span> <span class="o">*</span> <span class="n">diff_j</span><span class="p">)),</span>
+                                     <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># handle the special case of standard deviations near zero</span>
+            <span class="n">mask_0</span> <span class="o">=</span> <span class="n">std_i</span> <span class="o">&lt;</span> <span class="mf">1e-15</span>
+            <span class="n">mask_0</span><span class="p">[</span><span class="n">std_j</span> <span class="o">&lt;</span> <span class="mf">1e-15</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">tempresults</span><span class="p">[</span><span class="n">mask_0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="c1"># handle the standard case</span>
+            <span class="n">mask_1</span> <span class="o">=</span> <span class="n">mask_0</span> <span class="o">==</span> <span class="kc">False</span>
+            <span class="n">tempresults</span><span class="p">[</span><span class="n">mask_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">cov</span><span class="p">[</span><span class="n">mask_1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">std_i</span><span class="p">[</span><span class="n">mask_1</span><span class="p">]</span> <span class="o">*</span> <span class="n">std_j</span><span class="p">[</span><span class="n">mask_1</span><span class="p">])</span>
+            <span class="n">results</span><span class="p">[:,:,</span><span class="n">p_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">tempresults</span>
+        <span class="k">elif</span> <span class="n">current_prop</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;contrast&#39;</span><span class="p">,</span> <span class="s1">&#39;dissimilarity&#39;</span><span class="p">,</span> <span class="s1">&#39;homogeneity&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">current_prop</span> <span class="o">==</span> <span class="s1">&#39;contrast&#39;</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">num_level</span><span class="p">,</span> <span class="n">num_level</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">results</span><span class="p">[:,:,</span><span class="n">p_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_over_axes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="n">P</span> <span class="o">*</span> <span class="n">weights</span><span class="p">),</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">out</span> <span class="o">==</span> <span class="s1">&#39;list&#39;</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">)</span><span class="o">*</span><span class="n">num_dist</span><span class="o">*</span><span class="n">num_angle</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span>
+    <span class="k">elif</span> <span class="n">out</span> <span class="o">==</span> <span class="s1">&#39;array&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="glcm_features"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.GLCM.glcm_features">[docs]</a><span class="k">def</span> <span class="nf">glcm_features</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">distances</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">angles</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">],</span> <span class="n">props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;contrast&#39;</span><span class="p">,</span> <span class="s1">&#39;dissimilarity&#39;</span><span class="p">,</span> <span class="s1">&#39;homogeneity&#39;</span><span class="p">,</span> <span class="s1">&#39;ASM&#39;</span><span class="p">,</span><span class="s1">&#39;energy&#39;</span><span class="p">,</span><span class="s1">&#39;correlation&#39;</span><span class="p">],</span> <span class="n">levels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">aggregate_axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">,</span> <span class="n">return_level_array</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">glcm_array</span> <span class="o">=</span> <span class="n">glcm_2d_aggregate</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">levels</span><span class="p">,</span> <span class="n">symmetric</span><span class="p">,</span> <span class="n">normed</span><span class="p">,</span> <span class="n">aggregate_axis</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">masked</span><span class="p">,</span> <span class="n">mask_value</span><span class="p">)</span>
+    <span class="n">glcm_feats</span> <span class="o">=</span> <span class="n">glcm_features_calc</span><span class="p">(</span><span class="n">glcm_array</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">distances</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_level_array</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">glcm_feats</span><span class="p">,</span> <span class="n">glcm_array</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">glcm_feats</span></div>
+
+<div class="viewcode-block" id="feature_count"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.GLCM.feature_count">[docs]</a><span class="k">def</span> <span class="nf">feature_count</span><span class="p">(</span><span class="n">distances</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">angles</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">],</span> <span class="n">props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;contrast&#39;</span><span class="p">,</span> <span class="s1">&#39;dissimilarity&#39;</span><span class="p">,</span> <span class="s1">&#39;homogeneity&#39;</span><span class="p">,</span> <span class="s1">&#39;ASM&#39;</span><span class="p">,</span><span class="s1">&#39;energy&#39;</span><span class="p">,</span><span class="s1">&#39;correlation&#39;</span><span class="p">]):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">[</span><span class="n">props</span><span class="p">,]</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="featurename_strings"><a class="viewcode-back" href="../../../qtim_tools.qtim_features.html#qtim_tools.qtim_features.GLCM.featurename_strings">[docs]</a><span class="k">def</span> <span class="nf">featurename_strings</span><span class="p">(</span><span class="n">distances</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">angles</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">],</span> <span class="n">props</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;contrast&#39;</span><span class="p">,</span> <span class="s1">&#39;dissimilarity&#39;</span><span class="p">,</span> <span class="s1">&#39;homogeneity&#39;</span><span class="p">,</span> <span class="s1">&#39;ASM&#39;</span><span class="p">,</span><span class="s1">&#39;energy&#39;</span><span class="p">,</span><span class="s1">&#39;correlation&#39;</span><span class="p">]):</span>
+    <span class="n">featurename_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">angles</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="n">featurename_id</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">d_idx</span> <span class="ow">in</span> <span class="n">distances</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">a_idx</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p_idx</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                <span class="n">featurename_list</span><span class="p">[</span><span class="n">featurename_id</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;GLCM&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">d_idx</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">a_idx</span><span class="p">),</span> <span class="n">p_idx</span><span class="p">])</span>
+                <span class="n">featurename_id</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">featurename_list</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">test_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,(</span><span class="mi">25</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">25</span><span class="p">))</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="n">glcm_features_calc</span><span class="p">(</span><span class="n">glcm_2d_aggregate</span><span class="p">(</span><span class="n">test_array</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">],</span> <span class="n">levels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;maximal_slice&#39;</span><span class="p">),</span> <span class="n">out</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">,</span> <span class="n">distances</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">angles</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">])</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

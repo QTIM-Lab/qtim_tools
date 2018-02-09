@@ -1,0 +1,1188 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_utilities package &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="index.html"/>
+        <link rel="next" title="qtim_tools.qtim_visualization package" href="qtim_tools.qtim_visualization.html"/>
+        <link rel="prev" title="qtim_tools.qtim_preprocessing package" href="qtim_tools.qtim_preprocessing.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">qtim_tools.qtim_utilities package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.array_util">qtim_tools.qtim_utilities.array_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.dicom_util">qtim_tools.qtim_utilities.dicom_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.file_util">qtim_tools.qtim_utilities.file_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.format_util">qtim_tools.qtim_utilities.format_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.image_util">qtim_tools.qtim_utilities.image_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.nifti_util">qtim_tools.qtim_utilities.nifti_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.nrrd_util">qtim_tools.qtim_utilities.nrrd_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#qtim-tools-qtim-utilities-scratch-util-module">qtim_tools.qtim_utilities.scratch_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.text_util">qtim_tools.qtim_utilities.text_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities.transform_util">qtim_tools.qtim_utilities.transform_util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-qtim_tools.qtim_utilities">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="qtim_tools.html">Docs</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_utilities package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/qtim_tools.qtim_utilities.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="qtim-tools-qtim-utilities-package">
+<h1>qtim_tools.qtim_utilities package<a class="headerlink" href="#qtim-tools-qtim-utilities-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.array_util">
+<span id="qtim-tools-qtim-utilities-array-util-module"></span><h2>qtim_tools.qtim_utilities.array_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.array_util" title="Permalink to this headline">¶</a></h2>
+<p>This utility module contains functions meant to do more complex operations
+on arrays. Functions here will frequently be wrapper functions around other
+packages. Numpy is the presumed array standard.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.extract_maximal_slice">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">extract_maximal_slice</code><span class="sig-paren">(</span><em>input_volume</em>, <em>input_label_volume=''</em>, <em>mode='max_intensity'</em>, <em>axis=2</em>, <em>mask_value=0</em>, <em>return_index=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#extract_maximal_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.extract_maximal_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts one slice from a presumably 3D volume. Either take the slice whose label
+has the greatest area (mode=’max_label’), or whos sum of voxels has the greatest 
+intensity (mode=’max_intensity’), according to the provided axis variable.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.generate_label_outlines">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">generate_label_outlines</code><span class="sig-paren">(</span><em>label_numpy</em>, <em>dim=2</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#generate_label_outlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.generate_label_outlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assumes labels are &gt; 0 and integers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_volume: N-dimensional array</strong></p>
+<blockquote>
+<div><p>The volume to be queried.</p>
+</div></blockquote>
+<p><strong>mask_value: int or float</strong></p>
+<blockquote>
+<div><p>Islands composed of “mask_value” will be ignored.</p>
+</div></blockquote>
+<p><strong>return_split: bool</strong></p>
+<blockquote>
+<div><p>Whether to a return a stacked output of equal-size binary arrays for each island,
+or to return one array with differently-labeled islands for each output.</p>
+</div></blockquote>
+<p><strong>truncate: bool</strong></p>
+<blockquote>
+<div><p>Whether or not to truncate the output. Irrelevant if return_split is False</p>
+</div></blockquote>
+<p><strong>truncate_padding: int</strong></p>
+<blockquote>
+<div><p>How many voxels of padding to leave when truncating.</p>
+</div></blockquote>
+<p><strong>output_filepath: str</strong></p>
+<blockquote>
+<div><p>If return_split is False, output will be saved to this file. If return_split
+is True, output will be save to this file with the suffix “_[#]” for island
+number</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">output_array: N+1 or N-dimensional array</p>
+<blockquote class="last">
+<div><p>Output array(s) depending on return_split</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.get_arbitrary_axis_slice">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">get_arbitrary_axis_slice</code><span class="sig-paren">(</span><em>input_volume</em>, <em>axis</em>, <em>slice_num</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#get_arbitrary_axis_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.get_arbitrary_axis_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a slice of numpy array according to an arbitrary axis. This is a
+convencience function mostly because I find Python’s slice notation a bit
+cumbersome.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.match_array_orientation">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">match_array_orientation</code><span class="sig-paren">(</span><em>image1</em>, <em>image2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#match_array_orientation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.match_array_orientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO function. Write some smart way to match flips and
+90 degree rotations between ararys with different orientations
+This may require the existence of a header construct.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.pad_image_segment">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">pad_image_segment</code><span class="sig-paren">(</span><em>image</em>, <em>reference_image=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#pad_image_segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.pad_image_segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Many people store their label maps in Niftis with dimensions smaller
+than the corresponding image. This is also that natural output of DICOM-SEG
+nifti conversions. Padding these arrays with empty values so that they are
+comparable requires knowledge of that image’s origin. TODO: write a function
+that can do this with some specifications from either a reference image or
+header.</p>
+<p>It may be better to put a version of this function specifically for DICOMSEG
+into the dicom_util module.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.return_connected_components">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">return_connected_components</code><span class="sig-paren">(</span><em>input_volume</em>, <em>mask_value=0</em>, <em>return_split=True</em>, <em>truncate=False</em>, <em>truncate_padding=0</em>, <em>output_filepath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#return_connected_components"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.return_connected_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes in an N-dimensional array and uses scikit-image’s measure.label function
+to split it into individual connected components. One can either return a split version of
+the original label, which will be stackd in a new batch dimension (N, …), or return a renumbered
+version of the original label. One can also choose to truncate the output of the original image,
+instead returning a list of arrays of different sizes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_volume: N-dimensional array</strong></p>
+<blockquote>
+<div><p>The volume to be queried.</p>
+</div></blockquote>
+<p><strong>mask_value: int or float</strong></p>
+<blockquote>
+<div><p>Islands composed of “mask_value” will be ignored.</p>
+</div></blockquote>
+<p><strong>return_split: bool</strong></p>
+<blockquote>
+<div><p>Whether to a return a stacked output of equal-size binary arrays for each island,
+or to return one array with differently-labeled islands for each output.</p>
+</div></blockquote>
+<p><strong>truncate: bool</strong></p>
+<blockquote>
+<div><p>Whether or not to truncate the output. Irrelevant if return_split is False</p>
+</div></blockquote>
+<p><strong>truncate_padding: int</strong></p>
+<blockquote>
+<div><p>How many voxels of padding to leave when truncating.</p>
+</div></blockquote>
+<p><strong>output_filepath: str</strong></p>
+<blockquote>
+<div><p>If return_split is False, output will be saved to this file. If return_split
+is True, output will be save to this file with the suffix “_[#]” for island
+number</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">output_array: N+1 or N-dimensional array</p>
+<blockquote class="last">
+<div><p>Output array(s) depending on return_split</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.split_image">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">split_image</code><span class="sig-paren">(</span><em>input_volume</em>, <em>input_label_volume=None</em>, <em>label_indices=None</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#split_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.split_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes in an image, optionally a label image, and optionally a set of indices,
+and returns one duplicate masked image for each given label. Useful for analyzing,
+say, multiple tumors, although expensive in memory. Useful when paired with the
+truncate_image function to reduce array memory.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.staple_algorithm">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">staple_algorithm</code><span class="sig-paren">(</span><em>input_label_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#staple_algorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.staple_algorithm" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.truncate_image">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">truncate_image</code><span class="sig-paren">(</span><em>input_volume</em>, <em>mask_value=0</em>, <em>return_mask=False</em>, <em>padding=0</em>, <em>output_mask_filename=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#truncate_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.truncate_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes in an N-dimensional array and truncates all rows/columns/etc
+that contain only mask values. Useful for reducing computation time on functions
+whose running time scales exponentially with dimensions size.</p>
+<p>BUG: Currently seems to fail on axes with length 1.
+TODO: Truncate only on some axes.
+TODO: Add the option to add buffer pixels to meet output_dimensions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_volume: N-dimensional array</strong></p>
+<blockquote>
+<div><p>The volume to be truncated. Will be truncated in every axis.</p>
+</div></blockquote>
+<p><strong>mask_value: int or float</strong></p>
+<blockquote class="last">
+<div><p>Vectors in an axis that are composed entirely of mask_value will be truncated.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.array_util.truncate_to_maximum_image">
+<code class="descclassname">qtim_tools.qtim_utilities.array_util.</code><code class="descname">truncate_to_maximum_image</code><span class="sig-paren">(</span><em>input_volume_list</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/array_util.html#truncate_to_maximum_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.array_util.truncate_to_maximum_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the smallest bounding-box which will fit all images.
+For now</p>
+<p>UNIMPLEMENTED</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.dicom_util">
+<span id="qtim-tools-qtim-utilities-dicom-util-module"></span><h2>qtim_tools.qtim_utilities.dicom_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.dicom_util" title="Permalink to this headline">¶</a></h2>
+<p>This is a utility module for loading dicom data and headers. It borrows heavily from pydicom.
+It will likely take a lot of DICOM knowledge to navigate..</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.dicom_util.dcm_2_nifti">
+<code class="descclassname">qtim_tools.qtim_utilities.dicom_util.</code><code class="descname">dcm_2_nifti</code><span class="sig-paren">(</span><em>input_folder, output_folder, verbose=True, naming_tags=['SeriesDescription'], folder_tags=['PatientID', 'StudyDate'], folder_mode='combine', prefix='', suffix='', write_header=False, header_suffix='_header', harden_orientation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/dicom_util.html#dcm_2_nifti"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.dicom_util.dcm_2_nifti" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it
+take slice_order into account.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.dicom_util.dcm_2_numpy">
+<code class="descclassname">qtim_tools.qtim_utilities.dicom_util.</code><code class="descname">dcm_2_numpy</code><span class="sig-paren">(</span><em>input_folder</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/dicom_util.html#dcm_2_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.dicom_util.dcm_2_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it
+take slice_order into account.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.dicom_util.get_compressed_file">
+<code class="descclassname">qtim_tools.qtim_utilities.dicom_util.</code><code class="descname">get_compressed_file</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/dicom_util.html#get_compressed_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.dicom_util.get_compressed_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.dicom_util.get_dicom_dictionary">
+<code class="descclassname">qtim_tools.qtim_utilities.dicom_util.</code><code class="descname">get_dicom_dictionary</code><span class="sig-paren">(</span><em>input_filepath=[]</em>, <em>dictionary_regex='*'</em>, <em>return_type='name'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/dicom_util.html#get_dicom_dictionary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.dicom_util.get_dicom_dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of dicom tags using pydicom. TODO: let users return tag
+dictionary.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.dicom_util.get_dicom_pixel_array">
+<code class="descclassname">qtim_tools.qtim_utilities.dicom_util.</code><code class="descname">get_dicom_pixel_array</code><span class="sig-paren">(</span><em>dicom</em>, <em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/dicom_util.html#get_dicom_pixel_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.dicom_util.get_dicom_pixel_array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.dicom_util.get_uncompressed_dicom">
+<code class="descclassname">qtim_tools.qtim_utilities.dicom_util.</code><code class="descname">get_uncompressed_dicom</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/dicom_util.html#get_uncompressed_dicom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.dicom_util.get_uncompressed_dicom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.file_util">
+<span id="qtim-tools-qtim-utilities-file-util-module"></span><h2>qtim_tools.qtim_utilities.file_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.file_util" title="Permalink to this headline">¶</a></h2>
+<p>Various string and file utilties will be contained
+in this module.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.copy_files">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">copy_files</code><span class="sig-paren">(</span><em>infolder</em>, <em>outfolder</em>, <em>pattern</em>, <em>duplicate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#copy_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.copy_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>I’m not sure how many of these file-moving helper functions should be
+included. I know I like to have them, but it may be better to have 
+people code their own. It’s hard to customize such functions exactly
+to users’ needs.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.grab_files_recursive">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">grab_files_recursive</code><span class="sig-paren">(</span><em>input_directory</em>, <em>regex='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#grab_files_recursive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.grab_files_recursive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all files recursively in a directory. Essentially a convenience wrapper 
+around os.walk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_directory: str</strong></p>
+<blockquote>
+<div><p>The folder to search.</p>
+</div></blockquote>
+<p><strong>regex: str</strong></p>
+<blockquote>
+<div><p>A linux-style pattern to match.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">output_list: list</p>
+<blockquote class="last">
+<div><p>A list of found files.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.grab_folders_recursive">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">grab_folders_recursive</code><span class="sig-paren">(</span><em>input_directory</em>, <em>regex='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#grab_folders_recursive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.grab_folders_recursive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all folders recursively in a directory. Essentially a convenience wrapper 
+around os.walk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_directory: str</strong></p>
+<blockquote>
+<div><p>The folder to search.</p>
+</div></blockquote>
+<p><strong>regex: str</strong></p>
+<blockquote>
+<div><p>A linux-style pattern to match.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">output_list: list</p>
+<blockquote class="last">
+<div><p>A list of found files.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.grab_linked_file">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">grab_linked_file</code><span class="sig-paren">(</span><em>input_filename</em>, <em>prefix=''</em>, <em>suffix=''</em>, <em>includes=''</em>, <em>regex=''</em>, <em>linux_regex=''</em>, <em>search_folder=''</em>, <em>recursive=False</em>, <em>return_multiple=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#grab_linked_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.grab_linked_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an input filename and returns some output file(s) that match certain
+criteria relative to the input file. Useful for constructing pipelines.</p>
+<p>TODO: Make functional for lists of str.
+TODO: Make output only one type. Propagate changes to rest of package.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_filename: str</strong></p>
+<blockquote>
+<div><p>The original file, which will be referenced to find a linked file(s).</p>
+</div></blockquote>
+<p><strong>prefix: str or list of str</strong></p>
+<blockquote>
+<div><p>A string prefix or prefixes that the linked file must contain.</p>
+</div></blockquote>
+<p><strong>suffix: str or list of str</strong></p>
+<blockquote>
+<div><p>A string suffix or suffixes that the linked file must contian.</p>
+</div></blockquote>
+<p><strong>includes: str or list of str</strong></p>
+<blockquote>
+<div><p>String(s) that must be included in linked file. Linked files are
+those which contain any linked string.</p>
+</div></blockquote>
+<p><strong>linux_regex: str</strong></p>
+<blockquote>
+<div><p>A linux-style search pattern which must be matched to return
+linked files. Will search on the whole filepath.</p>
+</div></blockquote>
+<p><strong>search_folder: str</strong></p>
+<blockquote>
+<div><p>Where to look for linked files. Same folder as original file by
+default.</p>
+</div></blockquote>
+<p><strong>recursive: bool</strong></p>
+<blockquote>
+<div><p>Whether or not to descend down into subfolders when searching.</p>
+</div></blockquote>
+<p><strong>return_multiple: bool</strong></p>
+<blockquote>
+<div><p>Whether or not to return multiple files if matched. If False,
+will only return the first file and print a warning if multiple
+files are found.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">output: str or list</p>
+<blockquote class="last">
+<div><p>Returns linked file or list of files if found.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.human_sort">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">human_sort</code><span class="sig-paren">(</span><em>l</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#human_sort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.human_sort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stolen from Stack Exchange. Sorts alphabetically, but also numerically. How?
+who knows.. Maybe it doesn’t even work. TODO: test it.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.nifti_splitext">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">nifti_splitext</code><span class="sig-paren">(</span><em>input_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#nifti_splitext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.nifti_splitext" title="Permalink to this definition">¶</a></dt>
+<dd><p>os.path.splitext splits a filename into the part before the LAST
+period and the part after the LAST period. This will screw one up
+if working with, say, .nii.gz files, which should be split at the
+FIRST period. This function performs an alternate version of splitext
+which does just that.</p>
+<p>TODO: Make work if someone includes a period in a folder name (ugh).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_filepath: str</strong></p>
+<blockquote>
+<div><p>The filepath to split.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">split_filepath: list of str</p>
+<blockquote class="last">
+<div><p>A two-item list, split at the first period in the filepath.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.replace_suffix">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">replace_suffix</code><span class="sig-paren">(</span><em>input_filepath</em>, <em>input_suffix</em>, <em>output_suffix</em>, <em>suffix_delimiter=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#replace_suffix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.replace_suffix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces an input_suffix in a filename with an output_suffix. Can be used
+to generate or remove suffixes by leaving one or the other option blank.</p>
+<p>TODO: Make suffixes accept regexes. Can likely replace suffix_delimiter after this.
+TODO: Decide whether suffixes should extend across multiple directory levels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_filepath: str</strong></p>
+<blockquote>
+<div><p>The filename to be transformed.</p>
+</div></blockquote>
+<p><strong>input_suffix: str</strong></p>
+<blockquote>
+<div><p>The suffix to be replaced</p>
+</div></blockquote>
+<p><strong>output_suffix: str</strong></p>
+<blockquote>
+<div><p>The suffix to replace with.</p>
+</div></blockquote>
+<p><strong>suffix_delimiter: str</strong></p>
+<blockquote>
+<div><p>Optional, overrides input_suffix. Replaces whatever 
+comes after suffix_delimiter with output_suffix.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">output_filepath: str</p>
+<blockquote class="last">
+<div><p>The transformed filename</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.run_test">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">run_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#run_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.run_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.file_util.sanitize_filename">
+<code class="descclassname">qtim_tools.qtim_utilities.file_util.</code><code class="descname">sanitize_filename</code><span class="sig-paren">(</span><em>filename</em>, <em>allowed=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/file_util.html#sanitize_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.file_util.sanitize_filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.format_util">
+<span id="qtim-tools-qtim-utilities-format-util-module"></span><h2>qtim_tools.qtim_utilities.format_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.format_util" title="Permalink to this headline">¶</a></h2>
+<p>This will be a broader utility for interchanging between
+medical imaging (and perhaps other) formats.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.format_util.check_format">
+<code class="descclassname">qtim_tools.qtim_utilities.format_util.</code><code class="descname">check_format</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/format_util.html#check_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.format_util.check_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.format_util.convert_input_2_numpy">
+<code class="descclassname">qtim_tools.qtim_utilities.format_util.</code><code class="descname">convert_input_2_numpy</code><span class="sig-paren">(</span><em>input_data</em>, <em>input_format=None</em>, <em>return_header=False</em>, <em>return_type=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/format_util.html#convert_input_2_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.format_util.convert_input_2_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies a file somewhere else. Effectively only used for compressing nifti files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_filepath: str</strong></p>
+<blockquote>
+<div><p>Input filepath.</p>
+</div></blockquote>
+<p><strong>return_header: bool</strong></p>
+<blockquote>
+<div><p>If true, returns header information in nibabel format.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">img: Numpy array</p>
+<blockquote>
+<div><p>Untransformed image data.</p>
+</div></blockquote>
+<p>header: list</p>
+<blockquote>
+<div><p>Varies from format to format.</p>
+</div></blockquote>
+<p>type: str</p>
+<blockquote class="last">
+<div><p>Internal code for image type.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.format_util.dicom_convert_slicer">
+<code class="descclassname">qtim_tools.qtim_utilities.format_util.</code><code class="descname">dicom_convert_slicer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/format_util.html#dicom_convert_slicer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.format_util.dicom_convert_slicer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.format_util.itk_transform_2_numpy">
+<code class="descclassname">qtim_tools.qtim_utilities.format_util.</code><code class="descname">itk_transform_2_numpy</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/format_util.html#itk_transform_2_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.format_util.itk_transform_2_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes in an itk transform text file and converts into a 4x4
+array.</p>
+<p>TODO: Ensure this correctly rotates.
+TODO: Make work for more than just .txt files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filepath: str</strong></p>
+<blockquote>
+<div><p>The filepath to be converted</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">output_array: numpy array</p>
+<blockquote class="last">
+<div><p>A 4x4 float matrix containing the affine transform.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.format_util.save_numpy_2_file">
+<code class="descclassname">qtim_tools.qtim_utilities.format_util.</code><code class="descname">save_numpy_2_file</code><span class="sig-paren">(</span><em>input</em>, <em>output_filename</em>, <em>reference_file=[]</em>, <em>output_format=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/format_util.html#save_numpy_2_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.format_util.save_numpy_2_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.image_util">
+<span id="qtim-tools-qtim-utilities-image-util-module"></span><h2>qtim_tools.qtim_utilities.image_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.image_util" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for dealing with 2D image files, like JPG, PNG,
+etc. Most functions will likely be wrappers around other
+libraries, e.g. PIL, skimage, etc. Consider merging the
+image library from qtim_preprocessing.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.image_util.img_2_numpy">
+<code class="descclassname">qtim_tools.qtim_utilities.image_util.</code><code class="descname">img_2_numpy</code><span class="sig-paren">(</span><em>input_image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/image_util.html#img_2_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.image_util.img_2_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads image data and returns a numpy array. There
+will likely be many parameters to specify because
+of the strange quantization issues seemingly inherent
+in loading images.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.image_util.save_numpy_2_img">
+<code class="descclassname">qtim_tools.qtim_utilities.image_util.</code><code class="descname">save_numpy_2_img</code><span class="sig-paren">(</span><em>input_numpy</em>, <em>output_filename</em>, <em>output_dimensions=[]</em>, <em>rescale=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/image_util.html#save_numpy_2_img"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.image_util.save_numpy_2_img" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.nifti_util">
+<span id="qtim-tools-qtim-utilities-nifti-util-module"></span><h2>qtim_tools.qtim_utilities.nifti_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.nifti_util" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.assert_3D">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">assert_3D</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#assert_3D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.assert_3D" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.assert_nD">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">assert_nD</code><span class="sig-paren">(</span><em>array</em>, <em>ndim</em>, <em>arg_name='image'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#assert_nD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.assert_nD" title="Permalink to this definition">¶</a></dt>
+<dd><p>This script is currently directly copied from scikit-image.</p>
+<p>Verify an array meets the desired ndims.
+Parameters
+———-
+array : array-like</p>
+<blockquote>
+<div>Input array to be validated</div></blockquote>
+<dl class="docutils">
+<dt>ndim <span class="classifier-delimiter">:</span> <span class="classifier">int or iterable of ints</span></dt>
+<dd>Allowable ndim or ndims for the array.</dd>
+<dt>arg_name <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd>The name of the array in the original function.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.check_image_2d">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">check_image_2d</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>second_image_numpy=[]</em>, <em>slice_view='cycle'</em>, <em>step=1</em>, <em>mask_value=0</em>, <em>slice_axis='first'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#check_image_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.check_image_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>A useful utiltiy for spot checks. TODO: Add utility for dynamic axis viewing. Also TODO: make
+a check_image_3d</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.check_tumor_histogram">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">check_tumor_histogram</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>second_image_numpy=[]</em>, <em>mask_value=0</em>, <em>image_name=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#check_tumor_histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.check_tumor_histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: Make more general, edit out the word tumor</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.coerce_levels">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">coerce_levels</code><span class="sig-paren">(</span><em>image_numpy, levels=255, method='divide', reference_image=[], reference_norm_range=[0.075, 1], mask_value=0, coerce_positive=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#coerce_levels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.coerce_levels" title="Permalink to this definition">¶</a></dt>
+<dd><p>In volumes with huge outliers, the divide method will
+likely result in many zero values. This happens in practice
+quite often. TO-DO: find a better method to bin image values.
+I’m sure there are a thousand such algorithms out there to do
+so. Maybe something based on median’s, rather than means. This,
+of course, loses the ‘Extremeness’ of extreme values. An open
+question of how to reconcile this – maybe best left to the user.
+Note that there is some dubious +1s and -1s in this function. It
+may be better to clean these up in the future. I have also built-in
+the coerce-positive function into this function. The other one
+was not working for mysterious reasons.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.coerce_positive">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">coerce_positive</code><span class="sig-paren">(</span><em>image_numpy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#coerce_positive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.coerce_positive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required by GLCM. Not sure of the implications for other algorithms.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.create_4d_nifti_from_3d">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">create_4d_nifti_from_3d</code><span class="sig-paren">(</span><em>input_4d_numpy</em>, <em>reference_nifti_filepath</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#create_4d_nifti_from_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.create_4d_nifti_from_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sometimes, a reference nifti is only available in 3D form when trying to
+generate a 4D volume. This function addresses that.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.erode_label">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">erode_label</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>iterations=2</em>, <em>mask_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#erode_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.erode_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each iteration, removes all voxels not completely surrounded by
+other voxels. This might be a bit of an aggressive erosion. Also I
+would bet it is incredibly ineffecient. Also custom erosions in
+multiple dimensions look a little bit messy.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.fill_in_convex_outline">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">fill_in_convex_outline</code><span class="sig-paren">(</span><em>filepath</em>, <em>output_file</em>, <em>outline_lower_threshold=[]</em>, <em>outline_upper_threshold=[]</em>, <em>outline_color=[]</em>, <em>output_label_num=1</em>, <em>reference_nifti=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#fill_in_convex_outline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.fill_in_convex_outline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.get_nifti_affine">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">get_nifti_affine</code><span class="sig-paren">(</span><em>input_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#get_nifti_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.get_nifti_affine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.nifti_2_numpy">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">nifti_2_numpy</code><span class="sig-paren">(</span><em>input_filepath</em>, <em>return_header=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#nifti_2_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.nifti_2_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies a file somewhere else. Effectively only used for compressing nifti files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_filepath: str</strong></p>
+<blockquote>
+<div><p>Input filepath.</p>
+</div></blockquote>
+<p><strong>return_header: bool</strong></p>
+<blockquote>
+<div><p>If true, returns header information in nibabel format.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">img: Numpy array</p>
+<blockquote>
+<div><p>Untransformed image data.</p>
+</div></blockquote>
+<p>header: list</p>
+<blockquote class="last">
+<div><p>A two item list. The first is the affine matrix in array format, the
+second is</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.nifti_resave">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">nifti_resave</code><span class="sig-paren">(</span><em>input_filepath</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#nifti_resave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.nifti_resave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies a file somewhere else. Effectively only used for compressing nifti files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_filepath: str</strong></p>
+<blockquote>
+<div><p>Input filepath.</p>
+</div></blockquote>
+<p><strong>output_filepath: str</strong></p>
+<blockquote class="last">
+<div><p>Output filepath to be copied to.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.remove_islands">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">remove_islands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#remove_islands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.remove_islands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.replace_slice">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">replace_slice</code><span class="sig-paren">(</span><em>input_nifti_slice_filepath, reference_nifti_filepath, output_file, slice_number, orientation_commands=[&lt;function rot90&gt;, &lt;function flipud&gt;]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#replace_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.replace_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Orients a 1-D label nifti, likely created by the convex outline function, with respect to a reference
+3-D nifti. Saves out a 3-D nifti of the same shape with just the one ROI slice.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.return_nifti_attributes">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">return_nifti_attributes</code><span class="sig-paren">(</span><em>filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#return_nifti_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.return_nifti_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>This returns nibabel’s version of the nifti header. Note that this
+is NOT the full header! fslhd, from FSL, returns other things such
+as the qform orientation code. TODO: add an option for returning fslhd
+if installed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.save_3d_numpy_from_4d_nifti">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">save_3d_numpy_from_4d_nifti</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>reference_nifti</em>, <em>output_filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#save_3d_numpy_from_4d_nifti"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.save_3d_numpy_from_4d_nifti" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.save_numpy_2_nifti">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">save_numpy_2_nifti</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>reference_nifti_filepath=None</em>, <em>output_filepath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#save_numpy_2_nifti"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.save_numpy_2_nifti" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a bit convoluted.</p>
+<p>TODO: Documentation, rearrange reference_nifti and output_filepath, and
+propagate changes to the rest of qtim_tools.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nifti_util.set_nifti_affine">
+<code class="descclassname">qtim_tools.qtim_utilities.nifti_util.</code><code class="descname">set_nifti_affine</code><span class="sig-paren">(</span><em>input_data</em>, <em>new_affine</em>, <em>output_filepath=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nifti_util.html#set_nifti_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nifti_util.set_nifti_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes in either a nibabel nifti object or a nifti
+filepath and alters its affine matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_data: str or nibabel object</strong></p>
+<blockquote>
+<div><p>If str, will be interpreted as a filepath. Otherwise, will be
+interpreted as a nibabel nifti object.</p>
+</div></blockquote>
+<p><strong>new_affine: 4x4 numpy array</strong></p>
+<blockquote>
+<div><p>The new affine matrix to be set.</p>
+</div></blockquote>
+<p><strong>output_filepath: str</strong></p>
+<blockquote class="last">
+<div><p>The output_filepath, if not the same as the input_filepath.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.nrrd_util">
+<span id="qtim-tools-qtim-utilities-nrrd-util-module"></span><h2>qtim_tools.qtim_utilities.nrrd_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.nrrd_util" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for dealing with NRRD files. So far, this is mostly
+a nifti library, so these will probably just be conversion
+utilities. The existence of this library should imply the creation
+of an array_util, as many of the functions in nifti_util are not
+specific to niftis.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nrrd_util.nrrd_2_numpy">
+<code class="descclassname">qtim_tools.qtim_utilities.nrrd_util.</code><code class="descname">nrrd_2_numpy</code><span class="sig-paren">(</span><em>input_nrrd</em>, <em>return_header=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nrrd_util.html#nrrd_2_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nrrd_util.nrrd_2_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads nrrd data and optionally return a nrrd header
+in pynrrd’s format. If array is 4D, swaps axes so
+that time dimension is last to match nifti standard.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.nrrd_util.save_numpy_2_nrrd">
+<code class="descclassname">qtim_tools.qtim_utilities.nrrd_util.</code><code class="descname">save_numpy_2_nrrd</code><span class="sig-paren">(</span><em>input_numpy</em>, <em>reference_nrrd=[]</em>, <em>output_filepath=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/nrrd_util.html#save_numpy_2_nrrd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.nrrd_util.save_numpy_2_nrrd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="qtim-tools-qtim-utilities-scratch-util-module">
+<h2>qtim_tools.qtim_utilities.scratch_util module<a class="headerlink" href="#qtim-tools-qtim-utilities-scratch-util-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.text_util">
+<span id="qtim-tools-qtim-utilities-text-util-module"></span><h2>qtim_tools.qtim_utilities.text_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.text_util" title="Permalink to this headline">¶</a></h2>
+<p>This will be a utility for reading human-readable data passed in through
+text-based formats. These data may be transformation matrices, AIFs, bvectors,
+or other relevant information.</p>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.text_util.run_test">
+<code class="descclassname">qtim_tools.qtim_utilities.text_util.</code><code class="descname">run_test</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/text_util.html#run_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.text_util.run_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.text_util.save_numpy_2_csv">
+<code class="descclassname">qtim_tools.qtim_utilities.text_util.</code><code class="descname">save_numpy_2_csv</code><span class="sig-paren">(</span><em>input_numpy</em>, <em>output_csv</em>, <em>ignore_value=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/text_util.html#save_numpy_2_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.text_util.save_numpy_2_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenience function to write a numpy array to a csv
+file. Numpy has a method to do this, but I often find it
+counterintuitive. This also allows you to not write certain
+rows depending on a value in the first column.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input_numpy: array</strong></p>
+<blockquote>
+<div><p>An array, preferably of object datatype, to write.</p>
+</div></blockquote>
+<p><strong>output_csv: str</strong></p>
+<blockquote>
+<div><p>A csv file to write to.</p>
+</div></blockquote>
+<p><strong>ignore_value: str or bool</strong></p>
+<blockquote class="last">
+<div><p>If ignore_value is in the first column, this row will
+be skipped. Default is set to False, which does not
+ignore any value.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities.transform_util">
+<span id="qtim-tools-qtim-utilities-transform-util-module"></span><h2>qtim_tools.qtim_utilities.transform_util module<a class="headerlink" href="#module-qtim_tools.qtim_utilities.transform_util" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.apply_affine">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">apply_affine</code><span class="sig-paren">(</span><em>input_volume</em>, <em>affine_matrix</em>, <em>method='python'</em>, <em>Slicer_path='Slicer'</em>, <em>reference_file=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#apply_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.apply_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides methods for applying an affine matrix to a 3D volume. TODO:
+extend this past 3D volumes. Also has a method to apply the matrix in
+Slicer, if Slice is available. Slicer will be much faster, but requires
+a special array format.</p>
+<p>TODO: Get this working for 4D Volumes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.compose_affines">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">compose_affines</code><span class="sig-paren">(</span><em>affine_matrix_1</em>, <em>affine_matrix_2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#compose_affines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.compose_affines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple matrix multiplication. For time series, matrix multiplication
+is component-wise. Questionable if there are use cased for 4D+ dimnesions
+but those currently do not work.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.generate_identity_affine">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">generate_identity_affine</code><span class="sig-paren">(</span><em>timepoints=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#generate_identity_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.generate_identity_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>A convenient function for generating an identity affine matrix. Can be
+used for saving blank niftis.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.generate_motion_jerk">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">generate_motion_jerk</code><span class="sig-paren">(</span><em>duration, timepoint=0, rotation_peaks=[3, 3, 0], total_timepoints=-1, input_motion_array=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#generate_motion_jerk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.generate_motion_jerk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an affine jerk that smoothly moves between an affine displacement and back again.
+TODO: Allow custom ordering of rotations. Currently all rotations go first by x, then by y,
+then by z, etc.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.generate_motion_tilt">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">generate_motion_tilt</code><span class="sig-paren">(</span><em>timepoint, duration, rotation_peaks=[3, 3, 0], input_filepath='', reference_nifti='', output_filepath=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#generate_motion_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.generate_motion_tilt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates an affine jerk that smoothly moves between an affine displacement, and then stays there. 
+TODO: Allow custom ordering of rotations. Currently all rotations go first by x, then by y,
+then by z, etc.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.generate_noisy_motion">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">generate_noisy_motion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#generate_noisy_motion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.generate_noisy_motion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.generate_rotation_affine">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">generate_rotation_affine</code><span class="sig-paren">(</span><em>axis=0</em>, <em>rotation_degrees=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#generate_rotation_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.generate_rotation_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates an affine transformation matrix with a set rotation at a set axis.
+Code ripped from: <a class="reference external" href="https://www.learnopencv.com/rotation-matrix-to-euler-angles/">https://www.learnopencv.com/rotation-matrix-to-euler-angles/</a>. Needs
+added functionality to set a center point. There is a method available in OpenCV to
+do this, but for now I am holding off on making OpenCV a requirement for qtim_tools.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.generate_translation_affine">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">generate_translation_affine</code><span class="sig-paren">(</span><em>axis=0</em>, <em>translation_distance=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#generate_translation_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.generate_translation_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates an affine transformation matrix with a set translation at a set axis.
+Code ripped from: <a class="reference external" href="https://www.learnopencv.com/rotation-matrix-to-euler-angles/">https://www.learnopencv.com/rotation-matrix-to-euler-angles/</a>. Needs
+added functionality to set a center point. There is a method available in OpenCV to
+do this, but for now I am holding off on making OpenCV a requirement for qtim_tools.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.get_jacobian_determinant">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">get_jacobian_determinant</code><span class="sig-paren">(</span><em>input_volume</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#get_jacobian_determinant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.get_jacobian_determinant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in an vector-valued space, calculates that spaces gradients and jacobian matrices,
+and returns a scalar-valued space with the jacobian determinants.</p>
+<p>TODO: Does not seem to work in the 1D case, where jacobian determinant is equal to the
+gradient.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.itk_2_vtk_transform">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">itk_2_vtk_transform</code><span class="sig-paren">(</span><em>affine</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#itk_2_vtk_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.itk_2_vtk_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms from itk to vtk.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.return_jacobian_matrix">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">return_jacobian_matrix</code><span class="sig-paren">(</span><em>input_volume</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#return_jacobian_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.return_jacobian_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Jacobian matrix for a certain index. This function is currently broken and not very
+generalizable. TODO: fix.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.save_affine">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">save_affine</code><span class="sig-paren">(</span><em>affine_matrix</em>, <em>output_filename</em>, <em>output_format='itk_affine'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#save_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.save_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves a numpy affine matrix to ITK format for use in other programs,
+e.g. 3D Slicer. This method is not complete - there is a lot of mapping
+to do from data types to transform types.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="qtim_tools.qtim_utilities.transform_util.save_numpy_2_nifti">
+<code class="descclassname">qtim_tools.qtim_utilities.transform_util.</code><code class="descname">save_numpy_2_nifti</code><span class="sig-paren">(</span><em>image_numpy</em>, <em>reference_nifti_filepath=''</em>, <em>output_path=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qtim_tools/qtim_utilities/transform_util.html#save_numpy_2_nifti"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#qtim_tools.qtim_utilities.transform_util.save_numpy_2_nifti" title="Permalink to this definition">¶</a></dt>
+<dd><p>Temporary duplication</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qtim_tools.qtim_utilities">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qtim_tools.qtim_utilities" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="qtim_tools.qtim_visualization.html" class="btn btn-neutral float-right" title="qtim_tools.qtim_visualization package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="qtim_tools.qtim_preprocessing.html" class="btn btn-neutral" title="qtim_tools.qtim_preprocessing package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

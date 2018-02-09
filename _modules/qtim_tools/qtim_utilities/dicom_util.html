@@ -1,0 +1,608 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>qtim_tools.qtim_utilities.dicom_util &mdash; qtim_tools 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="qtim_tools 0.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../qtim_tools.html" class="icon icon-home"> qtim_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_dce.html">qtim_tools.qtim_dce package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_features.html">qtim_tools.qtim_features package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_learning.html">qtim_tools.qtim_learning package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_pipelines.html">qtim_tools.qtim_pipelines package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_preprocessing.html">qtim_tools.qtim_preprocessing package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_utilities.html">qtim_tools.qtim_utilities package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.qtim_visualization.html">qtim_tools.qtim_visualization package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../qtim_tools.test_data.html">qtim_tools.test_data package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../qtim_tools.html">qtim_tools</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../qtim_tools.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>qtim_tools.qtim_utilities.dicom_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for qtim_tools.qtim_utilities.dicom_util</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; This is a utility module for loading dicom data and headers. It borrows heavily from pydicom.</span>
+<span class="sd">    It will likely take a lot of DICOM knowledge to navigate..</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">dicom</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nib</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">binascii</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">bz2</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">StringIO</span> <span class="k">import</span> <span class="n">StringIO</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">misc</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">call</span><span class="p">,</span> <span class="n">check_output</span>
+
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities.file_util</span> <span class="k">import</span> <span class="n">human_sort</span><span class="p">,</span> <span class="n">grab_files_recursive</span><span class="p">,</span> <span class="n">sanitize_filename</span><span class="p">,</span> <span class="n">replace_suffix</span>
+<span class="kn">from</span> <span class="nn">qtim_tools.qtim_utilities.nifti_util</span> <span class="k">import</span> <span class="n">save_numpy_2_nifti</span><span class="p">,</span> <span class="n">check_image_2d</span>
+
+<span class="c1"># factory function to create a suitable instance for accessing files</span>
+<div class="viewcode-block" id="get_compressed_file"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.dicom_util.get_compressed_file">[docs]</a><span class="k">def</span> <span class="nf">get_compressed_file</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ZIPFile</span><span class="p">,</span> <span class="n">BZ2File</span><span class="p">,</span> <span class="n">GZFile</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">is_magic</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="get_dicom_dictionary"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.dicom_util.get_dicom_dictionary">[docs]</a><span class="k">def</span> <span class="nf">get_dicom_dictionary</span><span class="p">(</span><span class="n">input_filepath</span><span class="o">=</span><span class="p">[],</span> <span class="n">dictionary_regex</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Returns a dictionary of dicom tags using pydicom. TODO: let users return tag</span>
+<span class="sd">        dictionary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">input_filepath</span><span class="p">):</span>
+        <span class="n">dictionary_file</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_filepath</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dictionary_file</span> <span class="o">=</span> <span class="n">input_filepath</span>
+
+    <span class="n">img_dicom</span> <span class="o">=</span> <span class="n">dicom</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">dictionary_file</span><span class="p">)</span>
+
+    <span class="n">output_dictionary</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">img_dicom</span><span class="o">.</span><span class="n">dir</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;PixelData&#39;</span><span class="p">:</span>
+                <span class="n">output_dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">output_dictionary</span></div>
+
+<div class="viewcode-block" id="get_dicom_pixel_array"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.dicom_util.get_dicom_pixel_array">[docs]</a><span class="k">def</span> <span class="nf">get_dicom_pixel_array</span><span class="p">(</span><span class="n">dicom</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+    <span class="c1"># Deal with data compression if necessary..</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dicom</span><span class="o">.</span><span class="n">pixel_array</span>
+    <span class="c1"># except:</span>
+    <span class="c1">#     current_dir = os.getcwd()</span>
+    <span class="c1">#     os.chdir(os.path.dirname(filename))</span>
+    <span class="c1">#     call(&quot;\&quot;C:\\Program Files (x86)\\IrfanView\\i_view32.exe\&quot; &quot; + str(filename).replace(&#39;/&#39;, &#39;\\&#39;) + &quot; /convert=.\\temp.jpg&quot;, shell=True)</span>
+    <span class="c1">#     array = misc.imread(&#39;temp.jpg&#39;)</span>
+    <span class="c1">#     os.remove(&#39;temp.jpg&#39;)</span>
+    <span class="c1">#     os.chdir(current_dir)</span>
+    <span class="c1">#     return array</span>
+    <span class="c1"># except:</span>
+        <span class="c1"># return</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">call</span><span class="p">(</span><span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Users</span><span class="se">\\</span><span class="s2">azb22</span><span class="se">\\</span><span class="s2">Documents</span><span class="se">\\</span><span class="s2">Software</span><span class="se">\\</span><span class="s2">DCMTK</span><span class="se">\\</span><span class="s2">dcmtk-3.6.2-win64-dynamic</span><span class="se">\\</span><span class="s2">bin&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; /convert=.</span><span class="se">\\</span><span class="s2">temp.jpg&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_uncompressed_dicom"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.dicom_util.get_uncompressed_dicom">[docs]</a><span class="k">def</span> <span class="nf">get_uncompressed_dicom</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dicom</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">file_meta</span><span class="o">.</span><span class="n">TransferSyntaxUID</span> <span class="ow">in</span> <span class="n">dicom</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">NotCompressedPixelTransferSyntaxes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="c1"># +cl   --conv-lossy           convert YCbCr to RGB if lossy JPEG</span>
+    <span class="c1"># +cn   --conv-never           never convert color space</span>
+    <span class="c1"># +px   --color-by-pixel       always store color-by-pixel</span>
+    <span class="n">call</span><span class="p">([</span><span class="s1">&#39;C:</span><span class="se">\\</span><span class="s1">Users</span><span class="se">\\</span><span class="s1">azb22</span><span class="se">\\</span><span class="s1">Documents</span><span class="se">\\</span><span class="s1">Software</span><span class="se">\\</span><span class="s1">DCMTK</span><span class="se">\\</span><span class="s1">dcmtk-3.6.2-win64-dynamic</span><span class="se">\\</span><span class="s1">bin</span><span class="se">\\</span><span class="s1">dcmdjpeg.exe&#39;</span><span class="p">,</span> <span class="s1">&#39;+cl&#39;</span><span class="p">,</span> <span class="s1">&#39;+px&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;temp.dcm&#39;</span><span class="p">])</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">dicom</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="s1">&#39;temp.dcm&#39;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;temp.dcm&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="dcm_2_numpy"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.dicom_util.dcm_2_numpy">[docs]</a><span class="k">def</span> <span class="nf">dcm_2_numpy</span><span class="p">(</span><span class="n">input_folder</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it</span>
+<span class="sd">        take slice_order into account.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Searching for dicom files...&#39;</span>
+
+    <span class="n">found_files</span> <span class="o">=</span> <span class="n">grab_files_recursive</span><span class="p">(</span><span class="n">input_folder</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Found&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_files</span><span class="p">),</span> <span class="s1">&#39;in directory. </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="nb">print</span> <span class="s1">&#39;Checking DICOM compatability...&#39;</span>
+
+    <span class="n">dicom_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">found_files</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temp_dicom</span> <span class="o">=</span> <span class="n">dicom</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">dicom_files</span> <span class="o">+=</span> <span class="p">[[</span><span class="n">file</span><span class="p">,</span> <span class="n">temp_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;SeriesInstanceUID&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">]]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Found&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dicom_files</span><span class="p">),</span> <span class="s1">&#39;DICOM files in directory. </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="nb">print</span> <span class="s1">&#39;Counting volumes..&#39;</span>
+
+    <span class="n">dicom_headers</span> <span class="o">=</span> <span class="p">[]</span> 
+    <span class="n">unique_dicoms</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dicom_file</span> <span class="ow">in</span> <span class="n">dicom_files</span><span class="p">:</span>
+        <span class="n">UID</span> <span class="o">=</span> <span class="n">dicom_file</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">unique_dicoms</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">dicom_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Found&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_dicoms</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="s1">&#39;unique volumes </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="nb">print</span> <span class="s1">&#39;Saving out files from these volumes.&#39;</span>
+
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">output_filenames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">UID</span> <span class="ow">in</span> <span class="n">unique_dicoms</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Grab DICOMs for a certain Instance</span>
+            <span class="n">current_files</span> <span class="o">=</span> <span class="n">unique_dicoms</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span>
+            <span class="n">current_dicoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_uncompressed_dicom</span><span class="p">(</span><span class="n">dcm</span><span class="p">)</span> <span class="k">for</span> <span class="n">dcm</span> <span class="ow">in</span> <span class="n">unique_dicoms</span><span class="p">[</span><span class="n">UID</span><span class="p">]]</span>
+            <span class="c1"># print current_files</span>
+
+            <span class="c1"># Sort DICOMs by Instance.</span>
+            <span class="n">dicom_instances</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;InstanceNumber&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">current_dicoms</span><span class="p">]</span>
+            <span class="n">current_dicoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dicom_instances</span><span class="p">,</span><span class="n">current_dicoms</span><span class="p">))]</span>
+            <span class="n">current_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dicom_instances</span><span class="p">,</span><span class="n">current_files</span><span class="p">))]</span>
+            <span class="n">first_dicom</span><span class="p">,</span> <span class="n">last_dicom</span> <span class="o">=</span> <span class="n">current_dicoms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">current_dicoms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="nb">print</span> <span class="n">first_dicom</span><span class="o">.</span><span class="n">file_meta</span>
+            <span class="nb">print</span> <span class="n">first_dicom</span><span class="o">.</span><span class="n">file_meta</span><span class="o">.</span><span class="n">TransferSyntaxUID</span>
+
+            <span class="c1"># Create a filename for the DICOM</span>
+            <span class="n">volume_label</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">naming_tags</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">volume_label</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">sanitize_filename</span><span class="p">(</span><span class="n">volume_label</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s1">&#39;Saving...&#39;</span><span class="p">,</span> <span class="n">volume_label</span>
+
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;Could not read DICOM volume SeriesDescription. Skipping UID...&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">UID</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Extract patient position information for affine creation.</span>
+            <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">image_position_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;ImagePositionPatient&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">image_orientation_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;ImageOrientationPatient&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">last_image_position_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">last_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;ImagePositionPatient&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">pixel_spacing_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;PixelSpacing&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+            <span class="c1"># Create DICOM Space affine (don&#39;t fully understand, TODO)</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pixel_spacing_patient</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">image_orientation_patient</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pixel_spacing_patient</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">image_orientation_patient</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_position_patient</span> <span class="o">-</span> <span class="n">last_image_position_patient</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">))</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_position_patient</span>
+
+            <span class="c1"># Transformations from DICOM to Nifti Space (don&#39;t fully understand, TOO)</span>
+            <span class="n">cr_flip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">cr_flip</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">neg_flip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">neg_flip</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">neg_flip</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">output_affine</span><span class="p">,</span> <span class="n">cr_flip</span><span class="p">))</span>
+
+            <span class="c1"># Create numpy array data...</span>
+            <span class="n">output_shape</span> <span class="o">=</span> <span class="n">get_dicom_pixel_array</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">current_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">output_numpy</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">)):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">output_numpy</span> <span class="o">+=</span> <span class="p">[</span><span class="n">get_dicom_pixel_array</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">current_files</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s1">&#39;Warning, error at slice&#39;</span><span class="p">,</span> <span class="n">i</span>
+            <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># If preferred, harden to identity matrix space (LPS, maybe?)</span>
+            <span class="c1"># Also unsure of the dynamic here, but they work.</span>
+            <span class="k">if</span> <span class="n">harden_orientation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="p">(</span><span class="n">cx</span><span class="p">,</span><span class="n">cy</span><span class="p">,</span><span class="n">cz</span><span class="p">))</span>
+
+                <span class="n">harden_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">cx</span><span class="p">,</span><span class="n">cy</span><span class="p">,</span><span class="n">cz</span><span class="p">]):</span>
+                    <span class="n">harden_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">harden_matrix</span><span class="p">[</span><span class="n">dim</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">output_affine</span><span class="p">,</span> <span class="n">harden_matrix</span><span class="p">)</span>
+
+                <span class="n">flip_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">output_affine</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">flip_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                        <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+                <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">output_affine</span><span class="p">,</span> <span class="n">flip_matrix</span><span class="p">)</span>
+
+            <span class="c1"># Create output folder according to tags.</span>
+            <span class="n">specific_folder</span> <span class="o">=</span> <span class="n">output_folder</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">folder_tags</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">specific_folder</span> <span class="o">==</span> <span class="n">output_folder</span> <span class="ow">or</span> <span class="n">folder_mode</span> <span class="o">==</span> <span class="s1">&#39;recursive&#39;</span><span class="p">:</span>
+                    <span class="n">specific_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">,</span> <span class="n">sanitize_filename</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">folder_mode</span> <span class="o">==</span> <span class="s1">&#39;combine&#39;</span><span class="p">:</span>
+                    <span class="n">specific_folder</span> <span class="o">=</span> <span class="n">specific_folder</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">sanitize_filename</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">)</span>
+
+            <span class="c1"># Save out file.</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">,</span> <span class="n">volume_label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_filename</span><span class="p">)</span> <span class="ow">and</span> <span class="n">output_filename</span> <span class="ow">in</span> <span class="n">output_filenames</span><span class="p">:</span>
+                <span class="n">output_filename</span> <span class="o">=</span> <span class="n">replace_suffix</span><span class="p">(</span><span class="n">output_filename</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_copy&#39;</span><span class="p">)</span>
+            <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="n">output_affine</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+            <span class="n">output_filenames</span> <span class="o">+=</span> <span class="p">[</span><span class="n">output_filename</span><span class="p">]</span>
+
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;Could not read DICOM at SeriesDescription...&#39;</span><span class="p">,</span> <span class="n">volume_label</span>
+
+    <span class="k">return</span> <span class="n">output_filenames</span>
+
+    <span class="k">return</span> <span class="n">output_dict</span></div>
+    
+<div class="viewcode-block" id="dcm_2_nifti"><a class="viewcode-back" href="../../../qtim_tools.qtim_utilities.html#qtim_tools.qtim_utilities.dicom_util.dcm_2_nifti">[docs]</a><span class="k">def</span> <span class="nf">dcm_2_nifti</span><span class="p">(</span><span class="n">input_folder</span><span class="p">,</span> <span class="n">output_folder</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">naming_tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;SeriesDescription&#39;</span><span class="p">],</span> <span class="n">folder_tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;PatientID&#39;</span><span class="p">,</span> <span class="s1">&#39;StudyDate&#39;</span><span class="p">],</span> <span class="n">folder_mode</span><span class="o">=</span><span class="s1">&#39;combine&#39;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">write_header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header_suffix</span><span class="o">=</span><span class="s1">&#39;_header&#39;</span><span class="p">,</span> <span class="n">harden_orientation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it</span>
+<span class="sd">        take slice_order into account.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Searching for dicom files...&#39;</span>
+
+    <span class="n">found_files</span> <span class="o">=</span> <span class="n">grab_files_recursive</span><span class="p">(</span><span class="n">input_folder</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Found&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">found_files</span><span class="p">),</span> <span class="s1">&#39;in directory. </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="nb">print</span> <span class="s1">&#39;Checking DICOM compatability...&#39;</span>
+
+    <span class="n">dicom_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">found_files</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temp_dicom</span> <span class="o">=</span> <span class="n">dicom</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">dicom_files</span> <span class="o">+=</span> <span class="p">[[</span><span class="n">file</span><span class="p">,</span> <span class="n">temp_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;SeriesInstanceUID&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">]]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Found&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dicom_files</span><span class="p">),</span> <span class="s1">&#39;DICOM files in directory. </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="nb">print</span> <span class="s1">&#39;Counting volumes..&#39;</span>
+
+    <span class="n">dicom_headers</span> <span class="o">=</span> <span class="p">[]</span> 
+    <span class="n">unique_dicoms</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dicom_file</span> <span class="ow">in</span> <span class="n">dicom_files</span><span class="p">:</span>
+        <span class="n">UID</span> <span class="o">=</span> <span class="n">dicom_file</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">unique_dicoms</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">dicom_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s1">&#39;Found&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_dicoms</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="s1">&#39;unique volumes </span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="nb">print</span> <span class="s1">&#39;Saving out files from these volumes.&#39;</span>
+
+    <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">output_filenames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">UID</span> <span class="ow">in</span> <span class="n">unique_dicoms</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Grab DICOMs for a certain Instance</span>
+            <span class="n">current_files</span> <span class="o">=</span> <span class="n">unique_dicoms</span><span class="p">[</span><span class="n">UID</span><span class="p">]</span>
+            <span class="n">current_dicoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_uncompressed_dicom</span><span class="p">(</span><span class="n">dcm</span><span class="p">)</span> <span class="k">for</span> <span class="n">dcm</span> <span class="ow">in</span> <span class="n">unique_dicoms</span><span class="p">[</span><span class="n">UID</span><span class="p">]]</span>
+            <span class="c1"># print current_files</span>
+
+            <span class="c1"># Sort DICOMs by Instance.</span>
+            <span class="n">dicom_instances</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;InstanceNumber&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">current_dicoms</span><span class="p">]</span>
+            <span class="n">current_dicoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dicom_instances</span><span class="p">,</span><span class="n">current_dicoms</span><span class="p">))]</span>
+            <span class="n">current_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dicom_instances</span><span class="p">,</span><span class="n">current_files</span><span class="p">))]</span>
+            <span class="n">first_dicom</span><span class="p">,</span> <span class="n">last_dicom</span> <span class="o">=</span> <span class="n">current_dicoms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">current_dicoms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="nb">print</span> <span class="n">first_dicom</span><span class="o">.</span><span class="n">file_meta</span>
+            <span class="nb">print</span> <span class="n">first_dicom</span><span class="o">.</span><span class="n">file_meta</span><span class="o">.</span><span class="n">TransferSyntaxUID</span>
+
+            <span class="c1"># Create a filename for the DICOM</span>
+            <span class="n">volume_label</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">naming_tags</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">volume_label</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">sanitize_filename</span><span class="p">(</span><span class="n">volume_label</span><span class="p">)</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.nii.gz&#39;</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s1">&#39;Saving...&#39;</span><span class="p">,</span> <span class="n">volume_label</span>
+
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;Could not read DICOM volume SeriesDescription. Skipping UID...&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">UID</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Extract patient position information for affine creation.</span>
+            <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">image_position_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;ImagePositionPatient&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">image_orientation_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;ImageOrientationPatient&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">last_image_position_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">last_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;ImagePositionPatient&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">pixel_spacing_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="s1">&#39;PixelSpacing&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+            <span class="c1"># Create DICOM Space affine (don&#39;t fully understand, TODO)</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pixel_spacing_patient</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">image_orientation_patient</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">pixel_spacing_patient</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">image_orientation_patient</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">image_position_patient</span> <span class="o">-</span> <span class="n">last_image_position_patient</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">))</span>
+            <span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_position_patient</span>
+
+            <span class="c1"># Transformations from DICOM to Nifti Space (don&#39;t fully understand, TOO)</span>
+            <span class="n">cr_flip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">cr_flip</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">neg_flip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+            <span class="n">neg_flip</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">neg_flip</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">output_affine</span><span class="p">,</span> <span class="n">cr_flip</span><span class="p">))</span>
+
+            <span class="c1"># Create numpy array data...</span>
+            <span class="n">output_shape</span> <span class="o">=</span> <span class="n">get_dicom_pixel_array</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">current_files</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">output_numpy</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">)):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">output_numpy</span> <span class="o">+=</span> <span class="p">[</span><span class="n">get_dicom_pixel_array</span><span class="p">(</span><span class="n">current_dicoms</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">current_files</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s1">&#39;Warning, error at slice&#39;</span><span class="p">,</span> <span class="n">i</span>
+            <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># If preferred, harden to identity matrix space (LPS, maybe?)</span>
+            <span class="c1"># Also unsure of the dynamic here, but they work.</span>
+            <span class="k">if</span> <span class="n">harden_orientation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">output_affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="p">(</span><span class="n">cx</span><span class="p">,</span><span class="n">cy</span><span class="p">,</span><span class="n">cz</span><span class="p">))</span>
+
+                <span class="n">harden_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">cx</span><span class="p">,</span><span class="n">cy</span><span class="p">,</span><span class="n">cz</span><span class="p">]):</span>
+                    <span class="n">harden_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">harden_matrix</span><span class="p">[</span><span class="n">dim</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">output_affine</span><span class="p">,</span> <span class="n">harden_matrix</span><span class="p">)</span>
+
+                <span class="n">flip_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">output_affine</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">flip_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                        <span class="n">output_numpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+                <span class="n">output_affine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">output_affine</span><span class="p">,</span> <span class="n">flip_matrix</span><span class="p">)</span>
+
+            <span class="c1"># Create output folder according to tags.</span>
+            <span class="n">specific_folder</span> <span class="o">=</span> <span class="n">output_folder</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">folder_tags</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">specific_folder</span> <span class="o">==</span> <span class="n">output_folder</span> <span class="ow">or</span> <span class="n">folder_mode</span> <span class="o">==</span> <span class="s1">&#39;recursive&#39;</span><span class="p">:</span>
+                    <span class="n">specific_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">,</span> <span class="n">sanitize_filename</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">folder_mode</span> <span class="o">==</span> <span class="s1">&#39;combine&#39;</span><span class="p">:</span>
+                    <span class="n">specific_folder</span> <span class="o">=</span> <span class="n">specific_folder</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">sanitize_filename</span><span class="p">(</span><span class="n">first_dicom</span><span class="o">.</span><span class="n">data_element</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">)</span>
+
+            <span class="c1"># Save out file.</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">specific_folder</span><span class="p">,</span> <span class="n">volume_label</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_filename</span><span class="p">)</span> <span class="ow">and</span> <span class="n">output_filename</span> <span class="ow">in</span> <span class="n">output_filenames</span><span class="p">:</span>
+                <span class="n">output_filename</span> <span class="o">=</span> <span class="n">replace_suffix</span><span class="p">(</span><span class="n">output_filename</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_copy&#39;</span><span class="p">)</span>
+            <span class="n">save_numpy_2_nifti</span><span class="p">(</span><span class="n">output_numpy</span><span class="p">,</span> <span class="n">output_affine</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+            <span class="n">output_filenames</span> <span class="o">+=</span> <span class="p">[</span><span class="n">output_filename</span><span class="p">]</span>
+
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;Could not read DICOM at SeriesDescription...&#39;</span><span class="p">,</span> <span class="n">volume_label</span>
+
+    <span class="k">return</span> <span class="n">output_filenames</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Andrew Beers (MGH).
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
