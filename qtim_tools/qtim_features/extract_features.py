@@ -323,7 +323,7 @@ def test_method():
     generate_feature_list_batch(folder=test_folder, features=['morphology', 'statistics'], labels=True, levels=100, outfile='test_feature_results_shape.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True)
     return
 
-def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels = 100, mask_value = 0, erode = [0,0,0], overwrite = True, label_suffix='-label', set_label='', file_regex='*.nii*', recursive=False, normalize_intensities=False):
+def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels=100, mask_value=0, erode=[0,0,0], overwrite=True, label_suffix='-label', set_label='', file_regex='*.nii*', recursive=False, normalize_intensities=False):
     generate_feature_list_batch(folder=folder, outfile=outfile, labels=labels, features=features, levels=levels, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix, set_label=set_label, file_regex=file_regex, recursive=recursive, normalize_intensities=normalize_intensities)
 
 if __name__ == "__main__":

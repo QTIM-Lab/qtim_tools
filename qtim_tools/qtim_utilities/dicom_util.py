@@ -13,7 +13,6 @@ import gzip
 import bz2
 import zipfile
 import io
-import cv2
 import tempfile
 from StringIO import StringIO
 

@@ -11,7 +11,7 @@ from os import path
 setup(
   name = 'qtim_tools',
   # packages = ['qtim_tools'], # this must be the same as the name above
-  version = '0.1.12',
+  version = '0.1.13',
   description = 'A library for medical imaging analysis, with an emphasis on MRI, machine learning, and neuroimaging. Created by the Quantiative Tumor Imaging Lab at the Martinos Center (Harvard-MIT Program in Health, Sciences, and Technology / Massachussets General Hospital)',
   packages = find_packages(),
   entry_points =  {
@@ -20,8 +20,8 @@ setup(
   author = 'Andrew Beers',
   author_email = 'abeers@mgh.harvard.edu',
   url = 'https://github.com/QTIM-Lab/qtim_tools', # use the URL to the github repo
-  download_url = 'https://github.com/QTIM-Lab/qtim_tools/tarball/0.1.12',
+  download_url = 'https://github.com/QTIM-Lab/qtim_tools/tarball/0.1.13',
   keywords = ['neuroimaging', 'niftis', 'nifti','mri','dce','dsc','ktrans','ve','tofts','machine learning','vision','texture','learning'], # arbitrary keywords
-  install_requires=['nibabel','pydicom','pynrrd','configparser','matplotlib','numpy','scipy','scikit-image', 'pyyaml', 'beautifulsoup4'],
+  install_requires=['nibabel','pydicom','pynrrd','Pillow','configparser','matplotlib','numpy','scipy','scikit-image', 'pyyaml', 'beautifulsoup4'],
   classifiers = [],
 )
