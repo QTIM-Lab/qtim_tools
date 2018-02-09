@@ -55,7 +55,7 @@ def grab_files_recursive(input_directory, regex='*'):
 
 def grab_folders_recursive(input_directory, regex='*'):
 
-    """ Returns all files recursively in a directory. Essentially a convenience wrapper 
+    """ Returns all folders recursively in a directory. Essentially a convenience wrapper 
         around os.walk.
 
         Parameters
