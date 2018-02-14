@@ -1,7 +1,17 @@
+![Alt text](./package_resources/logos/qtim_tools.png?raw=true "Title")
+
 [![Build Status](https://travis-ci.org/QTIM-Lab/qtim_tools.svg?branch=master)](https://travis-ci.org/QTIM-Lab/qtim_tools)
 
-# QtimTools
+# qtim_tools
 This is a repository for QTIM image processing utilties written in Python. It is a work in progress, and we would love to get your input if anything is not working as expected. Send us a message!
+
+## Table of Contents
+- [Installation](#installation) 
+- [qtim_features](#qtim_features)
+- [qtim_dce](#qtim_dce)
+- [Contact](#contact)
+
+## Installation
 
 To get this package up and running, clone this repository from github and run from the command line:
 
@@ -11,9 +21,7 @@ This will install a local version of qtim_tools to your workstation. Alternative
 
 pip install qtim_tools
 
-You may need to install some other python libraries to run this code (most likely nibabel and pydicom).
-
-# QtimFeatures - qtim_tools.qtim_features
+## qtim_features
 
 qtim_features is meant to extract features (size, shape, texture, intensity, etc.) from medical imaging data. It currently takes .nii or .nii.gz files as input and output, although support for other filetypes will come soon.
 
@@ -49,6 +57,33 @@ __mask_value__ - If your background values is not 0 for your label-maps (e.g. -1
 
 To see some sample data, check out the files at ~\qtim_tools\test_data\test_data_features. Also try running the command __qtim_tools.qtim_features.test()__ to do a test-run of extract_features() with sample data.
 
-# QtimDCE - qtim_tools.qtim_dce
+# qtim_dce
 
-Documentation coming soon!
+Additional documentation is coming soon, as this package is under active development. However, you can do a test run of qtim_dce using the code below:
+
+from qtim_tools.qtim_dce.tofts_parametric mapper import calc_DCE_properties_single
+
+```
+4d_volume_filepath = '~/DCE_MRI_Phantom_RawData.nii.gz'
+AIF_filepath = '~/DCE_MRI_Phantom_AIF-label.nii.gz'
+ROI_filepath = '~/DCE_MRI_Phantom_RawData_ROI.nii.gz'
+
+calc_DCE_properties_single(4d_volume_filepath, 
+label_file=ROI_filepath, 
+AIF_label_file=AIF_filepath, 
+outputs=['ktrans','ve','auc'], 
+T1_tissue=1000, 
+T1_blood=1440, 
+relaxivity=.0045, 
+TR=3.8, 
+TE=2.1, 
+scan_time_seconds=195, 
+hematocrit=0.45, 
+injection_start_time_seconds=24, 
+flip_angle_degrees=25,
+processes=2)
+```
+
+## Contact
+
+qtim_tools is under active development, and you may run into errors or want additional features. Send any questions or requests for methods to abeers@mgh.harvard.edu. You can also submit a Github issue if you run into a bug.
