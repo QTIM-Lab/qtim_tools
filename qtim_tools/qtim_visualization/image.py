@@ -16,16 +16,41 @@ from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 
 def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outline=True, mask_value=0, step=1, dim=2, cols=8, label_buffer=5, rotate_90=3, flip=True):
 
-    """ This creates a mosaic of 2D images from a 3D Volume.
-
-        Script in progress, much TODO
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
+    """This creates a mosaic of 2D images from a 3D Volume.
+    
+    Parameters
+    ----------
+    input_volume : TYPE
+        Any neuroimaging file with a filetype supported by qtim_tools, or existing numpy array.
+    outfile : None, optional
+        Where to save your output, in a filetype supported by matplotlib (e.g. .png). If 
+    label_volume : None, optional
+        Whether to create your mosaic with an attached label filepath / numpy array. Will not perform volume transforms from header (yet)
+    generate_outline : bool, optional
+        If True, will generate outlines for label_volumes, instead of filled-in areas. Default is True.
+    mask_value : int, optional
+        Background value for label volumes. Default is 0.
+    step : int, optional
+        Will generate an image for every [step] slice. Default is 1.
+    dim : int, optional
+        Mosaic images will be sliced along this dimension. Default is 2, which often corresponds to axial.
+    cols : int, optional
+        How many columns in your output mosaic. Rows will be determined automatically. Default is 8.
+    label_buffer : int, optional
+        Images more than [label_buffer] slices away from a slice containing a label pixel will note be included. Default is 5.
+    rotate_90 : int, optional
+        If the output mosaic is incorrectly rotated, you may rotate clockwise [rotate_90] times. Default is 3.
+    flip : bool, optional
+        If the output is incorrectly flipped, you may set to True to flip the data. Default is True.
+    
+    No Longer Returned
+    ------------------
+    
+    Returns
+    -------
+    output_array: N+1 or N-dimensional array
+        The generated mosaic array.
+    
     """
 
     image_numpy = convert_input_2_numpy(input_volume)
@@ -99,6 +124,8 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
             plt.clf()
             plt.close()
 
+        return mosaic_image_numpy
+
     else:
 
         color_range_image = [np.min(image_numpy), np.max(image_numpy)]
@@ -108,7 +135,6 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
         slice_height = test_slice.shape[0]
 
         mosaic_selections = np.arange(image_numpy.shape[dim])[::step]
-        print mosaic_selections
         mosaic_image_numpy = np.zeros((int(slice_height*np.ceil(float(len(mosaic_selections))/float(cols))), int(test_slice.shape[1]*cols)), dtype=float)
 
         row_index = 0
@@ -130,7 +156,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
             else:
                 col_index += slice_width
 
-        if outfile != '':
+        if outfile is not None:
             fig = plt.figure(figsize=(mosaic_image_numpy.shape[0]/100, mosaic_image_numpy.shape[1]/100), dpi=100, frameon=False)
             plt.margins(0,0)
             plt.gca().set_axis_off()
@@ -141,6 +167,8 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
             plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=500) 
             plt.clf()
             plt.close()
+
+        return mosaic_image_numpy
 
 def run_test():
 
