@@ -4,7 +4,7 @@ import os
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def motion_correction(input_data, output_filename='', method="fsl", command="fsl4.1-eddy_correct", temp_dir='./'):
+def motion_correction(input_data, output_filename='', method="fsl", command="fsl5.0-eddy_correct", temp_dir='./'):
 
     """ A catch-all function for motion correction. Will perform motion correction on an input volume
         depending on the 'method' and 'command' inputted.

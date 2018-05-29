@@ -4,7 +4,7 @@ import os
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def run_dtifit(input_data, input_bvec, input_bval, input_mask='', output_fileprefix='', method="fsl", command="fsl4.1-dtifit", temp_dir='./'):
+def run_dtifit(input_data, input_bvec, input_bval, input_mask='', output_fileprefix='', method="fsl", command="fsl5.0-dtifit", temp_dir='./'):
 
     """ This will fail if used in numpy mode, currently.
     """
