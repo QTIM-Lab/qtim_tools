@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from qtim_tools.qtim_utilities.array_util import generate_label_outlines
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 
-def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outline=True, mask_value=0, step=1, dim=2, cols=8, label_buffer=5, rotate_90=3, flip=True):
+def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outline=True, mask_value=0, step=1, dim=2, cols=8, label_buffer=5, rotate_90=3, flip=True, dpi=100):
 
     """This creates a mosaic of 2D images from a 3D Volume.
     
@@ -164,7 +164,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
             plt.gca().yaxis.set_major_locator(plt.NullLocator())
             plt.imshow(mosaic_image_numpy, 'gray', vmin=color_range_image[0], vmax=color_range_image[1], interpolation='none')
 
-            plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=500) 
+            plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=dpi) 
             plt.clf()
             plt.close()
 

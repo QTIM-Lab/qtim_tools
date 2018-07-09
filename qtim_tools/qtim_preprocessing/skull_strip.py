@@ -6,7 +6,7 @@ from shutil import move
 from ..qtim_utilities.nifti_util import save_numpy_2_nifti
 from ..qtim_utilities.format_util import convert_input_2_numpy
 
-def skull_strip(input_data, output_filename='', output_mask_filename='', method="bet", command="fsl4.1-bet2", temp_dir='./', extra_parameters={}):
+def skull_strip(input_data, output_filename='', output_mask_filename='', method="bet", command="fsl5.0-bet2", temp_dir='./', extra_parameters={}):
 
     """ A catch-all function for skull-stripping. Will perform skull-stripping on an input volume
         depending on the 'method' and 'command' inputted. Will output a binary skull-mask to
