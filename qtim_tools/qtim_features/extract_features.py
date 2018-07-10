@@ -10,7 +10,7 @@
 import GLCM
 import morphology
 import statistics
-
+import warnings
 import sys, getopt
 import glob
 import os
@@ -27,7 +27,90 @@ from ..qtim_utilities import nifti_util
 from ..qtim_utilities.array_util import truncate_image, split_image, extract_maximal_slice
 from ..qtim_utilities.file_util import grab_files_recursive
 
+warnings.filterwarnings('ignore', '.*floating.*')
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
+
+def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morphology', 'statistics'], recursive=False, set_label='',  levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0,0,0], mode="whole_volume", filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
+
+    total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
+
+    # This needs to be restructured, probably with a new method to iterate through images. Currently, this will not work
+    # wtihout an output file. The conflict is between retaining the ability to append to files in real-time (to prevent
+    # catastrophic errors from wasting eons of processing time) and having a conditional "outfile" parameter.
+
+    if label_file is None:
+        labels = False
+    else:
+        labels = True
+
+    if outfile != '':
+        outfile = determine_outfile_name(outfile, overwrite)
+
+        if clear_file:
+            open(outfile, 'w').close()
+
+        with open(outfile, 'ab') as writefile:
+            csvfile = csv.writer(writefile, delimiter=',')
+            csvfile.writerow(label_output[0,:])
+
+            imagepaths, label_images = [input_file], label_file
+            
+            numerical_output = np.zeros((1, total_features), dtype=float)
+            index_output = np.zeros((1, 1), dtype=object)
+
+            for imagepath in imagepaths:
+
+                print '\n'
+                print 'Pre-processing data...'
+
+                image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, constant_label=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode, mode=mode)
+                
+                if image_list == []:
+                    if write_empty:
+                        empty_output = np.zeros((1, total_features + 1), dtype=object)
+                        empty_output[0,0] = imagepath
+                        csvfile.writerow(empty_output[0,:])
+                        continue
+
+                print 'Pre-processing complete!'
+
+                # print image_list
+                for image_idx, image in enumerate(image_list):
+
+                    print ''
+                    print 'Working on image...'
+                    print imagename_list[image_idx]
+                    print 'Voxel sum...'
+                    print np.sum(image)
+                    print 'Image shape...'
+                    print image.shape
+
+                    if filenames:
+                        index = imagename_list[image_idx]
+                    else:
+                        index = numerical_output.shape[0]
+
+                    if numerical_output[0,0] == 0:
+                        numerical_output[0, :] = generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=mask_value, normalize_intensities=normalize_intensities)
+                        index_output[0,:] = index
+                    else:
+                        numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=mask_value, normalize_intensities=normalize_intensities)))
+                        index_output = np.vstack((index_output, index))
+
+                    csvfile.writerow(np.hstack((index_output[-1,:], numerical_output[-1,:])))
+
+    final_output = np.hstack((index_output, numerical_output))
+
+    print 'Feature writing complete, writing output...'
+    print '\n'
+
+    print 'Raw Output:'
+    for row in final_output:
+        print row
+
+    if return_output:
+        return final_output
+
 
 def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', 'morphology', 'statistics'], recursive=False, labels=False, label_suffix="-label", set_label='',  levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0,0,0], mode="whole_volume", filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
 
@@ -103,7 +186,7 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
     if return_output:
         return final_output
 
-def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_label='', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0, mode="whole_volume"):
+def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_label='', label_images=[], mask_value=0, levels=255, use_labels=[-1], erode=0, mode="whole_volume", constant_label=None):
 
     image_list = []
     unmodified_image_list = []
@@ -120,9 +203,9 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
 
     if labels:
 
-        print imagepath
-
-        if set_label != '':
+        if constant_label is not None:
+            label_path = constant_label
+        elif set_label != '':
             label_path = os.path.join(os.path.dirname(imagepath), os.path.basename(os.path.normpath(set_label)))
         else:
             head, tail = os.path.split(imagepath)
@@ -130,12 +213,8 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
             label_path = split_path[0] + label_suffix + '.' + '.'.join(split_path[1:])
             label_path = os.path.join(head, label_path)
 
-        print label_path
-
         if os.path.isfile(label_path):
             label_image = nifti_util.nifti_2_numpy(label_path)
-
-            print label_image.shape
 
             if label_image.shape != image.shape:
                 print 'Warning: image and label do not have the same dimensions. Imaging padding support has not yet been added. This image will be skipped.'

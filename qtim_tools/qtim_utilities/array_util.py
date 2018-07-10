@@ -192,8 +192,6 @@ def split_image(input_volume, input_label_volume=None, label_indices=None, mask_
 
     masked_images = []
 
-    print label_indices
-
     if label_indices is None:
         if label_numpy is None:
             label_indices = np.unique(image_numpy)
