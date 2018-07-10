@@ -3,6 +3,7 @@ import sys
 
 import qtim_tools
 
+
 class qtim_commands(object):
 
     def __init__(self):
@@ -125,13 +126,13 @@ The following commands are available:
         parser.add_argument('input_volume', type=str)
         parser.add_argument('output_csv', type=str)
         parser.add_argument('-input_label', type=str)
-        parser.add_argument('-label_volume', type=str)
         parser.add_argument('-levels', type=int, nargs='?', default=255, const=255)
-        parser.add_argument('-normalize_intensities', type=bool)
+        parser.add_argument('-normalize_intensities', action='store_true')
 
         args = parser.parse_args(sys.argv[2:])
 
         qtim_tools.qtim_features.generate_feature_list(args.input_volume, label_file=args.input_label, outfile=args.output_csv, levels=args.levels, normalize_intensities=args.normalize_intensities)
+
 
 def main():
     qtim_commands()
