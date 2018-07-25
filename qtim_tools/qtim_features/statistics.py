@@ -8,9 +8,9 @@ from __future__ import division
 import numpy as np
 from scipy import stats
 
-from ..qtim_utilities import nifti_util
-from ..qtim_utilities.format_util import convert_input_2_numpy
-from ..qtim_preprocessing.threshold import crop_with_mask
+from qtim_tools.qtim_utilities import nifti_util
+from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
+from qtim_tools.qtim_preprocessing.threshold import crop_with_mask
 
 standard_bins = [[-np.inf, -1000],[-1000, -950],[-950, -650],[-650, -300],[-300, 0],[0, 100],[100,600],[600, np.inf]]
 standard_bin_labels = []
@@ -19,29 +19,38 @@ for label in standard_bins:
 
 standard_features = ['mean','min','max','median','range','standard_deviation','variance','energy','entropy','kurtosis','skewness','COV'] + standard_bin_labels
 
+
 def calc_mean(image_numpy):
     return np.mean(image_numpy)
+
 
 def calc_min(image_numpy):
     return np.min(image_numpy)
 
+
 def calc_max(image_numpy):
     return np.max(image_numpy)
+
 
 def calc_median(image_numpy):
     return np.median(image_numpy)
 
+
 def calc_range(image_numpy):
     return np.max(image_numpy) - np.min(image_numpy)
+
 
 def calc_std(image_numpy):
     return np.std(image_numpy)
 
+
 def calc_variance(image_numpy):
     return np.var(image_numpy)
 
+
 def calc_energy(image_numpy):
     return np.sqrt(np.sum(image_numpy ** 2))
+
 
 def calc_entropy(image_numpy):
 

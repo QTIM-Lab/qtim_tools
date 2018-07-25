@@ -10,7 +10,7 @@
 
 from __future__ import division
 
-from ..qtim_utilities.nifti_util import assert_nD
+from qtim_tools.qtim_utilities.nifti_util import assert_nD
 
 from math import sin, cos
 import numpy as np
