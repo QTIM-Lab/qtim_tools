@@ -67,7 +67,7 @@ def get_arbitrary_axis_slice(input_volume, axis, slice_num):
         else:
             image_slice += [slice(None)]
 
-    return image_numpy[image_slice]
+    return image_numpy[tuple(image_slice)]
 
 def truncate_image(input_volume, mask_value=0, return_mask=False, padding=0, output_mask_filename=""):
 
@@ -108,7 +108,7 @@ def truncate_image(input_volume, mask_value=0, return_mask=False, padding=0, out
 
     truncate_slices = [slice(x[0], x[1]) for x in truncate_ranges]
 
-    truncate_image_numpy = image_numpy[truncate_slices]
+    truncate_image_numpy = image_numpy[tuple(truncate_slices)]
 
     if return_mask:
         return truncate_image_numpy, mask_numpy

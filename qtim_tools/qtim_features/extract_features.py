@@ -7,30 +7,25 @@
 
 # import 
 
-import GLCM
-import morphology
-import statistics
 import warnings
-import sys, getopt
+
+warnings.filterwarnings('ignore', '.*floating.*')
+warnings.filterwarnings("ignore", message=".*dtype size changed.*")
+
 import glob
 import os
 import numpy as np
-import nibabel as nib
 import csv
-import fnmatch
-from shutil import copy, move
-from multiprocessing.pool import Pool
-from multiprocessing import freeze_support
-from functools import partial
 
-from ..qtim_utilities import nifti_util
-from ..qtim_utilities.array_util import truncate_image, split_image, extract_maximal_slice
-from ..qtim_utilities.file_util import grab_files_recursive
+from qtim_tools.qtim_features import morphology, statistics, GLCM
+from qtim_tools.qtim_utilities import nifti_util
+from qtim_tools.qtim_utilities.array_util import truncate_image, split_image, extract_maximal_slice
+from qtim_tools.qtim_utilities.file_util import grab_files_recursive
 
-warnings.filterwarnings('ignore', '.*floating.*')
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
 
-def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morphology', 'statistics'], recursive=False, set_label='',  levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0,0,0], mode="whole_volume", filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
+
+def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morphology', 'statistics'], recursive=False, set_label='', levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0, 0, 0], mode="whole_volume", filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
 
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -51,7 +46,7 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
 
         with open(outfile, 'ab') as writefile:
             csvfile = csv.writer(writefile, delimiter=',')
-            csvfile.writerow(label_output[0,:])
+            csvfile.writerow(label_output[0, :])
 
             imagepaths, label_images = [input_file], label_file
             
@@ -251,7 +246,7 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
 
                 # This is very ineffecient. TODO: Restructure this section.
                 if mode == "maximal_slice":
-                    image_list += [nifti_util.extract_maximal_slice(masked_image, mode='non_mask')[:,:,np.newaxis]]
+                    image_list += [extract_maximal_slice(masked_image, mode='non_mask')[:, :, np.newaxis]]
                 else:
                     image_list += [masked_image]
 
@@ -362,11 +357,11 @@ def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suff
 
     if labels:
         if set_label == '':
-            label_images = [ x for x in imagepaths if label_suffix in x ]
-            imagepaths = [ x for x in imagepaths if label_suffix not in x ]
+            label_images = [x for x in imagepaths if label_suffix in x]
+            imagepaths = [x for x in imagepaths if label_suffix not in x]
         else:
             label_images = [os.path.join(os.path.dirname(x), os.path.basename(set_label)) if os.path.exists(x) else '' for x in imagepaths]
-            imagepaths = [ x for x in imagepaths if os.path.join(os.path.dirname(x), os.path.basename(set_label)) not in x ]
+            imagepaths = [x for x in imagepaths if os.path.join(os.path.dirname(x), os.path.basename(set_label)) not in x]
     else:
         label_images = []
 
@@ -388,7 +383,7 @@ def determine_outfile_name(outfile, overwrite=True):
         if overwrite:
             write_flag = True
         else:
-            split_outfile = str.split(outfile,'.')
+            split_outfile = str.split(outfile, '.')
             print split_outfile
             outfile = '.'.join(split_outfile[0:-1]) + '_new.' + split_outfile[-1]
             if not os.path.isfile(outfile):
@@ -399,14 +394,16 @@ def determine_outfile_name(outfile, overwrite=True):
 
 def test_method():
     test_folder = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','MR_Tumor_Shape'))
-    generate_feature_list_batch(folder=test_folder, features=['morphology', 'statistics'], labels=True, levels=100, outfile='test_feature_results_shape.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True)
+    generate_feature_list_batch(folder=test_folder, features=['morphology'], labels=True, levels=100, outfile='test_feature_results_shape.csv',test=False, mask_value=0, erode=[0,0,0], overwrite=True)
     return
+
 
 def extract_features(folder, outfile, labels=True, features=['GLCM','morphology', 'statistics'], levels=100, mask_value=0, erode=[0,0,0], overwrite=True, label_suffix='-label', set_label='', file_regex='*.nii*', recursive=False, normalize_intensities=False):
     generate_feature_list_batch(folder=folder, outfile=outfile, labels=labels, features=features, levels=levels, mask_value=mask_value, erode=erode, overwrite=overwrite, label_suffix=label_suffix, set_label=set_label, file_regex=file_regex, recursive=recursive, normalize_intensities=normalize_intensities)
 
+
 if __name__ == "__main__":
 
     np.set_printoptions(suppress=True, precision=2)
-    # test_method()
-    test_parallel()
+    test_method()
+    # test_parallel()

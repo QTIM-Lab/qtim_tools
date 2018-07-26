@@ -1,6 +1,7 @@
 import os
 import extract_features
 
+
 def test():
 
     # This code should be run from the folder above the main "qtim_tools" folder using the command "python -m qtim_tools.qtim_features.test"

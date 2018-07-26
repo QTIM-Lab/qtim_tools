@@ -2,7 +2,7 @@ FROM python:2.7
 
 RUN pip install --no-cache-dir numpy scipy matplotlib
 
-RUN echo 3
+RUN echo 4
 
 RUN git clone https://github.com/QTIM-Lab/qtim_tools /home/qtim_tools
 WORKDIR /home/qtim_tools

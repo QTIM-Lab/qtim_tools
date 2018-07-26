@@ -148,7 +148,7 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath=None, output_filepa
     them.
 """
 
-def coerce_levels(image_numpy, levels=255, method="divide", reference_image = [], reference_norm_range = [.075, 1], mask_value=0, coerce_positive=True):
+def coerce_levels(image_numpy, levels=255, method="divide", reference_image=None, reference_norm_range=[.075, 1], mask_value=0, coerce_positive=True):
 
     """ In volumes with huge outliers, the divide method will
         likely result in many zero values. This happens in practice
@@ -169,7 +169,7 @@ def coerce_levels(image_numpy, levels=255, method="divide", reference_image = []
 
     levels -= 1
     if method == "divide":
-        if reference_image == []:
+        if reference_image is None:
             image_max = np.max(image_numpy)
         else:
             image_max = np.max(reference_image)
