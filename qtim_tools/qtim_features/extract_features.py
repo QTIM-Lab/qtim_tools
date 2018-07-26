@@ -7,30 +7,25 @@
 
 # import 
 
-import GLCM
-import morphology
-import statistics
 import warnings
-import sys, getopt
+
+warnings.filterwarnings('ignore', '.*floating.*')
+warnings.filterwarnings("ignore", message=".*dtype size changed.*")
+
 import glob
 import os
 import numpy as np
-import nibabel as nib
 import csv
-import fnmatch
-from shutil import copy, move
-from multiprocessing.pool import Pool
-from multiprocessing import freeze_support
-from functools import partial
 
+from qtim_tools.qtim_features import morphology, statistics, GLCM
 from qtim_tools.qtim_utilities import nifti_util
 from qtim_tools.qtim_utilities.array_util import truncate_image, split_image, extract_maximal_slice
 from qtim_tools.qtim_utilities.file_util import grab_files_recursive
 
-warnings.filterwarnings('ignore', '.*floating.*')
 feature_dictionary = {'GLCM': GLCM, 'morphology': morphology, 'statistics': statistics}
 
-def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morphology', 'statistics'], recursive=False, set_label='',  levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0,0,0], mode="whole_volume", filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
+
+def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morphology', 'statistics'], recursive=False, set_label='', levels=255, normalize_intensities=True, mask_value=0, use_labels=[-1], erode=[0, 0, 0], mode="whole_volume", filenames=True, featurenames=True, outfile='', overwrite=True, clear_file=True, write_empty=True, return_output=False, test=False):
 
     total_features, feature_indexes, label_output = generate_feature_indices(features, featurenames)
 
@@ -51,7 +46,7 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
 
         with open(outfile, 'ab') as writefile:
             csvfile = csv.writer(writefile, delimiter=',')
-            csvfile.writerow(label_output[0,:])
+            csvfile.writerow(label_output[0, :])
 
             imagepaths, label_images = [input_file], label_file
             
@@ -251,7 +246,7 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
 
                 # This is very ineffecient. TODO: Restructure this section.
                 if mode == "maximal_slice":
-                    image_list += [nifti_util.extract_maximal_slice(masked_image, mode='non_mask')[:,:,np.newaxis]]
+                    image_list += [extract_maximal_slice(masked_image, mode='non_mask')[:, :, np.newaxis]]
                 else:
                     image_list += [masked_image]
 

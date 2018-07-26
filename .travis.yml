@@ -17,7 +17,7 @@ notifications:
 # command to run tests
 script: 
   - "python ./tests/initial_test.py"
-  - travis-sphinx --nowarn build
+  - travis-sphinx build --nowarn
     
 after_success:
   - travis-sphinx deploy
