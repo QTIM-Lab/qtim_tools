@@ -10,7 +10,7 @@ import numpy as np
 from collections import namedtuple
 from scipy import signal
 from scipy.spatial.distance import cdist, pdist
-from skimage.measure import find_contours, marching_cubes_lewiner
+from skimage.measure import find_contours
 from skimage.morphology import binary_erosion, disk, convex_hull_image
 from math import atan2, degrees
 
@@ -170,13 +170,13 @@ def calc_max_2d_distance(image, pixdims, **kwargs):
         contours = find_contours(dilated, level=1)
 
         if len(contours) == 0:
-            print "No lesion contours > 1 pixel detected."
-            return 0.0
+            continue
 
         # Calculate pairwise distances over boundary
         outer_contour = contours[0]  # this assumption should always hold...
         outer_contour[:, 0] *= pixdims[0]
         outer_contour[:, 1] *= pixdims[1]
+
         euc_dist_matrix, ordered_diameters = compute_pairwise_distances(outer_contour, outer_contour, min_length=w)
         x, y, distance = ordered_diameters[0]
 
@@ -238,6 +238,7 @@ def calc_max_3d_distance(image, pixdims, **kwargs):
     convex_hull_vertices[:, 2] *= pixdims[2]
 
     euc_dist_matrix, ordered_diameters = compute_pairwise_distances(convex_hull_vertices, convex_hull_vertices, metric='euclidean')
+
     x, y, distance = ordered_diameters[0]
 
     total_max = distance
