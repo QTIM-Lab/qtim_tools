@@ -41,17 +41,24 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
     if outfile != '':
         outfile = determine_outfile_name(outfile, overwrite)
 
+        write_header = False
+        if not os.path.exists(outfile):
+            write_header = True
+
         if clear_file:
             open(outfile, 'w').close()
+            write_header = True
 
         with open(outfile, 'ab') as writefile:
             csvfile = csv.writer(writefile, delimiter=',')
-            csvfile.writerow(label_output[0, :])
+
+            if write_header:
+                csvfile.writerow(label_output[0,:])
 
             imagepaths, label_images = [input_file], label_file
             
             numerical_output = np.zeros((1, total_features), dtype=float)
-            index_output = np.zeros((1, 1), dtype=object)
+            index_output = np.zeros((1, 2), dtype=object)
 
             for imagepath in imagepaths:
 
@@ -118,17 +125,24 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
     if outfile != '':
         outfile = determine_outfile_name(outfile, overwrite)
 
+        write_header = False
+        if not os.path.exists(outfile):
+            write_header = True
+
         if clear_file:
             open(outfile, 'w').close()
+            write_header = True
 
         with open(outfile, 'ab') as writefile:
             csvfile = csv.writer(writefile, delimiter=',')
-            csvfile.writerow(label_output[0,:])
+
+            if write_header:
+                csvfile.writerow(label_output[0,:])
 
             imagepaths, label_images = generate_filename_list(folder, file_regex, labels, label_suffix, set_label, recursive)
             
             numerical_output = np.zeros((1, total_features), dtype=float)
-            index_output = np.zeros((1, 1), dtype=object)
+            index_output = np.zeros((1, 2), dtype=object)
 
             for imagepath in imagepaths:
 
@@ -159,7 +173,7 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
                     if filenames:
                         index = imagename_list[image_idx]
                     else:
-                        index = numerical_output.shape[0]
+                        index = numerical_output.shape[0], ''
 
                     if numerical_output[0,0] == 0:
                         numerical_output[0, :] = generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=mask_value, normalize_intensities=normalize_intensities)
@@ -256,12 +270,12 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
                 filename = imagepath
 
             if label_indices.size == 2:
-                imagename_list += [filename]
+                imagename_list += [[imagepath, label_path]]
             else:
                 split_filename = str.split(filename, '.')
                 for labelval in label_indices[1:]:
                     filename = split_filename[0] + '_' + str(int(labelval)) + '.' + split_filename[1]
-                    imagename_list += [filename]
+                    imagename_list += [[filename, label_path]]
 
             attributes_list += [nifti_util.return_nifti_attributes(imagepath)] * (label_indices.size - 1)
             print 'Finished... ' + str.split(imagepath, '\\')[-1]
@@ -274,7 +288,7 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
         image = nifti_util.coerce_levels(image, levels=levels, reference_image=image, method="divide", mask_value=mask_value)
         image_list += [image]
         unmodified_image_list += [image]
-        imagename_list += [imagepath]
+        imagename_list += [[imagepath, '']]
         attributes_list += [nifti_util.return_nifti_attributes(imagepath)]
 
     return [image_list, unmodified_image_list, imagename_list, attributes_list]
@@ -328,6 +342,7 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
 
     return numerical_output
 
+
 def generate_feature_indices(features=['GLCM', 'morphology', 'statistics'], featurenames=True):
 
     total_features = 0
@@ -341,12 +356,14 @@ def generate_feature_indices(features=['GLCM', 'morphology', 'statistics'], feat
             feature_indexes += [feature_indexes[-1] + feature_dictionary[feature].feature_count()]
     
     if featurenames:
-        label_output = np.zeros((1, total_features+1), dtype=object)
+        label_output = np.zeros((1, total_features+2), dtype=object)
         for feature_idx, feature in enumerate(features):
-            label_output[0, (1+feature_indexes[feature_idx]):(1+feature_indexes[feature_idx+1])] = feature_dictionary[feature].featurename_strings()
-        label_output[0,0] = 'index'
+            label_output[0, (2+feature_indexes[feature_idx]):(2+feature_indexes[feature_idx+1])] = feature_dictionary[feature].featurename_strings()
+        label_output[0,0] = 'filename'
+        label_output[0, 1] = 'label'
 
     return [total_features, feature_indexes, label_output]
+
 
 def generate_filename_list(folder, file_regex='*.nii*', labels=False, label_suffix='-label', set_label='', recursive=False):
 

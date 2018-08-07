@@ -216,8 +216,8 @@ def convex_hull(points):
 def calc_max_3d_distance(image, pixdims, **kwargs):
 
     total_max = 0
-    truth_indices = np.where(image.astype(bool))
-    truth_indices = np.asarray(truth_indices).T
+    # truth_indices = np.where(image.astype(bool))
+    # truth_indices = np.asarray(truth_indices).T
 
     # convex_hull_slice = convex_hull_image(image)
     # verts, faces, normals, values = marching_cubes_lewiner(image)
@@ -227,6 +227,8 @@ def calc_max_3d_distance(image, pixdims, **kwargs):
     for z_slice in xrange(image.shape[2]):
 
         slice_indices = np.asarray(np.where(image[..., z_slice])).T  # Won't work for non-binary labels.
+        if slice_indices.size == 0:
+            continue
         convex_hull_slice = convex_hull(slice_indices)
         convex_hull_slice = [np.array([x[0], x[1], z_slice]) for x in convex_hull_slice]
         convex_hull_vertices += convex_hull_slice

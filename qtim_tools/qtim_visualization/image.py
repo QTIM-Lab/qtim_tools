@@ -10,10 +10,13 @@ import os
 import glob
 from shutil import copy, move
 import matplotlib.pyplot as plt
+import lycon
 
 from qtim_tools.qtim_utilities.array_util import generate_label_outlines
 from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 
+
+# @profile
 def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outline=True, mask_value=0, step=1, dim=2, cols=8, label_buffer=5, rotate_90=3, flip=True, dpi=100):
 
     """This creates a mosaic of 2D images from a 3D Volume.
@@ -112,17 +115,38 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
         mosaic_label_numpy = np.ma.masked_where(mosaic_label_numpy == 0, mosaic_label_numpy)
 
         if outfile is not None:
-            fig = plt.figure(figsize=(mosaic_image_numpy.shape[0]/100, mosaic_image_numpy.shape[1]/100), dpi=100, frameon=False)
-            plt.margins(0,0)
-            plt.gca().set_axis_off()
-            plt.gca().xaxis.set_major_locator(plt.NullLocator())
-            plt.gca().yaxis.set_major_locator(plt.NullLocator())
-            plt.imshow(mosaic_image_numpy, 'gray', vmin=color_range_image[0], vmax=color_range_image[1], interpolation='none')
-            plt.imshow(mosaic_label_numpy, 'jet', vmin=color_range_label[0], vmax=color_range_label[1], interpolation='none')
+            # fig = plt.figure(figsize=(mosaic_image_numpy.shape[0]/100, mosaic_image_numpy.shape[1]/100), dpi=100, frameon=False)
+            # plt.margins(0,0)
+            # plt.gca().set_axis_off()
+            # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+            # plt.gca().yaxis.set_major_locator(plt.NullLocator())
+            # plt.imshow(mosaic_image_numpy, 'gray', vmin=color_range_image[0], vmax=color_range_image[1], interpolation='none')
+            # plt.imshow(mosaic_label_numpy, 'jet', vmin=color_range_label[0], vmax=color_range_label[1], interpolation='none')
             
-            plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=1000)
-            plt.clf()
-            plt.close()
+            # plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=1000)
+            # plt.clf()
+            # plt.close()
+
+            color_range_image = [np.percentile(mosaic_image_numpy, 5), np.percentile(mosaic_image_numpy, 95)]
+            mosaic_image_numpy[mosaic_image_numpy < color_range_image[0]] = color_range_image[0]
+            mosaic_image_numpy[mosaic_image_numpy > color_range_image[1]] = color_range_image[1]
+
+            mosaic_image_numpy *= (255.0/mosaic_image_numpy.max())
+
+            colorized_numpy = np.stack([mosaic_image_numpy] * 3, axis=2)
+            print colorized_numpy.shape
+
+            mosaic_image_numpy[mosaic_label_numpy.astype(bool)] = color_range_image[1]
+            anti_color_image_numpy = np.copy(mosaic_image_numpy)
+            anti_color_image_numpy[mosaic_label_numpy.astype(bool)] = color_range_image[0]
+            colorized_numpy[..., 0] = mosaic_image_numpy
+            colorized_numpy[..., 1] = anti_color_image_numpy
+            colorized_numpy[..., 2] = anti_color_image_numpy
+
+            print 'Saving with lycon..',
+            print colorized_numpy.shape
+            lycon.save(outfile, colorized_numpy)
+
 
         return mosaic_image_numpy
 
@@ -157,18 +181,24 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
                 col_index += slice_width
 
         if outfile is not None:
-            fig = plt.figure(figsize=(mosaic_image_numpy.shape[0]/100, mosaic_image_numpy.shape[1]/100), dpi=100, frameon=False)
-            plt.margins(0,0)
-            plt.gca().set_axis_off()
-            plt.gca().xaxis.set_major_locator(plt.NullLocator())
-            plt.gca().yaxis.set_major_locator(plt.NullLocator())
-            plt.imshow(mosaic_image_numpy, 'gray', vmin=color_range_image[0], vmax=color_range_image[1], interpolation='none')
 
-            plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=dpi) 
-            plt.clf()
-            plt.close()
+            # fig = plt.figure(figsize=(mosaic_image_numpy.shape[0]/100, mosaic_image_numpy.shape[1]/100), dpi=100, frameon=False)
+            # plt.margins(0,0)
+            # plt.gca().set_axis_off()
+            # plt.gca().xaxis.set_major_locator(plt.NullLocator())
+            # plt.gca().yaxis.set_major_locator(plt.NullLocator())
+            # plt.imshow(mosaic_image_numpy, 'gray', vmin=color_range_image[0], vmax=color_range_image[1], interpolation='none')
+
+            # plt.savefig(outfile, bbox_inches='tight', pad_inches=0.0, dpi=dpi) 
+            # plt.clf()
+            # plt.close()
+
+            print 'Saving with lycon..',
+            print mosaic_image_numpy.shape
+            lycon.save(outfile, mosaic_image_numpy)
 
         return mosaic_image_numpy
+
 
 def run_test():
 
