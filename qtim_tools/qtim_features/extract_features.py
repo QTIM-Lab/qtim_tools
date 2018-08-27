@@ -92,7 +92,7 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
                         numerical_output = np.vstack((numerical_output, generate_feature_list_method(image, unmodified_image_list[image_idx], attributes_list[image_idx], features, feature_indexes, total_features, levels, mask_value=mask_value, normalize_intensities=normalize_intensities)))
                         index_output = np.vstack((index_output, index))
 
-                    csvfile.writerow(np.hstack((index_output[-1,:], numerical_output[-1,:])))
+                    csvfile.writerow(np.hstack((index_output[-1, :], numerical_output[-1, :])))
 
     final_output = np.hstack((index_output, numerical_output))
 
@@ -100,8 +100,8 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
     print '\n'
 
     print 'Raw Output:'
-    for row in final_output:
-        print row
+    for col_id in range(final_output.shape[1]):
+        print label_output[0, col_id], final_output[:, col_id]
 
     if return_output:
         return final_output

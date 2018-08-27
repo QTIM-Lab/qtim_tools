@@ -293,7 +293,8 @@ def _glcm_loop(image, distances, angles, levels, out, mask_value):
                         # if i >= 0 and i < levels and j >= 0 and j < levels:                            
                             out[i, j, d_idx, a_idx] += 1
 
-def glcm_features_calc(P, props=['contrast', 'dissimilarity', 'homogeneity', 'ASM','energy','correlation'], distances=None, angles=None, out='list'):
+
+def glcm_features_calc(P, props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'entropy', 'correlation'], distances=None, angles=None, out='list'):
     """Calculate texture properties of a GLCM.
     Compute a feature of a grey level co-occurrence matrix to serve as
     a compact summary of the matrix. The properties are computed as
@@ -347,7 +348,7 @@ def glcm_features_calc(P, props=['contrast', 'dissimilarity', 'homogeneity', 'AS
     assert num_angle > 0
 
     if isinstance(props, basestring):
-        props = [props,]
+        props = [props, ]
     num_props = len(props)
 
     results = np.zeros((num_dist, num_angle, num_props), dtype=float)
@@ -362,7 +363,7 @@ def glcm_features_calc(P, props=['contrast', 'dissimilarity', 'homogeneity', 'AS
             weights = np.abs(I - J)
         elif current_prop == 'homogeneity':
             weights = 1. / (1. + (I - J) ** 2)
-        elif current_prop in ['ASM', 'energy', 'correlation']:
+        elif current_prop in ['ASM', 'energy', 'correlation', 'entropy']:
             pass
         else:
             raise ValueError('%s is an invalid property' % (current_prop))
@@ -371,9 +372,16 @@ def glcm_features_calc(P, props=['contrast', 'dissimilarity', 'homogeneity', 'AS
         # Note that the defintion for "Energy" varies between studies.
         if current_prop == 'energy':
             asm = np.apply_over_axes(np.sum, (P ** 2), axes=(0, 1))[0, 0]
-            results[:,:,p_idx] = np.sqrt(asm)
+            results[:, :, p_idx] = np.sqrt(asm)
+        elif current_prop == 'entropy':
+            mask_P = np.ma.masked_where(P == 0, P)
+            entropy = np.apply_over_axes(np.ma.sum, (mask_P * np.ma.log(mask_P)), axes=(0, 1))[0, 0]
+            if np.ma.is_masked(entropy):
+                results[:, :, p_idx] = 0
+            else:
+                results[:, :, p_idx] = -1 * entropy           
         elif current_prop == 'ASM':
-            results[:,:,p_idx] = np.apply_over_axes(np.sum, (P ** 2), axes=(0, 1))[0, 0]
+            results[:, :, p_idx] = np.apply_over_axes(np.sum, (P ** 2), axes=(0, 1))[0, 0]
         elif current_prop == 'correlation':
             tempresults = np.zeros((num_dist, num_angle), dtype=np.float64)
             I = np.array(range(num_level)).reshape((num_level, 1, 1, 1))
@@ -409,7 +417,7 @@ def glcm_features_calc(P, props=['contrast', 'dissimilarity', 'homogeneity', 'AS
     elif out == 'array':
         return results
 
-def glcm_features(image, distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM','energy','correlation'], levels=None, symmetric=False, normed=True, aggregate_axis=2, method="sum", masked=True, mask_value=0, out='list', return_level_array=False):
+def glcm_features(image, distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'entropy', 'correlation'], levels=None, symmetric=False, normed=True, aggregate_axis=2, method="sum", masked=True, mask_value=0, out='list', return_level_array=False):
     glcm_array = glcm_2d_aggregate(image, distances, angles, levels, symmetric, normed, aggregate_axis, method, masked, mask_value)
     glcm_feats = glcm_features_calc(glcm_array, props, distances, angles, out)
     if return_level_array:
@@ -417,12 +425,12 @@ def glcm_features(image, distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*n
     else:
         return glcm_feats
 
-def feature_count(distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM','energy','correlation']):
+def feature_count(distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'entropy', 'correlation']):
     if isinstance(props, basestring):
         props = [props,]
     return len(distances) * len(angles) * len(props)
 
-def featurename_strings(distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM','energy','correlation']):
+def featurename_strings(distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'entropy', 'correlation']):
     featurename_list = np.zeros((len(props) * len(distances) * len(angles)), dtype=object)
     featurename_id = 0
     for d_idx in distances:
