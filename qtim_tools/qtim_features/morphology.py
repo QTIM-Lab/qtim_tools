@@ -227,6 +227,10 @@ def calc_max_3d_distance(image, pixdims, **kwargs):
     for z_slice in xrange(image.shape[2]):
 
         slice_indices = np.asarray(np.where(image[..., z_slice])).T  # Won't work for non-binary labels.
+        
+        if len(slice_indices) == 0:
+            continue
+
         convex_hull_slice = convex_hull(slice_indices)
         convex_hull_slice = [np.array([x[0], x[1], z_slice]) for x in convex_hull_slice]
         convex_hull_vertices += convex_hull_slice
