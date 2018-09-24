@@ -2,19 +2,18 @@
     volumes.
 """
 
-import numpy as np
 import glob
 import os
 import subprocess
-import dicom
+import pydicom
 import shutil
-import sys
 import re
 
 from qtim_tools.qtim_preprocessing.motion_correction import motion_correction
 from qtim_tools.qtim_preprocessing.skull_strip import skull_strip
-from qtim_tools.qtim_utilities.file_util import nifti_splitext, grab_files_recursive
+from qtim_tools.qtim_utilities.file_util import nifti_splitext
 from qtim_tools.qtim_dti.fit_dti import run_dtifit
+
 
 def qtim_dti_conversion(study_name, base_directory, specific_case=None, output_modalities=[], overwrite=False):
 
@@ -75,8 +74,8 @@ def qtim_dti_conversion(study_name, base_directory, specific_case=None, output_m
         split_path = os.path.normpath(volume).split(os.sep)
         for path_idx, subpath in enumerate(split_path):
             if subpath == 'RAWDATA':
-                patient_name = split_path[path_idx+1]
-                visit_name = split_path[path_idx+2]
+                patient_name = split_path[path_idx + 1]
+                visit_name = split_path[path_idx + 2]
 
         if specific_case is not None and (patient_name + '-' + visit_name != specific_case):
             continue
@@ -96,7 +95,7 @@ def qtim_dti_conversion(study_name, base_directory, specific_case=None, output_m
         print split_path
 
         # Create bvals and bvecs. Don't overwrite if possible.
-        bval, bvec, diff = [output_file_prefix + '.bval', output_file_prefix + '.bvec',output_file_prefix + '.nii.gz']
+        bval, bvec, diff = [output_file_prefix + '.bval', output_file_prefix + '.bvec', output_file_prefix + '.nii.gz']
         if overwrite or not (os.path.exists(output_file_prefix + '.bval') and os.path.exists(output_file_prefix + '.bvec') and os.path.exists(output_file_prefix + '.nii.gz')):
             bval, bvec, diff = convert_DTI_nifti(volume, output_folder, output_file_prefix)
 
@@ -129,13 +128,15 @@ def qtim_dti_conversion(study_name, base_directory, specific_case=None, output_m
 
     return
 
+
 def run_fdt_rotate_bvecs(input_bvec, output_bvec, input_motion):
 
-    script_location = os.path.abspath(os.path.join(os.path.dirname(__file__),'..','external','fdt_rotate_bvecs.sh'))
+    script_location = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'external', 'fdt_rotate_bvecs.sh'))
 
     print ' '.join([script_location, input_bvec, output_bvec, input_motion])
 
     subprocess.call([script_location, input_bvec, output_bvec, input_motion])
+
 
 def run_1dtool(input_bvec, output_bvec):
 
@@ -145,6 +146,7 @@ def run_1dtool(input_bvec, output_bvec):
 
     return
 
+
 def convert_DTI_nifti(volume, output_folder, output_file_prefix):
 
     # Grab all dicom files in a directory. Try to find a usable reference DICOM among them.
@@ -152,7 +154,7 @@ def convert_DTI_nifti(volume, output_folder, output_file_prefix):
     reference_dicom = []
     for dicom_file in dicom_list:
         try:
-            reference_dicom = dicom.read_file(dicom_file)
+            reference_dicom = pydicom.read_file(dicom_file)
             break
         except:
             continue       
@@ -168,22 +170,22 @@ def convert_DTI_nifti(volume, output_folder, output_file_prefix):
 
     #####GENERAL SEQUENCE####
     try:
-        sequence.append(reference_dicom[0x18,0x24].value)
+        sequence.append(reference_dicom[0x18, 0x24].value)
     except:
         pass
     try:
-        sequence.append(reference_dicom[0x18,0x20].value)
+        sequence.append(reference_dicom[0x18, 0x20].value)
     except:
         pass
 
     #####GENERAL PROTOCOL#####
     try:
-        protocol = reference_dicom[0x18,0x1030].value
+        protocol = reference_dicom[0x18, 0x1030].value
     except:
         pass
 
     try:
-        bval = reference_dicom[0x18,0x9087].value
+        bval = reference_dicom[0x18, 0x9087].value
     except:
         pass
 
@@ -191,25 +193,25 @@ def convert_DTI_nifti(volume, output_folder, output_file_prefix):
     if reference_dicom.Manufacturer == 'SIEMENS':
         if bval == '':
             try:
-                bval = reference_dicom[0x19,0x100C].value
+                bval = reference_dicom[0x19, 0x100C].value
             except:
                 pass
 
     #####GE Specific Private Tags####### 
     elif reference_dicom.Manufacturer == 'GE MEDICAL SYSTEMS':
         try:
-            sequence.append([0x19,0x109C].value)
+            sequence.append([0x19, 0x109C].value)
         except:
             pass
         if bval == '':
             try:
-                bval = reference_dicom[0x43,0x1039].value
+                bval = reference_dicom[0x43, 0x1039].value
             except:
                 pass
 
     # Check if the sequence/protocol/bvalue information is as expected. If so, convert nifti.
     DTI = check_DTI(sequence, str(protocol), str(bval))
-    if DTI == True:
+    if DTI:
         subprocess.call(['dcm2nii', '-d', 'N', '-i', 'N', '-p', 'N', '-o', output_folder, volume])
 
     # Rename Output Files. TODO: Use split_file constructions less.
@@ -223,6 +225,7 @@ def convert_DTI_nifti(volume, output_folder, output_file_prefix):
 
     return renamed_output_files
 
+
 def check_DTI(sequence, protocol, bval):
 
     """ This script is courtesy Karl's group. Documentation to come.
@@ -231,10 +234,10 @@ def check_DTI(sequence, protocol, bval):
     DTI = False
 
     # if none of the elements of sequence match any of the given values
-    if not any([x in ["tof", "fl3d", "memp", "fse", "grass", "3-Plane", "gre" ] for x in sequence]):
+    if not any([x in ["tof", "fl3d", "memp", "fse", "grass", "3-Plane", "gre"] for x in sequence]):
         if re.search('(ep2)|b|(ep_)', str(sequence), re.IGNORECASE):
             DTI = True
-        elif re.search('(1000)|(directional)',bval, re.IGNORECASE):
+        elif re.search('(1000)|(directional)', bval, re.IGNORECASE):
             DTI = True
         elif re.search('dif', protocol, re.IGNORECASE):
             DTI = True
@@ -243,8 +246,10 @@ def check_DTI(sequence, protocol, bval):
 
     return DTI
 
+
 def run_test():
     return
+
 
 if __name__ == '__main__':
     run_test()

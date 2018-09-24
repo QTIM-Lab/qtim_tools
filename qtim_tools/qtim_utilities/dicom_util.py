@@ -2,35 +2,26 @@
     It will likely take a lot of DICOM knowledge to navigate..
 """
 
-import dicom
-import nibabel as nib
+import pydicom
 import numpy as np
 import os
 import glob
-import re
-import binascii
-import gzip
-import bz2
-import zipfile
-import io
-import tempfile
-from StringIO import StringIO
 
-from scipy import misc
-from PIL import Image
 from collections import defaultdict
-from subprocess import call, check_output
+from subprocess import call
 
-from qtim_tools.qtim_utilities.file_util import human_sort, grab_files_recursive, sanitize_filename, replace_suffix
-from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti, check_image_2d
+from qtim_tools.qtim_utilities.file_util import grab_files_recursive, sanitize_filename, replace_suffix
+from qtim_tools.qtim_utilities.nifti_util import save_numpy_2_nifti
+
 
 # factory function to create a suitable instance for accessing files
-def get_compressed_file(data):
-    for cls in (ZIPFile, BZ2File, GZFile):
-        if cls.is_magic(data):
-            return cls(f)
+# def get_compressed_file(data):
+#     for cls in (ZIPFile, BZ2File, GZFile):
+#         if cls.is_magic(data):
+#             return cls(f)
 
-    return None
+#     return None
+
 
 def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='name'):
 
@@ -43,7 +34,7 @@ def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='n
     else:
         dictionary_file = input_filepath
 
-    img_dicom = dicom.read_file(dictionary_file)
+    img_dicom = pydicom.read_file(dictionary_file)
 
     output_dictionary = {}
 
@@ -55,6 +46,7 @@ def get_dicom_dictionary(input_filepath=[], dictionary_regex="*", return_type='n
             pass
 
     return output_dictionary
+
 
 def get_dicom_pixel_array(dicom, filename):
     # Deal with data compression if necessary..
@@ -73,21 +65,23 @@ def get_dicom_pixel_array(dicom, filename):
     except:
         call("C:\\Users\\azb22\\Documents\\Software\\DCMTK\\dcmtk-3.6.2-win64-dynamic\\bin" + str(filename).replace('/', '\\') + " /convert=.\\temp.jpg", shell=True)
 
+
 def get_uncompressed_dicom(filename):
 
-    data = dicom.read_file(filename)
+    data = pydicom.read_file(filename)
 
-    if data is not None and (data.file_meta.TransferSyntaxUID in dicom.dataset.NotCompressedPixelTransferSyntaxes):
+    if data is not None and (data.file_meta.TransferSyntaxUID in pydicom.dataset.NotCompressedPixelTransferSyntaxes):
         return data
 
     # +cl   --conv-lossy           convert YCbCr to RGB if lossy JPEG
     # +cn   --conv-never           never convert color space
     # +px   --color-by-pixel       always store color-by-pixel
     call(['C:\\Users\\azb22\\Documents\\Software\\DCMTK\\dcmtk-3.6.2-win64-dynamic\\bin\\dcmdjpeg.exe', '+cl', '+px', filename, 'temp.dcm'])
-    data = dicom.read_file('temp.dcm')
+    data = pydicom.read_file('temp.dcm')
     os.remove('temp.dcm')
 
     return data
+
 
 def dcm_2_numpy(input_folder, verbose=False):
 
@@ -107,7 +101,7 @@ def dcm_2_numpy(input_folder, verbose=False):
     dicom_files = []
     for file in found_files:
         try:
-            temp_dicom = dicom.read_file(file)
+            temp_dicom = pydicom.read_file(file)
             dicom_files += [[file, temp_dicom.data_element('SeriesInstanceUID').value]]
         except:
             continue
@@ -116,7 +110,6 @@ def dcm_2_numpy(input_folder, verbose=False):
         print 'Found', len(dicom_files), 'DICOM files in directory. \n'
         print 'Counting volumes..'
 
-    dicom_headers = [] 
     unique_dicoms = defaultdict(list)
     for dicom_file in dicom_files:
         UID = dicom_file[1]
@@ -138,8 +131,8 @@ def dcm_2_numpy(input_folder, verbose=False):
 
             # Sort DICOMs by Instance.
             dicom_instances = [x.data_element('InstanceNumber').value for x in current_dicoms]
-            current_dicoms = [x for _,x in sorted(zip(dicom_instances,current_dicoms))]
-            current_files = [x for _,x in sorted(zip(dicom_instances,current_files))]
+            current_dicoms = [x for _, x in sorted(zip(dicom_instances, current_dicoms))]
+            current_files = [x for _, x in sorted(zip(dicom_instances, current_files))]
             first_dicom, last_dicom = current_dicoms[0], current_dicoms[-1]
 
             print first_dicom.file_meta
@@ -232,7 +225,8 @@ def dcm_2_numpy(input_folder, verbose=False):
     return output_filenames
 
     return output_dict
-    
+
+
 def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesDescription'], folder_tags=['PatientID', 'StudyDate'], folder_mode='combine', prefix='', suffix='', write_header=False, header_suffix='_header', harden_orientation=True):
 
     """ Uses pydicom to stack an alphabetical list of DICOM files. TODO: Make it
@@ -251,7 +245,7 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
     dicom_files = []
     for file in found_files:
         try:
-            temp_dicom = dicom.read_file(file)
+            temp_dicom = pydicom.read_file(file)
             dicom_files += [[file, temp_dicom.data_element('SeriesInstanceUID').value]]
         except:
             continue
@@ -374,6 +368,7 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
             print 'Could not read DICOM at SeriesDescription...', volume_label
 
     return output_filenames
+
 
 if __name__ == '__main__':
     pass
