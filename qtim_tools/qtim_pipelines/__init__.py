@@ -1,4 +1,4 @@
-import label_statistics
-import dti_conversion
-import deep_learning
-import coregistration
+import qtim_tools.qtim_pipelines.label_statistics
+import qtim_tools.qtim_pipelines.dti_conversion
+import qtim_tools.qtim_pipelines.deep_learning
+import qtim_tools.qtim_pipelines.coregistration

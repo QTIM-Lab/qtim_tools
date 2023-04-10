@@ -23,7 +23,7 @@ import time
 import fnmatch
 import csv
 
-from Queue import Queue
+from queue import Queue
 from threading import Thread
 from multiprocessing.pool import Pool
 from multiprocessing import freeze_support

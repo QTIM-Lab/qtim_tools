@@ -3,7 +3,7 @@ import math
 import os
 
 # from nifti_util import save_numpy_2_nifti
-from format_util import convert_input_2_numpy
+from qtim_tools.qtim_utilities.format_util import convert_input_2_numpy
 
 from scipy.ndimage.interpolation import affine_transform, geometric_transform
 from subprocess import call

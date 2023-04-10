@@ -8,10 +8,10 @@
 """
 
 # from nifti_util import nifti_2_numpy
-from dicom_util import dcm_2_numpy
-from nrrd_util import nrrd_2_numpy
-from image_util import img_2_numpy
-from nifti_util import nifti_2_numpy
+from qtim_tools.qtim_utilities.dicom_util import dcm_2_numpy
+from qtim_tools.qtim_utilities.nrrd_util import nrrd_2_numpy
+from qtim_tools.qtim_utilities.image_util import img_2_numpy
+from qtim_tools.qtim_utilities.nifti_util import nifti_2_numpy
 
 import numpy as np
 import nibabel as nib
