@@ -31,7 +31,7 @@ def bias_correction(input_data, output_filename='', mask_filename='', method="an
 
     bias_correction_methods = ['ants', 'slicer']
     if method not in bias_correction_methods:
-        print 'Input \"method\" parameter is not available. Available methods: ', bias_correction_methods
+        print('Input \"method\" parameter is not available. Available methods: ', bias_correction_methods)
         return
 
     if method == 'ants':
@@ -51,7 +51,7 @@ def bias_correction(input_data, output_filename='', mask_filename='', method="an
             temp_output = True
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
-        print ' '.join([command, '-i', input_filename, '-o', output_filename, '-x', mask_filename])
+        print(' '.join([command, '-i', input_filename, '-o', output_filename, '-x', mask_filename]))
         if mask_filename != '':
             subprocess.call([command, '-i', input_filename, '-o', output_filename, '-x', mask_filename])
         else:
@@ -68,7 +68,7 @@ def bias_correction(input_data, output_filename='', mask_filename='', method="an
 
     if method == 'slicer':
 
-        print 'Slicer method not yet implemented! Sorry...'
+        print('Slicer method not yet implemented! Sorry...')
 
 
 def run_test():

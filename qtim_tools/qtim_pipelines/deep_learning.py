@@ -92,12 +92,12 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SP
             if os.path.exists(deep_learning_output):
                 continue
 
-            print output_folder
+            print(output_folder)
 
             # Make sure a mask was created in the previous step.
             skull_strip_mask = os.path.join(output_folder, split_path[-3] + '-' + split_path[-2] + '-' + 'SKULL_STRIP_MASK.nii.gz')
             if not os.path.exists(skull_strip_mask):
-                print 'No skull-stripping mask created, skipping volume ', dl_volume
+                print('No skull-stripping mask created, skipping volume ', dl_volume)
                 continue
 
             # Use existing mask to skull-strip if necessary.
@@ -116,7 +116,7 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SP
 
             # Resample and remove previous file.
             # resample_output = os.path.join(output_folder, nifti_splitext(skull_strip_output)[0] + '_iso' + nifti_splitext(skull_strip_output)[-1])
-            # print resample_output
+            # print(resample_output)
             # if not os.path.exists(resample_output):
             #     resample(skull_strip_output, output_filename=resample_output)
             # os.remove(skull_strip_output)
@@ -127,7 +127,7 @@ def deep_learning_preprocess(study_name, base_directory, skull_strip_label='T2SP
             os.remove(skull_strip_output)
 
         except:
-            print 'Error encountered on', os.path.basename(dl_volume)
+            print('Error encountered on', os.path.basename(dl_volume))
 
     return
 
@@ -234,7 +234,7 @@ def deep_learning_experiment(base_directory, output_directory, config_file):
                             except:
                                 pass   
 
-        # print config[train_test]
+        # print(config[train_test])
 
         # for study in config[train_test]['Study']:
             

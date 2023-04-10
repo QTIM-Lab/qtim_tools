@@ -227,7 +227,7 @@ def extract_maximal_slice(input_volume, input_label_volume='', mode='max_intensi
     elif mode == 'non_mask':
         flattened_image = (image_numpy != mask_value).sum(axis=sum_dimensions)
     else:
-        print 'Invalid mode entered to extract_maximal_slice_3d. Returning original array..'
+        print('Invalid mode entered to extract_maximal_slice_3d. Returning original array..')
         return image_numpy
 
     # TODO: Put in support for 

@@ -55,7 +55,7 @@ def glcm_2d_aggregate(image, distances, angles, levels=None, symmetric=False, no
 
     if aggregate_axis == -1:
         aggregate_axis = np.argmin(image.shape)
-        print '2-D GLCM aggregation axis chosen automatically at ' + str(aggregate_axis)
+        print('2-D GLCM aggregation axis chosen automatically at ' + str(aggregate_axis))
 
     nSlice = image.shape[aggregate_axis]
     result_GLCM = np.zeros((levels, levels, len(distances), len(angles)),
@@ -444,4 +444,4 @@ if __name__ == "__main__":
     test_array = np.random.randint(0,5,(25,25,25))
     np.set_printoptions(threshold=np.inf)
     np.set_printoptions(suppress=True)
-    print glcm_features_calc(glcm_2d_aggregate(test_array, [1,2], [0, np.pi/4, np.pi/2, 3*np.pi/4], levels=5, symmetric=True, method='maximal_slice'), out='list', distances=[1,2], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4])
+    print(glcm_features_calc(glcm_2d_aggregate(test_array, [1,2], [0, np.pi/4, np.pi/2, 3*np.pi/4], levels=5, symmetric=True, method='maximal_slice'), out='list', distances=[1,2], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4]))

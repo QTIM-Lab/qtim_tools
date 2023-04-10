@@ -17,7 +17,7 @@ def copy_files(infolder, outfolder, pattern, duplicate=True):
     path = os.path.join(infolder, pattern)
     files = glob.glob(path)
     if files == []:
-        print 'No files moved. Might you have made an error with the filenames?'
+        print('No files moved. Might you have made an error with the filenames?')
     else:
         for file in files:
             if duplicate:
@@ -195,7 +195,7 @@ def grab_linked_file(input_filename, prefix="", suffix="", includes="", regex=""
     elif output == [] or return_multiple:
         return output
     else:
-        print 'Warning: multiple files found. return_multiple is set to False, so only the first file will be returned.'
+        print('Warning: multiple files found. return_multiple is set to False, so only the first file will be returned.')
         return output[0]
 
 def replace_suffix(input_filepath, input_suffix, output_suffix, suffix_delimiter=None):
@@ -230,7 +230,7 @@ def replace_suffix(input_filepath, input_suffix, output_suffix, suffix_delimiter
         input_suffix = str.split(split_filename[0], suffix_delimiter)[-1]
 
     if input_suffix not in os.path.basename(input_filepath):
-        print 'ERROR!', input_suffix, 'not in input_filepath.'
+        print('ERROR!', input_suffix, 'not in input_filepath.')
         return []
 
     else:

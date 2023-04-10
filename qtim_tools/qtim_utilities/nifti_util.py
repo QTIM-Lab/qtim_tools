@@ -133,7 +133,7 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath=None, output_filepa
         else:
             image_affine = reference_nifti_filepath
     else:
-        print 'Warning: no reference nifti file provided. Generating empty header.'
+        print('Warning: no reference nifti file provided. Generating empty header.')
         image_affine = np.eye(4)
 
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)
@@ -270,7 +270,7 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
 
     if isinstance(iterations, list):
         if len(iterations) != 3:
-            print 'The erosion parameter does not have enough dimensions (3). Using the first value in the eroison parameter.'
+            print('The erosion parameter does not have enough dimensions (3). Using the first value in the eroison parameter.')
     else:
         iterations == [iterations, iterations, iterations]
 
@@ -461,7 +461,7 @@ def fill_in_convex_outline(filepath, output_file, outline_lower_threshold=[], ou
                     if (pixel == outline_color):
                         match = True
                 else:
-                    print 'Error. Please provide a valid outline color or threshold.'
+                    print('Error. Please provide a valid outline color or threshold.')
                     return
 
                 if match:

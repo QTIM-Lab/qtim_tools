@@ -100,5 +100,5 @@ def PCA_reduce(image_numpy, PCA_levels = 10, PCA_axis = -1):
 
 if __name__ == '__main__':
     np.random.seed(1)
-    print PCA_reduce(np.random.rand(10,10,10,20), PCA_levels = 10).shape
+    print(PCA_reduce(np.random.rand(10,10,10,20), PCA_levels = 10).shape)
     pass

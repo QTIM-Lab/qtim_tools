@@ -55,7 +55,7 @@ def run_test():
 
 if __name__ == '__main__':
 
-	print 'Entered program..'
+	print('Entered program..')
 	run_test()
 
 	# test('C:/Users/azb22/Documents/Junk/dce_mc_st_corrected.nii')

@@ -41,7 +41,7 @@ def resample(input_data, output_filename='', input_transform=None, method="slice
 
     skull_strip_methods = ['slicer']
     if method not in skull_strip_methods:
-        print 'Input \"method\" parameter is not available. Available methods: ', skull_strip_methods
+        print('Input \"method\" parameter is not available. Available methods: ', skull_strip_methods)
         return
 
     if method == 'slicer':
@@ -67,11 +67,11 @@ def resample(input_data, output_filename='', input_transform=None, method="slice
             resample_command = [command, '--launch', 'ResampleScalarVectorDWIVolume', input_filename, output_filename, '-R', reference_volume, '--interpolation', interpolation]
             if input_transform is not None:
                 resample_command += ['-f', input_transform]
-            print ' '.join(resample_command)
+            print(' '.join(resample_command))
             subprocess.call(resample_command)
         else:
             resample_command = [command, '--launch', 'ResampleScalarVolume', '-i', interpolation, '-s', dimensions, input_filename, output_filename]
-            print ' '.join(resample_command)
+            print(' '.join(resample_command))
             subprocess.call(resample_command)
         
         if temp_input:

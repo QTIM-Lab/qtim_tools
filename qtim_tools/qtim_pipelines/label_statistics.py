@@ -73,27 +73,27 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
 
         for visit in all_visits:
 
-            print 'Calculating statistics for... ', visit
+            print('Calculating statistics for... ', visit)
 
             visit_label = sorted(glob.glob(os.path.join(visit, '*' + label_file + '*')))
-            print visit_label
+            print(visit_label)
 
             if visit_label:
 
                 # If multiple labels returned, give a warning and use the first option returned.
                 if len(visit_label) != 1:
-                    print 'WARNING! Multiple labels found. Going with... ' + visit_label[0]
+                    print('WARNING! Multiple labels found. Going with... ' + visit_label[0])
                 visit_label = convert_input_2_numpy(visit_label[0])
 
                 if label_mode == 'combined':
                     label_list = ['']
                 elif label_mode != 'separate': 
-                    print 'Provided label_mode,', label_mode, 'is not an available option. Going with \'combined\'.'
+                    print('Provided label_mode,', label_mode, 'is not an available option. Going with \'combined\'.')
                     label_list = ['']
                 else:
                     label_list = ['_label-' + str(int(label_num)) for label_num in np.unique(visit_label)[1:]]
 
-                print label_list
+                print(label_list)
 
                 for label_index in label_list:
 
@@ -106,23 +106,23 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
                         modality_file = glob.glob(os.path.join(visit, '*' + modality + '*'))
 
                         if len(modality_file) == 0:
-                            print 'Modality file for modality label', modality, 'not found, skipping this modality'
+                            print('Modality file for modality label', modality, 'not found, skipping this modality')
                             new_row[col_number] = ''
                         else:
                             if len(modality_file) > 1:
-                                print 'Found multiple files for modality label', modality, '! Choosing the first one found,', modality_file[0]
+                                print('Found multiple files for modality label', modality, '! Choosing the first one found,', modality_file[0])
                             else:
-                                print 'Calculating statistic for modality label', modality
+                                print('Calculating statistic for modality label', modality)
                             # try:
                             if label_index != '':
                                 new_row[col_number] = qtim_statistic(modality_file[0], ['median'], visit_label, return_label=int(label_index[-1]))[0]
                             else:
                                 new_row[col_number] = qtim_statistic(modality_file[0], ['median'], visit_label)[0]
                             # except:
-                                # print 'Error calculating statistic for modality label', modality
+                                # print('Error calculating statistic for modality label', modality)
                                 # new_row[col_number] = ''
                             if new_row[col_number] == 'nan':
-                                print 'Error calculating statistic for modality label', modality
+                                print('Error calculating statistic for modality label', modality)
                                 new_row[col_number] = ''
 
                         col_number += 1
@@ -132,12 +132,12 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
                         try:
                             new_row[col_number] = float(new_row[1+modalities.index(difference[0])]) - float(new_row[1+modalities.index(difference[1])])
                         except:
-                            print "Error occured while calculating difference for", difference, '. Skipping this statistic.'
+                            print("Error occured while calculating difference for", difference, '. Skipping this statistic.')
                             new_row[col_number] = ''
 
                         col_number += 1
 
-                    print new_row
+                    print(new_row)
 
                     # This is awful.
                     if label_index == '' or len(output_numpy.shape) == 1:
@@ -155,7 +155,7 @@ def qtim_study_statistics(study_name, label_file, base_directory, output_csv=Non
                                 output_numpy = np.vstack((output_numpy, new_row))
 
             else:
-                print 'Warning! No label found in the same directory as... ', visit_label
+                print('Warning! No label found in the same directory as... ', visit_label)
 
         output_numpy = np.vstack((output_numpy, ['']*len(['filename'] + modalities + [modality1 + '_minus_' + modality2 for modality1, modality2 in differences])))
 

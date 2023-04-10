@@ -18,12 +18,12 @@ def save_alternate_nifti(filepath, levels, reference_image=[], method="z_score",
 
     image_numpy = coerce_levels(image_numpy, levels=levels, reference_image=reference_image, method=method, mask_value=mask_value)
 
-    print 'image_transformed!'
+    print('image_transformed!')
 
     new_img = nib.Nifti1Image(image_numpy, image_affine)
 
-    print 'new_image_created!'
+    print('new_image_created!')
 
-    print 'zmapped_' + str.split(filepath, '//')[-1]
+    print('zmapped_' + str.split(filepath, '//')[-1])
 
     nib.save(new_img, 'zmapped_' + str.split(filepath, '//')[-1])

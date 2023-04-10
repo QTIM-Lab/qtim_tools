@@ -121,7 +121,7 @@ def qtim_statistic(input_data, statistics, label_data='', mask_value=0, return_l
     for statistic in statistics:
 
         if statistics_dict[statistic] == []:
-            print 'No statistics by that keyword. Returning blank...'
+            print('No statistics by that keyword. Returning blank...')
             outputs += ['']
 
         try:

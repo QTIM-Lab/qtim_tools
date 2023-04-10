@@ -85,7 +85,7 @@ def convert_intensity_to_concentration(data_numpy, T1_tissue, TR, flip_angle_deg
         baseline = np.mean(data_numpy[...,0:int(np.round(injection_start_time_seconds/time_interval_seconds))], axis=dim-1)
         baseline = np.tile(np.reshape(baseline, (baseline.shape[0:dim-1] + (1,))), (1,)*(dim-1) + (data_numpy.shape[-1],))
     else:
-        print 'Dimension error. Please enter an array with dimensions between 1 and 4.'
+        print('Dimension error. Please enter an array with dimensions between 1 and 4.')
 
     output_numpy = np.copy(data_numpy)
 
@@ -171,7 +171,7 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
 
     # Quick, error prone convolution method
-    # print estimated_concentration
+    # print(estimated_concentration)
     # res = np.exp(-1*kep*time_series)
     # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
     # estimated_concentration = estimated_concentration[0:np.size(res)]
@@ -255,13 +255,13 @@ def generate_AIF(scan_time_seconds, injection_start_time_seconds, time_interval_
                     AIF = masked_AIF_subregion.mean(axis=0, dtype=np.float64)
                     return AIF
                 else:
-                    print 'Error: too many or too few dimensions to calculate AIF currently. Unable to calculate AIF.'
+                    print('Error: too many or too few dimensions to calculate AIF currently. Unable to calculate AIF.')
                     return []
             else:
                 'Error: no AIF label detected. Unable to calculate AIF.'
                 return []
         else:
-            print 'No image provided to AIF function. Set AIF_mode to \'population\' to use a population AIF. Unable to calculate AIF.'
+            print('No image provided to AIF function. Set AIF_mode to \'population\' to use a population AIF. Unable to calculate AIF.')
             return []
 
     if AIF_mode == 'population':
@@ -281,7 +281,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
     timepoints = int(scan_time_seconds/time_interval_seconds)
     time_series_minutes = np.arange(0, timepoints) / (60 / time_interval_seconds)
     time_interval_minutes = time_interval_seconds / 60
-    print time_interval_minutes
+    print(time_interval_minutes)
 
     # Create empty phantom, labels, and outputs
     output_phantom_concentration = np.zeros(output_shape + (2, int(scan_time_seconds/time_interval_seconds)), dtype=float)
@@ -305,13 +305,13 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
             output_ktrans[ve_idx, ktrans_idx, 0] = float(ktrans)
             output_ve[ve_idx, ktrans_idx, 0] = float(ve)
 
-            # print np.squeeze(AIF).shape
-            print ve_idx, ktrans_idx
-            print ktrans, ve
+            # print(np.squeeze(AIF).shape)
+            print(ve_idx, ktrans_idx)
+            print(ktrans, ve)
             # conc = estimate_concentration([ktrans,ve], np.squeeze(AIF)[:], time_series_minutes)
-            # print len(conc)
-            # print conc[-1]
-            # print len(conc[-1])
+            # print(len(conc))
+            # print(conc[-1])
+            # print(len(conc[-1]))
             output_phantom_concentration[ve_idx, ktrans_idx,0,:] = estimate_concentration([ktrans,ve], np.squeeze(AIF), time_interval_minutes)
 
     save_numpy_2_nifti(output_phantom_concentration, None, output_prefix + '_concentrations.nii.gz')
@@ -408,7 +408,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
 
 #     # Quick, error prone convolution method
-#     # print estimated_concentration
+#     # print(estimated_concentration)
 #         # res = np.exp(-1*kep*time_series)
 #         # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
 #         # estimated_concentration = estimated_concentration[0:np.size(res)]
@@ -422,14 +422,14 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #     #     # optimization_path = np.zeros((len(allvecs), 2), dtype=float)
 #     #     # for a_idx, allvec in enumerate(allvecs):
 #     #     #     optimization_path[a_idx, :] = allvec
-#     #     #     print allvec
+#     #     #     print(allvec)
 
 #     #     # time_series = np.arange(0, contrast_AIF_numpy.size)
 #     #     # estimated_concentration = estimate_concentration(result_params, contrast_AIF_numpy, time_interval)
 
 #     #     # difference_term = observed_concentration - estimated_concentration
-#     #     # # print sum(power(difference_term, 2))
-#     #     # print [ktrans, ve]
+#     #     # # print(sum(power(difference_term, 2)))
+#     #     # print([ktrans, ve])
 #     #     # plt.plot(time_series, estimated_concentration, 'r--', time_series, observed_concentration, 'b--')
 #     #     # plt.show()
 
@@ -440,7 +440,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #     #     # estimated_concentration2 = estimate_concentration([.25, .01], contrast_AIF_numpy, time_interval)
 
 #     #     # difference_term = observed_concentration - estimated_concentration
-#     #     # # print sum(power(difference_term, 2))
+#     #     # # print(sum(power(difference_term, 2)))
 
 #     #     # plt.plot(time_series, estimated_concentration, 'r--', time_series, estimated_concentration2, 'g--', time_series, observed_concentration, 'b--')
 #     #     # plt.show()
@@ -502,7 +502,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
 
 #     # Quick, error prone convolution method
-#     # print estimated_concentration
+#     # print(estimated_concentration)
 #         # res = np.exp(-1*kep*time_series)
 #         # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
 #         # estimated_concentration = estimated_concentration[0:np.size(res)]

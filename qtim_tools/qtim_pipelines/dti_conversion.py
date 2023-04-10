@@ -92,7 +92,7 @@ def qtim_dti_conversion(study_name, base_directory, specific_case=None, output_m
         # Convert from DICOM
         output_file_prefix = os.path.join(output_folder, patient_name + '-' + visit_name) + '-DTI_diff'
         
-        print split_path
+        print(split_path)
 
         # Create bvals and bvecs. Don't overwrite if possible.
         bval, bvec, diff = [output_file_prefix + '.bval', output_file_prefix + '.bvec', output_file_prefix + '.nii.gz']
@@ -133,15 +133,15 @@ def run_fdt_rotate_bvecs(input_bvec, output_bvec, input_motion):
 
     script_location = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'external', 'fdt_rotate_bvecs.sh'))
 
-    print ' '.join([script_location, input_bvec, output_bvec, input_motion])
+    print(' '.join([script_location, input_bvec, output_bvec, input_motion]))
 
     subprocess.call([script_location, input_bvec, output_bvec, input_motion])
 
 
 def run_1dtool(input_bvec, output_bvec):
 
-    print input_bvec, output_bvec
-    print ' '.join(['/home/abeers/abin/1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
+    print(input_bvec, output_bvec)
+    print(' '.join(['/home/abeers/abin/1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec]))
     subprocess.call(['/home/abeers/abin/1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
 
     return
@@ -161,7 +161,7 @@ def convert_DTI_nifti(volume, output_folder, output_file_prefix):
 
     # If we can't find any DICOMs in these folders, skip this volume.
     if not reference_dicom:
-        print 'No DICOMs found! Skipping folder... ', volume
+        print('No DICOMs found! Skipping folder... ', volume)
         return False
 
     # Attempt to mine sequence, protocol, bvalue data from the reference DICOM.

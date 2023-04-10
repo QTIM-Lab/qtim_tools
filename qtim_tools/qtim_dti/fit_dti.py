@@ -11,7 +11,7 @@ def run_dtifit(input_data, input_bvec, input_bval, input_mask='', output_filepre
 
     motion_correction_methods = ['fsl']
     if method not in motion_correction_methods:
-        print 'Input \"method\" parameter is not available. Available methods: ', motion_correction_methods
+        print('Input \"method\" parameter is not available. Available methods: ', motion_correction_methods)
         return
 
     if method == 'fsl':
@@ -32,7 +32,7 @@ def run_dtifit(input_data, input_bvec, input_bval, input_mask='', output_filepre
             output_fileprefix = os.path.join(temp_dir, 'temp_out.nii.gz')
 
         # TODO: Figure out what last parameter, reference number, means.
-        print ' '.join([command, '-V', '--sse', '-k', input_filename, '-o', output_fileprefix, '-m', input_mask, '-r', input_bvec, '-b', input_bval])
+        print(' '.join([command, '-V', '--sse', '-k', input_filename, '-o', output_fileprefix, '-m', input_mask, '-r', input_bvec, '-b', input_bval]))
         subprocess.call([command, '-V', '--sse', '-k', input_filename, '-o', output_fileprefix, '-m', input_mask, '-r', input_bvec, '-b', input_bval])
 
         if temp_input:

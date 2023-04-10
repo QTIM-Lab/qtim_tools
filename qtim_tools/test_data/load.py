@@ -31,7 +31,7 @@ def load_test_file(data, return_type="filepath", retrieval_type="local"):
     # elif data == ''
 
     else:
-        print 'There is no test data under this name. Returning an empty string.'
+        print('There is no test data under this name. Returning an empty string.')
         return []
 
 

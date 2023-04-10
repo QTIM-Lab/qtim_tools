@@ -41,7 +41,7 @@ def orient(input_data, output_filename='', method="slicer", command="Slicer", te
 
     orientation_methods = ['slicer']
     if method not in orientation_methods:
-        print 'Input \"method\" parameter is not available. Available methods: ', orientation_methods
+        print('Input \"method\" parameter is not available. Available methods: ', orientation_methods)
         return
 
     if method == 'slicer':
@@ -62,7 +62,7 @@ def orient(input_data, output_filename='', method="slicer", command="Slicer", te
             output_filename = os.path.join(temp_dir, 'temp_out.nii.gz')
 
         orientation_command = [command, '--launch', 'OrientScalarVolume', '-o', orientation, input_filename, output_filename]
-        print ' '.join(orientation_command)
+        print(' '.join(orientation_command))
         subprocess.call(orientation_command)
         
         if temp_input:

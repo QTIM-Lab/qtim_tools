@@ -48,7 +48,7 @@ def fill_in_convex_outline(input_data, output_file=None, reference_nifti=None, t
         else:
             label_nifti = ndimage.morphology.binary_fill_holes(image_nifti).astype(image_nifti.dtype)
 
-        print np.sum(label_nifti), 'HOLE FILLED SUM'
+        print(np.sum(label_nifti), 'HOLE FILLED SUM')
 
         if output_file is not None:
             save_numpy_2_nifti(label_nifti, reference_nifti, output_file)

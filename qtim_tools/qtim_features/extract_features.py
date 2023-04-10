@@ -55,8 +55,8 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
 
             for imagepath in imagepaths:
 
-                print '\n'
-                print 'Pre-processing data...'
+                print('\n')
+                print('Pre-processing data...')
 
                 image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, constant_label=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode, mode=mode)
                 
@@ -67,18 +67,18 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
                         csvfile.writerow(empty_output[0,:])
                         continue
 
-                print 'Pre-processing complete!'
+                print('Pre-processing complete!')
 
-                # print image_list
+                # print(image_list)
                 for image_idx, image in enumerate(image_list):
 
-                    print ''
-                    print 'Working on image...'
-                    print imagename_list[image_idx]
-                    print 'Voxel sum...'
-                    print np.sum(image)
-                    print 'Image shape...'
-                    print image.shape
+                    print('')
+                    print('Working on image...')
+                    print(imagename_list[image_idx])
+                    print('Voxel sum...')
+                    print(np.sum(image))
+                    print('Image shape...')
+                    print(image.shape)
 
                     if filenames:
                         index = imagename_list[image_idx]
@@ -96,12 +96,12 @@ def generate_feature_list(input_file, label_file=None, features=['GLCM', 'morpho
 
     final_output = np.hstack((index_output, numerical_output))
 
-    print 'Feature writing complete, writing output...'
-    print '\n'
+    print('Feature writing complete, writing output...')
+    print('\n')
 
-    print 'Raw Output:'
+    print('Raw Output:')
     for col_id in range(final_output.shape[1]):
-        print label_output[0, col_id], final_output[:, col_id]
+        print(label_output[0, col_id], final_output[:, col_id])
 
     if return_output:
         return final_output
@@ -132,8 +132,8 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
 
             for imagepath in imagepaths:
 
-                print '\n'
-                print 'Pre-processing data...'
+                print('\n')
+                print('Pre-processing data...')
 
                 image_list, unmodified_image_list, imagename_list, attributes_list = generate_numpy_images(imagepath, labels=labels, label_suffix=label_suffix, set_label=set_label, label_images=label_images, levels=levels, mask_value=mask_value, use_labels=use_labels, erode=erode, mode=mode)
                 
@@ -144,17 +144,17 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
                         csvfile.writerow(empty_output[0,:])
                         continue
 
-                print 'Pre-processing complete!'
+                print('Pre-processing complete!')
 
                 for image_idx, image in enumerate(image_list):
 
-                    print ''
-                    print 'Working on image...'
-                    print imagename_list[image_idx]
-                    print 'Voxel sum...'
-                    print np.sum(image)
-                    print 'Image shape...'
-                    print image.shape
+                    print('')
+                    print('Working on image...')
+                    print(imagename_list[image_idx])
+                    print('Voxel sum...')
+                    print(np.sum(image))
+                    print('Image shape...')
+                    print(image.shape)
 
                     if filenames:
                         index = imagename_list[image_idx]
@@ -172,11 +172,11 @@ def generate_feature_list_batch(folder, file_regex='*.nii*', features=['GLCM', '
 
     final_output = np.hstack((index_output, numerical_output))
 
-    print 'Feature writing complete, writing output...'
-    print '\n'
+    print('Feature writing complete, writing output...')
+    print('\n')
 
     for row in final_output:
-        print row
+        print(row)
 
     if return_output:
         return final_output
@@ -193,7 +193,7 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
 
     # This is likely redundant with the basic assert function in nifti_util
     if not nifti_util.assert_3D(image):
-        print 'Warning: image at path ' + imagepath + ' has multiple time points or otherwise greater than 3 dimensions, and will be skipped.'
+        print('Warning: image at path ' + imagepath + ' has multiple time points or otherwise greater than 3 dimensions, and will be skipped.')
         return [[],[],[],[]]
 
     if labels:
@@ -212,19 +212,19 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
             label_image = nifti_util.nifti_2_numpy(label_path)
 
             if label_image.shape != image.shape:
-                print 'Warning: image and label do not have the same dimensions. Imaging padding support has not yet been added. This image will be skipped.'
+                print('Warning: image and label do not have the same dimensions. Imaging padding support has not yet been added. This image will be skipped.')
                 return [[],[],[],[]]
 
             # In the future: create an option to analyze each frame separately.
             if not nifti_util.assert_3D(label_image):
-                print 'Warning: image at path ' + imagepath + ' has multiple time points or otherwise greater than 3 dimensions, and will be skipped.'
+                print('Warning: image at path ' + imagepath + ' has multiple time points or otherwise greater than 3 dimensions, and will be skipped.')
                 return [[],[],[],[]]
 
             label_image = label_image.astype(int)
             label_indices = np.unique(label_image)
 
             if label_indices.size == 1:
-                print 'Warning: image at path ' + imagepath + ' has an empty label-map, and will be skipped.'
+                print('Warning: image at path ' + imagepath + ' has an empty label-map, and will be skipped.')
                 return[[],[],[],[]]
 
             # Will break if someone puts in '0' as a label to use.
@@ -264,10 +264,10 @@ def generate_numpy_images(imagepath, labels=False, label_suffix='-label', set_la
                     imagename_list += [filename]
 
             attributes_list += [nifti_util.return_nifti_attributes(imagepath)] * (label_indices.size - 1)
-            print 'Finished... ' + str.split(imagepath, '\\')[-1]
+            print('Finished... ' + str.split(imagepath, '\\')[-1])
 
         else:
-            print 'Warning: image at path ' + imagepath + ' has no label-map, and will be skipped.'
+            print('Warning: image at path ' + imagepath + ' has no label-map, and will be skipped.')
             return[[],[],[],[]]
 
     else:
@@ -295,7 +295,7 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
     numerical_output = np.zeros((1, total_features), dtype=float)
 
     if (image != mask_value).sum() == 0:
-        print 'Warning: image is empty, either because it could not survive erosion or because of another error. It will be skipped.'
+        print('Warning: image is empty, either because it could not survive erosion or because of another error. It will be skipped.')
         return numerical_output
 
     glcm_image = np.copy(image)
@@ -306,25 +306,25 @@ def generate_feature_list_method(image, unmodified_image, attributes, features, 
         if feature == 'GLCM':
 
             levels += 1
-            print 'Calculating GLCM...'
+            print('Calculating GLCM...')
             numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = GLCM.glcm_features(glcm_image, levels=levels)
 
         if feature == 'morphology':
 
-            print 'Calculating morphology features...'
+            print('Calculating morphology features...')
             numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = morphology.morphology_features(unmodified_image, attributes)
 
         if feature == 'statistics':
 
             # Should intensity statistics be eroded? Currently, they are not, as indicated by the "unmodified image" parameter.
 
-            print 'Calculating statistical features...'
+            print('Calculating statistical features...')
             if normalize_intensities:
                 numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = statistics.statistics_features(glcm_image)
             else:
                 numerical_output[0, feature_indexes[feature_idx]:feature_indexes[feature_idx+1]] = statistics.statistics_features(unmodified_image)
 
-    print '\n'
+    print('\n')
 
     return numerical_output
 
@@ -384,7 +384,7 @@ def determine_outfile_name(outfile, overwrite=True):
             write_flag = True
         else:
             split_outfile = str.split(outfile, '.')
-            print split_outfile
+            print(split_outfile)
             outfile = '.'.join(split_outfile[0:-1]) + '_new.' + split_outfile[-1]
             if not os.path.isfile(outfile):
                 write_flag = True

@@ -90,7 +90,7 @@ def check_format(filepath):
             break
 
     if format_type is None:
-        print 'Error! Input file extension is not supported by qtim_tools. Returning None.'
+        print('Error! Input file extension is not supported by qtim_tools. Returning None.')
     else:
         return format_type
 
@@ -122,7 +122,7 @@ def convert_input_2_numpy(input_data, input_format=None, return_header=False, re
             input_format = check_format(input_data)
 
         if input_format is None:
-            print 'Cannot understand input format for numpy conversion, returning None.'
+            print('Cannot understand input format for numpy conversion, returning None.')
             if return_header:
                 return None, None
             else:

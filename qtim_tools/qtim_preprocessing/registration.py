@@ -22,7 +22,7 @@ def register_all_to_one(fixed_volume, moving_volume_folder, output_folder='', ou
     moving_volumes = glob.glob(os.path.join(moving_volume_folder + file_regex))
 
     if len(moving_volumes) == 0:
-        print 'No nifti volumes found in provided moving volume folder. Skipping this folder: ' + moving_volume_folder
+        print('No nifti volumes found in provided moving volume folder. Skipping this folder: ' + moving_volume_folder)
 
     if exclusion_phrase != '':
         moving_volumes = [x for x in moving_volumes if exclusion_phrase not in x]
@@ -40,10 +40,10 @@ def register_all_to_one(fixed_volume, moving_volume_folder, output_folder='', ou
         BRAINSFit_specific_command = BRAINSFit_base_command + ['--movingVolume','"' + no_path[0] +  '/' + no_path[1] + '"','--outputVolume','"' + output_filename + '"']
 
         try:
-            print ' '.join(BRAINSFit_specific_command)
+            print(' '.join(BRAINSFit_specific_command))
             call(' '.join(BRAINSFit_specific_command), shell=True)
         except:
-            print 'Registration command failed. Did you provide the correct path to your Slicer insallation? Provided Slicer Path: ' + Slicer_Path
+            print('Registration command failed. Did you provide the correct path to your Slicer insallation? Provided Slicer Path: ' + Slicer_Path)
             continue
 
     return
@@ -66,7 +66,7 @@ def register_volume(moving_volume, fixed_volume, output_volume_filename=None, ou
         if output_transform_filename is not None:
             BRAINSFit_command += ['--outputTransform', output_transform_filename]
 
-        print ' '.join(BRAINSFit_command)
+        print(' '.join(BRAINSFit_command))
         call(' '.join(BRAINSFit_command), shell=True)
 
         return

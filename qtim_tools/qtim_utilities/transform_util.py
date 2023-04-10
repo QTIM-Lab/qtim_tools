@@ -18,7 +18,7 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath='', output_path=[])
         nifti_image = nib.load(reference_nifti_filepath)
         image_affine = nifti_image.affine
     else:
-        print 'Warning: no reference nifti file provided. Generating empty header.'
+        print('Warning: no reference nifti file provided. Generating empty header.')
         image_affine = generate_identity_affine()
 
     output_nifti = nib.Nifti1Image(image_numpy, image_affine)
@@ -93,7 +93,7 @@ def generate_rotation_affine(axis=0, rotation_degrees=1):
                     [0,0,0,1]])
 
     else:
-        print 'Error, can only accept axes 0-2 as input to axis parameter.'
+        print('Error, can only accept axes 0-2 as input to axis parameter.')
         return []
  
     return R
@@ -116,7 +116,7 @@ def generate_translation_affine(axis=0, translation_distance=10):
         T = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,translation_distance,1]]
     
     else:
-        print 'Error, can only accept axes 0-2 as input to axis parameter.'
+        print('Error, can only accept axes 0-2 as input to axis parameter.')
         return []
 
     return np.array(T)
@@ -161,7 +161,7 @@ def apply_affine(input_volume, affine_matrix, method="python", Slicer_path="Slic
     # return convert_input_2_numpy('temp_out.nii.gz')
 
     else:
-        print 'Invalid method parameter. Returning []'
+        print('Invalid method parameter. Returning []')
         return []
 
 def compose_affines(affine_matrix_1, affine_matrix_2):
@@ -187,7 +187,7 @@ def compose_affines(affine_matrix_1, affine_matrix_2):
         return output_matrix
 
     else:
-        print 'Error: input matrix has incorrect number of dimensions (4x4xN) for comptuation'
+        print('Error: input matrix has incorrect number of dimensions (4x4xN) for comptuation')
         return []
 
 def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
@@ -214,7 +214,7 @@ def save_affine(affine_matrix, output_filename, output_format="itk_affine"):
         f.write('FixedParameters: ' + translate_string + '\n')
 
     else:
-        print 'Invalid output format. Returning []'
+        print('Invalid output format. Returning []')
         return []
 
 
@@ -235,10 +235,10 @@ def generate_motion_jerk(duration, timepoint=0, rotation_peaks=[3, 3, 0], total_
     midpoint = timepoint + np.round(endpoint - timepoint)/2
     rotation_matrix_increment = np.array([float(x)/float(timepoint-endpoint) for x in rotation_peaks])
 
-    print timepoint, endpoint, duration, total_timepoints
+    print(timepoint, endpoint, duration, total_timepoints)
 
     if endpoint > total_timepoints:
-        print 'Invalid timepoint, longer than the duration of the volume'
+        print('Invalid timepoint, longer than the duration of the volume')
 
     rotation_direction = np.array([0,0,0])
 
@@ -283,7 +283,7 @@ def generate_motion_tilt(timepoint, duration, rotation_peaks=[3, 3, 0], input_fi
     rotation_matrix_increment = np.array([float(x)/float(timepoint-endpoint) for x in rotation_peaks])
 
     if endpoint > total_timepoints:
-        print 'Invalid timepoint, longer than the duration of the volume'
+        print('Invalid timepoint, longer than the duration of the volume')
 
     rotation_direction = np.array([0,0,0])
 

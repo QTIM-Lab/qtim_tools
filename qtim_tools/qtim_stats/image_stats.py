@@ -15,7 +15,7 @@ def correlation_analysis(input_volume):
     output_correlation_matrix = np.zeros((17,17,17), dtype=float)
 
     for displacement in displacement_list:
-        print displacement
+        print(displacement)
         x, y, z = displacement
         slice_list = []
         displacement_slice_list = []
@@ -31,18 +31,18 @@ def correlation_analysis(input_volume):
                 slice_list += [slice(None)]
                 displacement_slice_list += [slice(None)]
 
-        print slice_list
-        print displacement_slice_list
+        print(slice_list)
+        print(displacement_slice_list)
 
         compare_array_1 = image_numpy[slice_list]
         compare_array_2 = image_numpy[displacement_slice_list]
 
-        print compare_array_1.shape
-        print compare_array_2.shape
+        print(compare_array_1.shape)
+        print(compare_array_2.shape)
 
         correlation = np.corrcoef(compare_array_1.reshape(-1), compare_array_2.reshape(-1))
-        print correlation
-        print '\n'
+        print(correlation)
+        print('\n')
 
         output_correlation_matrix[x+8, y+8, z+8] = correlation[1,0]
 

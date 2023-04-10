@@ -56,7 +56,7 @@ def glcm_cube_phantom(reference_image, output_folder):
             nifti_util.save_numpy_2_nifti(phantom_3d, reference_image, os.path.join(output_folder, 'GLCM_' + direction + '_' + str(alternation_rate) + '_Phantom.nii.gz'))
             nifti_util.save_numpy_2_nifti(label_3d, reference_image, os.path.join(output_folder, 'GLCM_' + direction + '_' + str(alternation_rate) + '_Phantom-label.nii.gz'))
 
-            print [direction, alternation_rate]
+            print([direction, alternation_rate])
 
 def intensity_cube_phantom(reference_image, output_folder):
 
@@ -96,7 +96,7 @@ def intensity_cube_phantom(reference_image, output_folder):
         nifti_util.save_numpy_2_nifti(phantom_3d, reference_image, os.path.join(output_folder, 'Intensity_' + phantom_type + '_Phantom.nii.gz'))
         nifti_util.save_numpy_2_nifti(label_3d, reference_image, os.path.join(output_folder, 'Intensity_' + phantom_type + '_Phantom-label.nii.gz'))
 
-        print [phantom_type]
+        print([phantom_type])
 
     return
 
@@ -113,7 +113,7 @@ def get_phantom_filepath(input):
     elif input == 'shape_mri':
         return os.path.abspath(os.path.join(os.path.dirname(__file__),'..','test_data','test_data_features','MR_Tumor_Shape'))
     else:
-        print 'Sorry, there is no available phantom data by that keyword. Available keywords: "intensity_square", "glcm_square", "size_square", "size_mri", "shape_mri".'
+        print('Sorry, there is no available phantom data by that keyword. Available keywords: "intensity_square", "glcm_square", "size_square", "size_mri", "shape_mri".')
         return ''
 
 def test_method():

@@ -24,7 +24,7 @@ The following commands are available:
         args = parser.parse_args(sys.argv[1:2])
 
         if not hasattr(self, args.command):
-            print 'Sorry, that\'s not one of the commands.'
+            print('Sorry, that\'s not one of the commands.')
             parser.print_help()
             exit(1)
 
@@ -41,7 +41,7 @@ The following commands are available:
         parser.add_argument('-config', type=str)   
 
         args = parser.parse_args(sys.argv[2:])
-        print 'Coregistering volumes for study directory... %s' % args.study_name
+        print('Coregistering volumes for study directory... %s' % args.study_name)
 
         qtim_tools.qtim_pipelines.coregistration.coregister_pipeline(args.study_name, args.base_directory)
 
@@ -55,7 +55,7 @@ The following commands are available:
         parser.add_argument('-config', type=str)   
 
         args = parser.parse_args(sys.argv[2:])
-        print 'Preprocessing for deep learning in study directory... %s' % args.study_name
+        print('Preprocessing for deep learning in study directory... %s' % args.study_name)
 
         qtim_tools.qtim_pipelines.deep_learning.deep_learning_preprocess(args.study_name, args.base_directory)
 
@@ -68,7 +68,7 @@ The following commands are available:
         parser.add_argument('-config_file', type=str)
 
         args = parser.parse_args(sys.argv[2:])
-        print 'Creating a deep learning experiment in study directory... %s' % args.output_directory
+        print('Creating a deep learning experiment in study directory... %s' % args.output_directory)
 
         qtim_tools.qtim_pipelines.deep_learning.deep_learning_experiment(args.base_directory, args.output_directory, args.config_file)
 
@@ -84,7 +84,7 @@ The following commands are available:
         parser.add_argument('-config', type=str)   
 
         args = parser.parse_args(sys.argv[2:])
-        print 'Running DTI conversion on study directory... %s' % args.study_name
+        print('Running DTI conversion on study directory... %s' % args.study_name)
 
         qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(args.study_name, args.base_directory, specific_case=args.case, output_modalities=args.output_modalities, overwrite=args.overwrite)
 
@@ -100,7 +100,7 @@ The following commands are available:
         parser.add_argument('-config', type=str)   
 
         args = parser.parse_args(sys.argv[2:])
-        print 'Running label statistics on study directory... %s' % args.study_name
+        print('Running label statistics on study directory... %s' % args.study_name)
 
         qtim_tools.qtim_pipelines.label_statistics.qtim_study_statistics(args.study_name, args.label_name, args.base_directory, args.output_csv, args.label_mode)
 

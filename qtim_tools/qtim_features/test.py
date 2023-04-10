@@ -107,7 +107,7 @@ def test_2():
 
     generate_feature_list_batch(folder=test_folder, features=features, labels=labels, levels=levels, outfile=outfile, mask_value=mask_value, erode=erode, overwrite=overwrite, mode="maximal_slice")
 
-    print 'new test now'
+    print('new test now')
 
 if __name__ == '__main__':
 	test_method()
