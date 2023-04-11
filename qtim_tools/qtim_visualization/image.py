@@ -54,6 +54,8 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
     """
 
     image_numpy = convert_input_2_numpy(input_volume)
+
+
     if step is None:
         step = 1
 
@@ -67,7 +69,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
         # This is fun in a wacky way, but could probably be done more concisely and effeciently.
         mosaic_selections = []
         for i in range(label_numpy.shape[dim]):
-            label_slice = np.squeeze(label_numpy[[slice(None) if k != dim else slice(i, i+1) for k in range(3)]])
+            label_slice = np.squeeze(label_numpy[tuple(slice(None) if k != dim else slice(i, i+1) for k in range(3))])
             if np.sum(label_slice) != 0:
                 mosaic_selections += range(i-label_buffer, i+label_buffer)
         mosaic_selections = np.unique(mosaic_selections)
@@ -80,7 +82,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
 
         # One day, specify rotations by affine matrix.
         # Is test slice necessary? Operate directly on shape if possible.
-        test_slice = np.rot90(np.squeeze(image_numpy[[slice(None) if k != dim else slice(0, 1) for k in range(3)]]), rotate_90)
+        test_slice = np.rot90(np.squeeze(image_numpy[tuple(slice(None) if k != dim else slice(0, 1) for k in range(3))]), rotate_90)
         slice_width = test_slice.shape[1]
         slice_height = test_slice.shape[0]
 
@@ -91,8 +93,8 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
         col_index = 0
 
         for i in mosaic_selections:
-            image_slice = np.rot90(np.squeeze(image_numpy[[slice(None) if k != dim else slice(i, i+1) for k in range(3)]]), rotate_90)
-            label_slice = np.rot90(np.squeeze(label_numpy[[slice(None) if k != dim else slice(i, i+1) for k in range(3)]]), rotate_90)
+            image_slice = np.rot90(np.squeeze(image_numpy[tuple(slice(None) if k != dim else slice(i, i+1) for k in range(3))]), rotate_90)
+            label_slice = np.rot90(np.squeeze(label_numpy[tuple(slice(None) if k != dim else slice(i, i+1) for k in range(3))]), rotate_90)
 
             # Again, specify from affine matrix if possible.
             if flip:
@@ -130,7 +132,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
 
         color_range_image = [np.min(image_numpy), np.max(image_numpy)]
 
-        test_slice = np.rot90(np.squeeze(image_numpy[[slice(None) if k != dim else slice(0, 1) for k in range(3)]]), rotate_90)
+        test_slice = np.rot90(np.squeeze(image_numpy[tuple(slice(None) if k != dim else slice(0,1) for k in range(3))]), rotate_90)
         slice_width = test_slice.shape[1]
         slice_height = test_slice.shape[0]
 
@@ -141,7 +143,7 @@ def create_mosaic(input_volume, outfile=None, label_volume=None, generate_outlin
         col_index = 0
 
         for i in mosaic_selections:
-            image_slice = np.squeeze(image_numpy[[slice(None) if k != dim else slice(i, i+1) for k in range(3)]])
+            image_slice = np.squeeze(image_numpy[tuple(slice(None) if k != dim else slice(i, i+1) for k in range(3))])
 
             image_slice = np.rot90(image_slice, rotate_90)
             

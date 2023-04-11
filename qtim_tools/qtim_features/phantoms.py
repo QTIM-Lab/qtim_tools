@@ -13,7 +13,7 @@ def size_cube_phantom(reference_image, output_folder):
     """
 
     nifti_3d = nib.load(reference_image)
-    image_3d = nifti_3d.get_fdata
+    image_3d = nifti_3d.get_fdata()
 
     for size_ratio in np.arange(.1, 1, .1):
         phantom_3d = np.zeros((image_3d.shape[0], image_3d.shape[1], 1))
@@ -25,7 +25,7 @@ def size_cube_phantom(reference_image, output_folder):
 def glcm_cube_phantom(reference_image, output_folder):
 
     nifti_3d = nib.load(reference_image)
-    image_3d = nifti_3d.get_fdata
+    image_3d = nifti_3d.get_fdata()
 
     for direction in ['Vertical', 'Horizontal', 'Grid']:
         for alternation_rate in np.arange(0, 6, 1):
@@ -61,7 +61,7 @@ def glcm_cube_phantom(reference_image, output_folder):
 def intensity_cube_phantom(reference_image, output_folder):
 
     nifti_3d = nib.load(reference_image)
-    image_3d = nifti_3d.get_fdata
+    image_3d = nifti_3d.get_fdata()
 
     for phantom_type in ['grey','split','checker','noisy_grey','one_spot']:
         phantom_3d = np.zeros((200, 200, 2))

@@ -330,7 +330,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 # 	"""
 
 # 	nifti_3d = nib.load(filepath)
-# 	numpy_3d = nifti_3d.get_fdata
+# 	numpy_3d = nifti_3d.get_fdata()
 # 	numpy_4d = np.zeros((numpy_3d.shape[0], numpy_3d.shape[1], stacks, numpy_3d.shape[2]), dtype=float)
 # 	numpy_3d = np.reshape(numpy_3d, (numpy_3d.shape[0], numpy_3d.shape[1], 1, numpy_3d.shape[2]))
 

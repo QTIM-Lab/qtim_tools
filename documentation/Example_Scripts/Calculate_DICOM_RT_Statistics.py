@@ -63,7 +63,7 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder,
         # Crop esophagus and spinal cord segmentations accordingly.
         for crop_segmentation in [os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'SpinalCord.nii.gz'), os.path.join(mount_path, str.split(InputGroundTruth_Base, '.')[0] + '_split', 'Esophagus.nii.gz'), os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', 'SpinalCord.nii.gz')]:
             crop_nifti = nib.load(crop_segmentation)
-            crop_numpy = crop_nifti.get_fdata
+            crop_numpy = crop_nifti.get_fdata()
             crop_numpy[:,:,0:int(axial_limits[0])] = 0
             crop_numpy[:,:,int(axial_limits[1]+1):] = 0
             nib.save(nib.Nifti1Image(crop_numpy, crop_nifti.affine), crop_segmentation)

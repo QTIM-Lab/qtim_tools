@@ -10,7 +10,7 @@ def save_alternate_nifti(filepath, levels, reference_image=[], method="z_score",
     """
 
     image = nib.load(filepath)
-    image_numpy = image.get_fdata
+    image_numpy = image.get_fdata()
     image_affine = image.affine
 
     if reference_image == []:

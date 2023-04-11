@@ -52,7 +52,7 @@ def set_nifti_affine(input_data, new_affine, output_filepath=None):
         if output_filepath is None:
             output_filepath = input_data
         input_data = nib.load(input_data)
-        output_nifti = nib.Nifti1Image(input_data.get_fdata, new_affine)
+        output_nifti = nib.Nifti1Image(input_data.get_fdata(), new_affine)
         nib.save(output_nifti, output_filepath)
     else:
         input_data.affine = new_affine
@@ -97,9 +97,9 @@ def nifti_2_numpy(input_filepath, return_header=False):
     nifti = nib.load(input_filepath)
 
     if return_header:
-        return nifti.get_fdata, [nifti.affine, nifti.header]
+        return nifti.get_fdata(), [nifti.affine, nifti.header]
     else:
-        return nifti.get_fdata
+        return nifti.get_fdata()
 
 def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_filepath):
 
