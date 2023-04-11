@@ -181,7 +181,7 @@ def compose_affines(affine_matrix_1, affine_matrix_2):
 
         output_matrix = np.zeros_like(affine_matrix_1)
 
-        for t in xrange(affine_matrix_1.shape[-1]):
+        for t in range(affine_matrix_1.shape[-1]):
             output_matrix[..., t] = np.matmul(affine_matrix_1[..., t], affine_matrix_2[...,t])
 
         return output_matrix
@@ -244,7 +244,7 @@ def generate_motion_jerk(duration, timepoint=0, rotation_peaks=[3, 3, 0], total_
 
     output_motion_array = np.zeros((4,4,total_timepoints), dtype=float)
 
-    for t in xrange(total_timepoints):
+    for t in range(total_timepoints):
 
         current_rotation_matrix = generate_identity_affine()
 
@@ -289,7 +289,7 @@ def generate_motion_tilt(timepoint, duration, rotation_peaks=[3, 3, 0], input_fi
 
     output_motion_array = np.zeros((4,4,total_timepoints), dtype=float)
 
-    for t in xrange(total_timepoints):
+    for t in range(total_timepoints):
 
         current_rotation_matrix = generate_identity_affine()
 
@@ -329,8 +329,8 @@ def get_jacobian_determinant(input_volume):
 
     temp_jacobian = np.zeros((input_numpy.shape[0:-1] + (input_numpy.shape[-1],input_numpy.shape[-1])), dtype=float)
 
-    for r in xrange(input_numpy.shape[-1]):
-        for c in xrange(input_numpy.shape[-1]):
+    for r in range(input_numpy.shape[-1]):
+        for c in range(input_numpy.shape[-1]):
             temp_jacobian[...,r,c] = np.gradient(input_numpy[..., c])[r]
 
     return np.linalg.det(temp_jacobian)
@@ -347,8 +347,8 @@ def return_jacobian_matrix(input_volume, index):
 
     temp_jacobian = np.zeros((input_numpy.shape[0:-1] + (input_numpy.shape[-1],input_numpy.shape[-1])), dtype=float)
 
-    for r in xrange(input_numpy.shape[-1]):
-        for c in xrange(input_numpy.shape[-1]):
+    for r in range(input_numpy.shape[-1]):
+        for c in range(input_numpy.shape[-1]):
             temp_jacobian[...,r,c] = np.gradient(input_numpy[..., c])[r]
 
     return temp_jacobian[index[0],index[1],index[2], :,:]

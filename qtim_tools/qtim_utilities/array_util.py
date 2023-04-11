@@ -58,7 +58,7 @@ def get_arbitrary_axis_slice(input_volume, axis, slice_num):
 
     image_slice = []
 
-    for dim in xrange(image_numpy.ndim):
+    for dim in range(image_numpy.ndim):
         if dim == axis:
             if slice_num is list:
                 image_slice += [slice(slice_num[0], slice_num[1])]

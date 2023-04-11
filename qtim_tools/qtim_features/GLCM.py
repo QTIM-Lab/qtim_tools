@@ -22,8 +22,8 @@ def glcm_2d_aggregate(image, distances, angles, levels=None, symmetric=False, no
 
     if test:
         image = np.zeros((20,20))
-        for x in xrange(1,11):
-            for y in xrange(1,11):
+        for x in range(1,11):
+            for y in range(1,11):
                 image[x,y] = x*y
         return glcm_2d(image, distances, angles, levels, symmetric, normed=False, mask_value=mask_value)
 
@@ -65,14 +65,14 @@ def glcm_2d_aggregate(image, distances, angles, levels=None, symmetric=False, no
 
     if method == "maximal_slice":
 
-        image_slice = np.squeeze(image[[slice(None) if k != aggregate_axis else slice(0, 1) for k in xrange(3)]])
+        image_slice = np.squeeze(image[[slice(None) if k != aggregate_axis else slice(0, 1) for k in range(3)]])
         maximal = [0, np.zeros_like(image_slice)]
 
-        for i in xrange(nSlice):
+        for i in range(nSlice):
             
             # Full disclosure: I'm not entirely sure how this works, 
             # but this code slices and image by an arbitrary axis
-            image_slice = np.squeeze(image[[slice(None) if k != aggregate_axis else slice(i, i+1) for k in xrange(3)]])
+            image_slice = np.squeeze(image[[slice(None) if k != aggregate_axis else slice(i, i+1) for k in range(3)]])
 
             test_maximal = (image_slice != mask_value).sum()
 
@@ -85,11 +85,11 @@ def glcm_2d_aggregate(image, distances, angles, levels=None, symmetric=False, no
 
     elif method == "sum" or method == "average":
 
-        for i in xrange(nSlice):
+        for i in range(nSlice):
             
             # Full disclosure: I'm not entirely sure how this works, 
             # but this code slices an image by an arbitrary axis
-            image_slice = np.squeeze(image[[slice(None) if k != aggregate_axis else slice(i, i+1) for k in xrange(3)]])
+            image_slice = np.squeeze(image[[slice(None) if k != aggregate_axis else slice(i, i+1) for k in range(3)]])
             slice_GLCM = glcm_2d(image_slice, distances, angles, levels, symmetric, normed=False, mask_value=mask_value)
             if method == "sum":
                 result_GLCM += slice_GLCM

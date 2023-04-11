@@ -251,7 +251,7 @@ def simplex_optimize(contrast_image_numpy, contrast_AIF_numpy, time_interval_sec
 
         print('Dividing data into ' + str(processes) + ' subgroups of length.. ' + str(int(sublength)) + ' units.')
 
-        for i in xrange(processes - 1):
+        for i in range(processes - 1):
             subunits += [contrast_image_numpy[int(i*sublength):int((i+1)*sublength),...]]
 
         subunits += [contrast_image_numpy[int((processes - 1)*sublength):,...]]
@@ -308,7 +308,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         block_B = (capital_E - (capital_E * log_e) - 1)
         block_ktrans = ktrans * time_interval / log_e_2
 
-        for i in xrange(1, np.size(contrast_AIF_numpy)):
+        for i in range(1, np.size(contrast_AIF_numpy)):
             term_A = contrast_AIF_numpy[i] * block_A
             term_B = contrast_AIF_numpy[i-1] * block_B
             append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))

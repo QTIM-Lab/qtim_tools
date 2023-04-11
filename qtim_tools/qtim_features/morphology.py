@@ -58,9 +58,9 @@ def convolve_3d(image, kernel, skip_zero=True, **kwargs):
     convolve_image = np.zeros_like(image)
     padded_image = np.lib.pad(image, (1, ), 'constant')
 
-    for x in xrange(image.shape[0], **kwargs):
-        for y in xrange(image.shape[1], **kwargs):
-            for z in xrange(image.shape[2], **kwargs):
+    for x in range(image.shape[0], **kwargs):
+        for y in range(image.shape[1], **kwargs):
+            for z in range(image.shape[2], **kwargs):
 
                 if image[x, y, z] == 0 and skip_zero:
                     pass
@@ -159,7 +159,7 @@ def calc_max_2d_distance(image, pixdims, **kwargs):
 
     total_max = 0
 
-    for z_slice in xrange(image.shape[2]):
+    for z_slice in range(image.shape[2]):
 
         image_slice = image[..., z_slice]
 
@@ -224,7 +224,7 @@ def calc_max_3d_distance(image, pixdims, **kwargs):
 
     convex_hull_vertices = []
 
-    for z_slice in xrange(image.shape[2]):
+    for z_slice in range(image.shape[2]):
 
         slice_indices = np.asarray(np.where(image[..., z_slice])).T  # Won't work for non-binary labels.
         

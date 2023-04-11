@@ -52,7 +52,7 @@ def set_nifti_affine(input_data, new_affine, output_filepath=None):
         if output_filepath is None:
             output_filepath = input_data
         input_data = nib.load(input_data)
-        output_nifti = nib.Nifti1Image(input_data.get_data(), new_affine)
+        output_nifti = nib.Nifti1Image(input_data.get_fdata, new_affine)
         nib.save(output_nifti, output_filepath)
     else:
         input_data.affine = new_affine
@@ -97,9 +97,9 @@ def nifti_2_numpy(input_filepath, return_header=False):
     nifti = nib.load(input_filepath)
 
     if return_header:
-        return nifti.get_data(), [nifti.affine, nifti.header]
+        return nifti.get_fdata, [nifti.affine, nifti.header]
     else:
-        return nifti.get_data()
+        return nifti.get_fdata
 
 def create_4d_nifti_from_3d(input_4d_numpy, reference_nifti_filepath, output_filepath):
 
@@ -173,9 +173,9 @@ def coerce_levels(image_numpy, levels=255, method="divide", reference_image=None
             image_max = np.max(image_numpy)
         else:
             image_max = np.max(reference_image)
-        for x in xrange(image_numpy.shape[0]):
-            for y in xrange(image_numpy.shape[1]):
-                for z in xrange(image_numpy.shape[2]):
+        for x in range(image_numpy.shape[0]):
+            for y in range(image_numpy.shape[1]):
+                for z in range(image_numpy.shape[2]):
                     if image_numpy[x,y,z] != mask_value:
                         image_numpy[x,y,z] = np.round((image_numpy[x,y,z] / image_max) * levels) + 1
 
@@ -235,9 +235,9 @@ def coerce_levels(image_numpy, levels=255, method="divide", reference_image=None
             image_range = [np.min(z_reference_image), np.max(z_reference_image)]
             bins = np.linspace(image_range[0], image_range[1], levels)
 
-        for x in xrange(image_numpy.shape[0]):
-            for y in xrange(image_numpy.shape[1]):
-                for z in xrange(image_numpy.shape[2]):
+        for x in range(image_numpy.shape[0]):
+            for y in range(image_numpy.shape[1]):
+                for z in range(image_numpy.shape[2]):
                     if image_numpy[x,y,z] != mask_value:
                         image_numpy[x,y,z] = (np.abs(bins-z_image_numpy[x,y,z])).argmin() + 1
 
@@ -274,7 +274,7 @@ def erode_label(image_numpy, iterations=2, mask_value=0):
     else:
         iterations == [iterations, iterations, iterations]
 
-    for i in xrange(max(iterations)):
+    for i in range(max(iterations)):
 
         kernel_center = 0
         edges_kernel = np.zeros((3,3,3),dtype=float)
@@ -319,7 +319,7 @@ def check_image_2d(image_numpy, second_image_numpy=[], slice_view="cycle", step=
     """
 
     if second_image_numpy != []:
-        for i in xrange(image_numpy.shape[0]):
+        for i in range(image_numpy.shape[0]):
             fig = plt.figure()
             a=fig.add_subplot(1,2,1)
             imgplot = plt.imshow(image_numpy[:,:,i*step], interpolation='none', aspect='auto')
@@ -328,7 +328,7 @@ def check_image_2d(image_numpy, second_image_numpy=[], slice_view="cycle", step=
             plt.show()
     else:
         if slice_view == "cycle":
-            for i in xrange(image_numpy.shape[0]):
+            for i in range(image_numpy.shape[0]):
                 fig = plt.figure()
                 imgplot = plt.imshow(image_numpy[i,:,:], interpolation='none', aspect='auto')
                 plt.show()
@@ -342,7 +342,7 @@ def check_image_2d(image_numpy, second_image_numpy=[], slice_view="cycle", step=
 
             maximal = [0, np.zeros(image_numpy.shape)]
 
-            for i in xrange(image_numpy.shape[2]):
+            for i in range(image_numpy.shape[2]):
             
                 image_slice = image_numpy[:,:,i]
 
@@ -447,10 +447,10 @@ def fill_in_convex_outline(filepath, output_file, outline_lower_threshold=[], ou
         label_file = np.zeros_like(image_file)
         # print image_file.shape
 
-        for row in xrange(image_file.shape[0]):
+        for row in range(image_file.shape[0]):
             row_section = 0
             fill_index = 0
-            for col in xrange(image_file.shape[1]):
+            for col in range(image_file.shape[1]):
                 match = False
                 pixel = image_file[row, col, ...]
                 

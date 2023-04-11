@@ -173,7 +173,7 @@ def dcm_2_numpy(input_folder, verbose=False):
             # Create numpy array data...
             output_shape = get_dicom_pixel_array(current_dicoms[0], current_files[0]).shape
             output_numpy = []
-            for i in xrange(len(current_dicoms)):
+            for i in range(len(current_dicoms)):
                 try:
                     output_numpy += [get_dicom_pixel_array(current_dicoms[i], current_files[i])]
                 except:
@@ -195,7 +195,7 @@ def dcm_2_numpy(input_folder, verbose=False):
                 output_affine = np.matmul(output_affine, harden_matrix)
 
                 flip_matrix = np.eye(4)
-                for i in xrange(3):
+                for i in range(3):
                     if output_affine[i,i] < 0:
                         flip_matrix[i,i] = -1
                         output_numpy = np.flip(output_numpy, i)
@@ -318,7 +318,7 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
             # Create numpy array data...
             output_shape = get_dicom_pixel_array(current_dicoms[0], current_files[0]).shape
             output_numpy = []
-            for i in xrange(len(current_dicoms)):
+            for i in range(len(current_dicoms)):
                 try:
                     output_numpy += [get_dicom_pixel_array(current_dicoms[i], current_files[i])]
                 except:
@@ -340,7 +340,7 @@ def dcm_2_nifti(input_folder, output_folder, verbose=True, naming_tags=['SeriesD
                 output_affine = np.matmul(output_affine, harden_matrix)
 
                 flip_matrix = np.eye(4)
-                for i in xrange(3):
+                for i in range(3):
                     if output_affine[i,i] < 0:
                         flip_matrix[i,i] = -1
                         output_numpy = np.flip(output_numpy, i)

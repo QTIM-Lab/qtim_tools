@@ -101,14 +101,14 @@ def RandomForest_Classifier():
 				prediction_labels = ['Training','Testing','Random']
 
 				for j in range(0, min(dims[0],dimsT[0])):
-					for TestTrainRandom in xrange(3):
+					for TestTrainRandom in range(3):
 						if actual[TestTrainRandom][j] == category:
 							if str(actual[TestTrainRandom][j]) != str(predicted[TestTrainRandom][j]):
 								count[TestTrainRandom] += 1
 							total[TestTrainRandom] += 1
 
 				if not 0 in total:
-					for ptype in xrange(3):
+					for ptype in range(3):
 						print prediction_labels[ptype] + ' Error Rate: ' + str(float(count[ptype]) / total[ptype])
 					print ""
 					TempResults[category-1,k[0]] = float(count[1]) / total[1]

@@ -136,7 +136,7 @@ def estimate_concentration_general(params, contrast_AIF_numpy, time_interval_min
     block_B = (capital_E - (capital_E * log_e) - 1)
     block_ktrans = ktrans * time_interval_minutes / log_e_2
 
-    for i in xrange(1, len(contrast_AIF_numpy)):
+    for i in range(1, len(contrast_AIF_numpy)):
         term_A = contrast_AIF_numpy[i] * block_A
         term_B = contrast_AIF_numpy[i-1] * block_B
         estimated_concentration[..., i] = estimated_concentration[..., i-1]*capital_E + block_ktrans * (term_A - term_B)
@@ -165,7 +165,7 @@ def estimate_concentration(params, contrast_AIF_numpy, time_interval_minutes):
     block_B = (capital_E - (capital_E * log_e) - 1)
     block_ktrans = ktrans * time_interval_minutes / log_e_2
 
-    for i in xrange(1, np.size(contrast_AIF_numpy)):
+    for i in range(1, np.size(contrast_AIF_numpy)):
         term_A = contrast_AIF_numpy[i] * block_A
         term_B = contrast_AIF_numpy[i-1] * block_B
         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
@@ -330,7 +330,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 # 	"""
 
 # 	nifti_3d = nib.load(filepath)
-# 	numpy_3d = nifti_3d.get_data()
+# 	numpy_3d = nifti_3d.get_fdata
 # 	numpy_4d = np.zeros((numpy_3d.shape[0], numpy_3d.shape[1], stacks, numpy_3d.shape[2]), dtype=float)
 # 	numpy_3d = np.reshape(numpy_3d, (numpy_3d.shape[0], numpy_3d.shape[1], 1, numpy_3d.shape[2]))
 
@@ -402,7 +402,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #     block_B = (capital_E - (capital_E * log_e) - 1)
 #     block_ktrans = ktrans * time_interval / log_e_2
 
-#     for i in xrange(1, np.size(contrast_AIF_numpy)):
+#     for i in range(1, np.size(contrast_AIF_numpy)):
 #         term_A = contrast_AIF_numpy[i] * block_A
 #         term_B = contrast_AIF_numpy[i-1] * block_B
 #         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
@@ -496,7 +496,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #     block_B = (capital_E - (capital_E * log_e) - 1)
 #     block_ktrans = ktrans * time_interval / log_e_2
 
-#     for i in xrange(1, np.size(contrast_AIF_numpy)):
+#     for i in range(1, np.size(contrast_AIF_numpy)):
 #         term_A = contrast_AIF_numpy[i] * block_A
 #         term_B = contrast_AIF_numpy[i-1] * block_B
 #         append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
@@ -542,7 +542,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #         block_B = (capital_E - (capital_E * log_e) - 1)
 #         block_ktrans = ktrans * time_interval / log_e_2
 
-#         # for i in xrange(1, np.size(contrast_AIF_numpy)):
+#         # for i in range(1, np.size(contrast_AIF_numpy)):
 #         #     term_A = contrast_AIF_numpy[i] * block_A
 #         #     term_B = contrast_AIF_numpy[i-1] * block_B
 #         #     append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
@@ -579,7 +579,7 @@ def create_gradient_phantom(output_prefix, output_shape=(20,20), ktrans_range=[.
 #         block_B = (capital_E - (capital_E * log_e) - 1)
 #         block_ktrans = ktrans * time_interval / log_e_2
 
-#         for i in xrange(1, np.size(contrast_AIF_numpy)):
+#         for i in range(1, np.size(contrast_AIF_numpy)):
 #             term_A = contrast_AIF_numpy[i] * block_A
 #             term_B = contrast_AIF_numpy[i-1] * block_B
 #             append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
