@@ -347,7 +347,7 @@ def glcm_features_calc(P, props=['contrast', 'dissimilarity', 'homogeneity', 'AS
     assert num_dist > 0
     assert num_angle > 0
 
-    if isinstance(props, basestring):
+    if isinstance(props, str):
         props = [props, ]
     num_props = len(props)
 
@@ -426,7 +426,7 @@ def glcm_features(image, distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*n
         return glcm_feats
 
 def feature_count(distances=[1,2,3,4,5], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], props=['contrast', 'dissimilarity', 'homogeneity', 'ASM', 'energy', 'entropy', 'correlation']):
-    if isinstance(props, basestring):
+    if isinstance(props, str):
         props = [props,]
     return len(distances) * len(angles) * len(props)
 

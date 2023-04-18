@@ -50,7 +50,7 @@ def resample(input_data, output_filename='', input_transform=None, method="slice
 
         temp_input, temp_output = False, False
 
-        if not isinstance(input_data, basestring):
+        if not isinstance(input_data, str):
             input_filename = os.path.join(temp_dir, 'temp.nii.gz')
             save_numpy_2_nifti(input_data, input_filename)
             temp_input = True

@@ -24,7 +24,7 @@ def return_nifti_attributes(filepath):
 
 def get_nifti_affine(input_data):
 
-    if isinstance(input_data, basestring):
+    if isinstance(input_data, str):
         affine = nib.load(input_data).affine
     else:
         affine = input_data.affine
@@ -48,7 +48,7 @@ def set_nifti_affine(input_data, new_affine, output_filepath=None):
 
     """
 
-    if isinstance(input_data, basestring):
+    if isinstance(input_data, str):
         if output_filepath is None:
             output_filepath = input_data
         input_data = nib.load(input_data)
@@ -127,7 +127,7 @@ def save_numpy_2_nifti(image_numpy, reference_nifti_filepath=None, output_filepa
     """
 
     if reference_nifti_filepath is not None:
-        if isinstance(reference_nifti_filepath, basestring):
+        if isinstance(reference_nifti_filepath, str):
             nifti_image = nib.load(reference_nifti_filepath)
             image_affine = nifti_image.affine
         else:

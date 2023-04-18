@@ -18,6 +18,7 @@ The following commands are available:
    dti_conversion               Generate DTI volumes from RAWDATA.
    label_statistics             Generate label statistics from the COREGISTRATION folder.
    mosaic                       Generate a mosaic from an input volume and optional label.
+   dce_maps                     Calculates DCE parameters maps (e.g. ktrans, ve, auc) for a given 4D Nifti file.
 ''')
 
         parser.add_argument('command', help='Subcommand to run')
@@ -132,6 +133,50 @@ The following commands are available:
         args = parser.parse_args(sys.argv[2:])
 
         qtim_tools.qtim_features.generate_feature_list(args.input_volume, label_file=args.input_label, outfile=args.output_csv, levels=args.levels, normalize_intensities=args.normalize_intensities)
+    
+    def dce_maps(self):
+        parser = argparse.ArgumentParser(description='calculates DCE parameters maps (e.g. ktrans, ve, auc) for a given 4D Nifti file.')
+        parser.add_argument('--filepath',required=True)
+        parser.add_argument('--T1_tissue',required=False,default=1000)
+        parser.add_argument('--T1_blood',required=False,default=1440)
+        parser.add_argument('--relaxivity',required=False,default=.0045)
+        parser.add_argument('--TR',required=False,default=5)
+        parser.add_argument('--TE',required=False,default=2.1)
+        parser.add_argument('--scan_time_seconds',required=False,default=(11*60))
+        parser.add_argument('--hematocrit',required=False,default=0.45)
+        parser.add_argument('--injection_start_time_seconds',required=False,default=60)
+        parser.add_argument('--flip_angle_degrees',required=False,default=30)
+        parser.add_argument('--label_file',required=False,default=[])
+        parser.add_argument('--label_suffix',required=False,default=[])
+        parser.add_argument('--label_value',required=False,default=1)
+        parser.add_argument('--mask_value',required=False,default=0)
+        parser.add_argument('--mask_threshold',required=False,default=0)
+        parser.add_argument('--T1_map_file',required=False,default=[])
+        parser.add_argument('--T1_map_suffix',required=False,default='-T1Map')
+        parser.add_argument('--AIF_label_file',required=False,default=[])
+        parser.add_argument('--AIF_value_data',required=False,default=[])
+        parser.add_argument('--AIF_value_suffix',required=False,default=[])
+        parser.add_argument('--convert_AIF_values',required=False,default=True)
+        parser.add_argument('--AIF_mode',required=False,default='label_average')
+        parser.add_argument('--AIF_label_suffix',required=False,default=[])
+        parser.add_argument('--AIF_label_value',required=False,default=1)
+        parser.add_argument('--label_mode',required=False,default='separate')
+        parser.add_argument('--param_file',required=False,default=[])
+        parser.add_argument('--default_population_AIF',required=False,default=False)
+        parser.add_argument('--initial_fitting_function_parameters',required=False,default=[.01,.01])
+        parser.add_argument('--outputs',required=False,default=['ktrans','ve','auc'])
+        parser.add_argument('--outfile_prefix',required=True)
+        parser.add_argument('--processes',required=False,default=1)
+        parser.add_argument('--gaussian_blur',required=False,default=.65)
+        parser.add_argument('--gaussian_blur_axis',required=False,default=2)
+        args,unknown=parser.parse_known_args()
+        if unknown:
+            print(f'Unrecognized arguments:{unknown}')
+
+        
+        print(f'Generating DCE maps from {args.filepath} to {args.outfile_prefix}')
+
+        qtim_tools.qtim_dce.tofts_parametric_mapper.calc_DCE_properties_single(filepath=args.filepath, T1_tissue=args.T1_tissue, T1_blood=args.T1_blood, relaxivity=args.relaxivity, TR=args.TR, TE=args.TE, scan_time_seconds=args.scan_time_seconds, hematocrit=args.hematocrit, injection_start_time_seconds=args.injection_start_time_seconds, flip_angle_degrees=args.flip_angle_degrees, label_file=args.label_file, label_suffix=args.label_suffix, label_value=args.label_value, mask_value=args.mask_value, mask_threshold=args.mask_threshold, T1_map_file=args.T1_map_file, T1_map_suffix=args.T1_map_suffix, AIF_label_file=args.AIF_label_file,  AIF_value_data=args.AIF_value_data, AIF_value_suffix=args.AIF_value_suffix, convert_AIF_values=args.convert_AIF_values, AIF_mode=args.AIF_mode, AIF_label_suffix=args.AIF_label_suffix, AIF_label_value=args.AIF_label_value, label_mode=args.label_mode, param_file=args.param_file, default_population_AIF=args.default_population_AIF, initial_fitting_function_parameters=args.initial_fitting_function_parameters, outputs=args.outputs, outfile_prefix=args.outfile_prefix, processes=args.processes, gaussian_blur=args.gaussian_blur, gaussian_blur_axis=args.gaussian_blur_axis)
 
 
 def main():

@@ -9,11 +9,6 @@ from ..qtim_utilities.array_util import extract_maximal_slice, truncate_image
 from ..qtim_utilities.image_util import save_numpy_2_img
 from ..qtim_utilities.text_util import save_numpy_2_csv
 
-# Python 3 Compatability. TODO: Consider 'six' package.
-try:
-  basestring
-except NameError:
-  basestring = str
 
 def labeled_scatter(input_data, html_directory, image_col=0, labels=False, label_col=1, x_col=2, y_col=3, color_col=-1, data_columns=-1, dimensions=[], rescale=0, extract_maximal_slice_mode='', mask_value=0, save_labels=True, ignore_errors=True, overwrite=True):
 
@@ -23,7 +18,7 @@ def labeled_scatter(input_data, html_directory, image_col=0, labels=False, label
     """
 
     # Check for csv input
-    if isinstance(input_data, basestring):
+    if isinstance(input_data, str):
         input_data = np.genfromtxt(input_data, delimiter=',', dtype=object)
 
     # Check for existence of destination folder.

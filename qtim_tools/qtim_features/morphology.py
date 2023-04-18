@@ -265,7 +265,7 @@ _default_feature_names = _default_features.keys()
 
 def morphology_features(image, attributes, features=['voxel_count', 'volume', 'surface_area', 'volume_surface_area_ratio', 'compactness', 'compactness_alternate', 'spherical_disproportion', 'sphericity', '2d_max_distance', '3d_max_distance'], mask_value=0, **kwargs):
 
-    if isinstance(features, basestring, **kwargs):
+    if isinstance(features, str, **kwargs):
         features = [features, ]
 
     results = np.zeros(len(features), dtype=float)
@@ -288,6 +288,6 @@ def featurename_strings(features=['voxel_count', 'volume', 'surface_area', 'volu
 
 
 def feature_count(features=['voxel_count', 'volume', 'surface_area', 'volume_surface_area_ratio', 'compactness', 'compactness_alternate', 'spherical_disproportion', 'sphericity', '2d_max_distance', '3d_max_distance'], **kwargs):
-    if isinstance(features, basestring, **kwargs):
+    if isinstance(features, str, **kwargs):
         features = [features, ]
     return len(features)

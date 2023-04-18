@@ -36,7 +36,7 @@ def calc_DCE_properties_single(filepath, T1_tissue=1000, T1_blood=1440, relaxivi
     print('\n')
 
     # NaN values are cleaned for ease of calculation.
-    if isinstance(filepath, basestring):
+    if isinstance(filepath, str):
         image = np.nan_to_num(nifti_2_numpy(filepath))
     else:
         image = np.nan_to_num(np.copy(filepath))
@@ -181,7 +181,7 @@ def retreive_data_from_files(filepath, label_file, label_mode, label_suffix, lab
             else:
                 AIF_value_data = []
                 print('No AIF values found at provided AIF value suffix. Continuing without... \n')   
-        if isinstance(AIF_value_data, basestring):
+        if isinstance(AIF_value_data, str):
             try:
                 AIF = np.loadtxt(AIF_value_data, dtype=object, delimiter=';')
                 AIF = [value for value in AIF if value != '']

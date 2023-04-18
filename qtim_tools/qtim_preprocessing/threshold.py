@@ -48,7 +48,7 @@ def crop_with_mask(input_data, label_data, output_filename='', mask_value=0, ret
     #     input_numpy[label_numpy != return_labels[0]] = replacement_value
 
     if output_filename != '':
-        if isinstance(input_data, basestring):
+        if isinstance(input_data, str):
             save_numpy_2_nifti(input_numpy, input_data, output_filename)
         else:
             save_numpy_2_nifti(input_numpy, output_path=output_filename)

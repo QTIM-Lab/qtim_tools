@@ -16,12 +16,6 @@ from qtim_tools.qtim_utilities.nifti_util import nifti_2_numpy
 import numpy as np
 import nibabel as nib
 
-# This is magic code for Python 3 compatability. Of course
-# this package isn't Python 3 compatible, but why not start now.
-try:
-  basestring
-except NameError:
-  basestring = str
 
 def itk_transform_2_numpy(filepath):
 
@@ -117,7 +111,7 @@ def convert_input_2_numpy(input_data, input_format=None, return_header=False, re
 
     return_items = []
 
-    if isinstance(input_data, basestring):
+    if isinstance(input_data, str):
         if input_format is None:
             input_format = check_format(input_data)
 

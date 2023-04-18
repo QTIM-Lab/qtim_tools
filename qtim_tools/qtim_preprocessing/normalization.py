@@ -52,7 +52,7 @@ def zero_mean_unit_variance(input_volume, input_mask=None, output_filename=None)
         output_numpy[mask_numpy == 0] = 0
 
     if output_filename is not None:
-        if isinstance(input_volume, basestring):
+        if isinstance(input_volume, str):
             save_numpy_2_nifti(output_numpy, input_volume, output_filename)
         else:
             save_numpy_2_nifti(output_numpy, '', output_filename)
