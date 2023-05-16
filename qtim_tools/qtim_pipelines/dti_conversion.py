@@ -139,10 +139,10 @@ def run_fdt_rotate_bvecs(input_bvec, output_bvec, input_motion):
 
 
 def run_1dtool(input_bvec, output_bvec):
-
+    script_location = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'external', '1d_tool.py'))
     print(input_bvec, output_bvec)
-    print(' '.join(['/home/abeers/abin/1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec]))
-    subprocess.call(['/home/abeers/abin/1d_tool.py', '-infile', input_bvec, '-transpose', '-write', output_bvec])
+    print(' '.join([script_location, '-infile', input_bvec, '-transpose', '-write', output_bvec]))
+    subprocess.call([script_location, '-infile', input_bvec, '-transpose', '-write', output_bvec])
 
     return
 
