@@ -79,7 +79,7 @@ def RandomForest_Classifier():
 		# for k in [[1, BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=10), n_jobs=-1, n_estimators=20)]]:
 		# for k in [[1, svm.NuSVC(nu=(.3), kernel="rbf", verbose=True, probability=True, tol=1e-6, decision_function_shape='ovr')]]:
 
-			print 'Parameter Value: ' + str(i)
+			print('Parameter Value: ' + str(i))
 
 			clf = k[1].fit(X, y)
 
@@ -91,7 +91,7 @@ def RandomForest_Classifier():
 
 			for category in range(1,6):
 
-				print 'Category: ' + str(category)
+				print('Category: ' + str(category))
 				# Assess the accuracy on training and testing data.
 				# Also compare against a random model.
 				count = [0, 0, 0]
@@ -109,8 +109,8 @@ def RandomForest_Classifier():
 
 				if not 0 in total:
 					for ptype in range(3):
-						print prediction_labels[ptype] + ' Error Rate: ' + str(float(count[ptype]) / total[ptype])
-					print ""
+						print(prediction_labels[ptype] + ' Error Rate: ' + str(float(count[ptype]) / total[ptype]))
+					print("")
 					TempResults[category-1,k[0]] = float(count[1]) / total[1]
 
 			if np.mean(TempResults[:,k[0]]) < best[k[0]]:
@@ -121,15 +121,15 @@ def RandomForest_Classifier():
 				Winner += [i]
 
 	Results[:,1] = 1 - Results[:,1]
-	print 'Best Parameters: '
-	print Winner
-	print 'Accuracy per Category: '
-	print Results
+	print('Best Parameters: ')
+	print(Winner)
+	print('Accuracy per Category: ')
+	print(Results)
 
 	np.savetxt('Results' + data_title + '.csv', Results, fmt="%s", delimiter=",")
 	np.savetxt('Predictions' + data_title + '.csv', Predictions, fmt="%s", delimiter=",")
 
-	print "All done!"
+	print("All done!")
 
 if __name__ == "__main__":
 	RandomForest_Classifier()

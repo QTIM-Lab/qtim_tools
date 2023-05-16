@@ -157,7 +157,7 @@ The following commands are available:
         parser.add_argument('--AIF_value_data',required=False,default=[])
         parser.add_argument('--AIF_value_suffix',required=False,default=[])
         parser.add_argument('--convert_AIF_values',required=False,default=True)
-        parser.add_argument('--AIF_mode',required=False,default='label_average')
+        parser.add_argument('--AIF_mode',required=False,default='population')
         parser.add_argument('--AIF_label_suffix',required=False,default=[])
         parser.add_argument('--AIF_label_value',required=False,default=1)
         parser.add_argument('--label_mode',required=False,default='separate')

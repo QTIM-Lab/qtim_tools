@@ -45,9 +45,9 @@ def Rename_LM_Files(data_directory):
     for filename in lm_file_database:
 
         # split_file = str.split(filename, '_lm_')
-        # print split_file
+        # print(split_file)
         # new_filename = split_file[0] + '_' + split_file[1] + '_lm_' + split_file[2]
-        print filename
+        print(filename)
 
         # copy(filename, new_filename)
         # os.remove(filename)
@@ -60,7 +60,7 @@ def Delete_Extra_Files(data_directory):
 
     for files in file_database:
         if '__lm__' not in files and 'simplex' not in files:
-            # print os.path.basename(os.path.normpath(files))
+            # print(os.path.basename(os.path.normpath(files)))
             os.remove(files)
 
     return
@@ -73,10 +73,10 @@ def Recode_With_Binary_Labels(data_directory):
 
 
         if 'autoAIF' not in filename and 'studyAIF' not in filename and 'same' not in filename and '_popAIF' not in filename:
-            print filename
+            print(filename)
             split_file = str.split(filename, 'VISIT_0')
             new_filename = split_file[0] + 'VISIT_0' + split_file[1][0] + '_popAIF_' + split_file[1][2:]
-            print new_filename
+            print(new_filename)
             # move(filename, new_filename)
             filename = new_filename
 
@@ -84,34 +84,34 @@ def Recode_With_Binary_Labels(data_directory):
         if 't1map' not in filename and 't1static' not in filename:
             split_file = str.split(filename, 'VISIT_0')
             new_filename = split_file[0] + 'VISIT_0' + split_file[1][0] + '_t1static_' + split_file[1][2:]
-            print new_filename
+            print(new_filename)
             move(filename, new_filename)
             filename = new_filename
 
         if 't1static_t1static_' in filename:
             new_filename = filename.replace('t1static_t1static_', 't1static_')
-            print filename
-            print new_filename
+            print(filename)
+            print(new_filename)
             move(filename, new_filename)
             filename = new_filename
 
         if 'sameAIF__autoAIF' in filename:
             new_filename = filename.replace('sameAIF__autoAIF', 'sameAutoAIF')
-            print filename
-            print new_filename
+            print(filename)
+            print(new_filename)
             # move(filename, new_filename)
             filename = new_filename
 
         if 'threshold_-1' in filename:
             new_filename = filename.replace('threshold_-1', 'threshold_none')
             move(filename, new_filename)
-            print new_filename
+            print(new_filename)
             filename = new_filename
 
         if 'threshold_0.01' in filename:
             new_filename = filename.replace('threshold_0.01', 'threshold_PCA')
             move(filename, new_filename)
-            print new_filename
+            print(new_filename)
             filename = new_filename
 
     return
@@ -139,25 +139,25 @@ def Create_Resource_Directories(CED_directory, NHX_directory, ROI_folder, AIF_fo
             ROI = os.path.join(subdir, visit, 'ROISTATS', 'T1AxialPost', 'rT1AxialPostROI.nii')
             output_path = os.path.join(ROI_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_ROI.nii')
             if os.path.exists(ROI):
-                print output_path
+                print(output_path)
                 copy(ROI, output_path)
 
             # AIF = os.path.join(subdir, visit, 'MAPS', 'NORDIC_ICE_AIF.txt')
             # output_path = os.path.join(AIF_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_AIF.txt')
             # if os.path.exists(AIF):
-            #     print output_path
+            #     print(output_path)
             #     copy(AIF, output_path)
 
             # T1MAP = os.path.join(subdir, visit, 'MAPS', 'T1inDCE.nii')
             # output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_T1inDCE.nii')
             # if os.path.exists(T1MAP):
-            #     print output_path
+            #     print(output_path)
             #     copy(T1MAP, output_path)
 
             DCE = os.path.join(subdir, visit, 'MAPS', 'dce_mc_st_eco1.nii')
             output_path = os.path.join(output_folder, os.path.basename(os.path.normpath(subdir)) + '_' + visit + '_DCE_ECHO1.nii')
             if os.path.exists(DCE):
-                print output_path
+                print(output_path)
                 copy(DCE, output_path)
 
 def Convert_NordicIce_AIF(AIF_directory, output_suffix='_AIF'):
@@ -165,8 +165,8 @@ def Convert_NordicIce_AIF(AIF_directory, output_suffix='_AIF'):
     AIF_numpy_list = [[np.loadtxt(AIF, dtype=float), AIF] for AIF in AIF_list]
 
     for AIF in AIF_numpy_list:
-        print AIF[1]
-        print AIF[0].shape
+        print(AIF[1])
+        print(AIF[0].shape)
 
         np.savetxt(replace_suffix(AIF[1], '', output_suffix), AIF[0][None], fmt='%2.5f', delimiter=';')
 
@@ -183,17 +183,17 @@ def Create_Study_AIF(AIF_directory, output_AIF):
     AIF_array = np.zeros((len(AIF_numpy_list), 60), dtype=object)
 
     for row_idx, row in enumerate(AIF_array):
-        print len(AIF_numpy_list[row_idx][0])
-        print AIF_numpy_list[row_idx][1]
-        print AIF_numpy_list[row_idx][0]
+        print(len(AIF_numpy_list[row_idx][0]))
+        print(AIF_numpy_list[row_idx][1])
+        print(AIF_numpy_list[row_idx][0])
         AIF_array[row_idx, :] = AIF_numpy_list[row_idx][0][0:60]
 
     np.set_printoptions(suppress=True)
 
     AIF_array = AIF_array.astype(float)
-    print AIF_array.shape
-    print np.mean(AIF_array, axis=0)
-    print np.mean(AIF_array, axis=0).T.shape
+    print(AIF_array.shape)
+    print(np.mean(AIF_array, axis=0))
+    print(np.mean(AIF_array, axis=0).T.shape)
 
     np.savetxt(output_AIF, np.mean(AIF_array, axis=0)[None], fmt='%2.5f', delimiter=';')
 
@@ -208,7 +208,7 @@ def Create_Average_AIF(AIF_directory, output_AIF_directory):
 
     for AIF_idx, AIF in enumerate(AIF_list):
 
-        # print AIF
+        # print(AIF)
 
         if 'VISIT_01' in AIF:
 
@@ -216,15 +216,15 @@ def Create_Average_AIF(AIF_directory, output_AIF_directory):
             split_AIF[3] = '02'
             visit_2_AIF = os.path.join(AIF_directory, '_'.join(split_AIF))
 
-            print visit_2_AIF
+            print(visit_2_AIF)
 
             if not os.path.exists(visit_2_AIF):
                 continue
 
             AIF_numpy_1, AIF_numpy_2 = np.loadtxt(AIF, delimiter=';', dtype=object), np.loadtxt(visit_2_AIF, delimiter=';', dtype=object)
 
-            print AIF_numpy_1
-            print AIF_numpy_2
+            print(AIF_numpy_1)
+            print(AIF_numpy_2)
 
             output_AIF = (AIF_numpy_1[0:60].astype(float) + AIF_numpy_2[0:60].astype(float)) / 2.0
             output_filename = os.path.join(output_AIF_directory, '_'.join(split_AIF[0:4]) + '_AIF_average.txt')
@@ -244,10 +244,10 @@ def Store_Unneeded_Codes(data_directory, storage_directory):
     for file in file_database:
 
         if 'pca_0' in file and ('blur_0.2' in file or 'blur_0_' in file) and ('threshold_-1' in file or 'threshold_none' in file):
-            # print os.path.basename(file)
+            # print(os.path.basename(file))
             move(file, os.path.join(data_directory, os.path.basename(file)))
 
-    print i
+    print(i)
 
 def Store_and_Retrieve(data_directory, storage_directory):
 
@@ -257,7 +257,7 @@ def Store_and_Retrieve(data_directory, storage_directory):
     for file in file_database:
 
         if 'blur_0.8' in file or 'lm' in file or 'conv' in file:
-            print os.path.basename(file)
+            print(os.path.basename(file))
             move(file, os.path.join(storage_directory, os.path.basename(file)))
 
     # Retrieve
@@ -266,7 +266,7 @@ def Store_and_Retrieve(data_directory, storage_directory):
     for file in file_database:
 
         if 'pca_0' in file and ('blur_0.2' in file or 'blur_0_' in file) and ('simplex' in file and 'recursive' in file) and ('threshold_-1' in file or 'threshold_none' in file):
-            print os.path.basename(file)
+            print(os.path.basename(file))
             move(file, os.path.join(data_directory, os.path.basename(file)))
 
 def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
@@ -298,7 +298,7 @@ def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
 
         data_array = convert_input_2_numpy(filename)
         r2_array = convert_input_2_numpy(replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_'))
-        # print replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_')
+        # print(replace_suffix(filename, input_suffix=None, output_suffix='r2', suffix_delimiter='_'))
 
         patient_visit_code = os.path.basename(os.path.normpath(filename))[0:15]
         roi_array = ROI_dict[patient_visit_code]
@@ -307,13 +307,13 @@ def Determine_R2_Cutoff_Point(input_directory, ROI_directory):
             r2_masked_num[r2_idx] += ((r2_array <= r2_threshold) & (roi_array > 0)).sum()
             r2_total_num[r2_idx] += (roi_array > 0).sum()
 
-        print np.array(r2_masked_num, dtype=float) / np.array(r2_total_num, dtype=float)
+        print(np.array(r2_masked_num, dtype=float) / np.array(r2_total_num, dtype=float))
 
     r2_percent_num = np.array(r2_masked_num, dtype=float) / np.array(r2_total_num, dtype=float)
 
     for r2_idx, r2_threshold in enumerate(xrange(0,1,.01)):
-        print r2_threshold
-        print r2_percent_num[r2_idx]
+        print(r2_threshold)
+        print(r2_percent_num[r2_idx])
 
     return
 
@@ -330,11 +330,11 @@ def Preprocess_Volumes(input_directory, output_directory, r2_threshold=.9):
         os.mkdir(output_directory)
 
     file_database = glob.glob(os.path.join(input_directory, '*r2*.nii*'))
-    print os.path.join(input_directory, '*r2*.nii*')
+    print(os.path.join(input_directory, '*r2*.nii*'))
 
     for file in file_database:
 
-        print file
+        print(file)
 
         input_ktrans = replace_suffix(file, 'r2', 'ktrans')
         input_ve = replace_suffix(file, 'r2', 've')
@@ -344,13 +344,13 @@ def Preprocess_Volumes(input_directory, output_directory, r2_threshold=.9):
         output_kep = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'kep_r2_' + str(r2_threshold)))
         output_r2 = os.path.join(output_directory, replace_suffix(os.path.basename(file), 'r2', 'r2_r2_' + str(r2_threshold)))
 
-        print input_ktrans
+        print(input_ktrans)
 
         r2_map = np.nan_to_num(convert_input_2_numpy(file))
         ktrans_map = convert_input_2_numpy(input_ktrans)
         ve_map = convert_input_2_numpy(input_ve)
 
-        print (r2_map < r2_threshold).sum()
+        print((r2_map < r2_threshold).sum())
 
         ve_map[ktrans_map > 10] = 0
         ktrans_map[ktrans_map > 10] = 0
@@ -421,7 +421,7 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
                                 ((r2_array >= r2) & (roi_array > 0)).sum(), 
                                 float(((r2_array >= r2) & (roi_array > 0)).sum()) / float((roi_array > 0).sum())]
 
-                print ROI_values
+                print(ROI_values)
 
                 output_data[row_idx+1] = [filename] + ROI_values
 
@@ -431,13 +431,13 @@ def Save_Directory_Statistics(input_directory, ROI_directory, output_csv, mask=F
 
 def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2, r2_thresholds=[.9]):
 
-    print r2_thresholds
+    print(r2_thresholds)
 
     for r2 in r2_thresholds:
 
         input_data = np.genfromtxt(replace_suffix(input_csv, '', '_' + str(r2)), delimiter=',', dtype=object, skip_header=1)
 
-        print input_data
+        print(input_data)
 
         visit_1_list = [x for x in input_data[:,0] if 'VISIT_01' in x]
 
@@ -458,7 +458,7 @@ def Paired_Visits_Worksheet(input_csv, output_csv, grab_column=2, r2_thresholds=
 
                 if new_visit in input_data[:,0]:
                     
-                    print np.where(input_data == visit)[0][0]
+                    print(np.where(input_data == visit)[0][0])
 
                     output_data[visit_idx+1, 0] = visit
                     output_data[visit_idx+1, 1] = input_data[np.where(input_data == visit)[0][0], grab_column]
@@ -498,7 +498,7 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv, r2_thresholds=[.9]
 
         available_patients = []
         for key, value in method_dict.iteritems():
-            print key
+            print(key)
             if len(value) < 5:
                 continue
             if available_patients == []:
@@ -506,8 +506,8 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv, r2_thresholds=[.9]
             if len(value) < len(available_patients):
                 available_patients = value
 
-        print available_patients
-        print len(available_patients)
+        print(available_patients)
+        print(len(available_patients))
         
         new_input_data = np.zeros((1,3), dtype=object)
         for row_idx, row in enumerate(input_data):
@@ -548,14 +548,14 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv, r2_thresholds=[.9]
                     # patient_list = np.where(method in input_data)
                     patient_list = [method == str.split(x, '/')[-1][15:] for x in input_data[:,0]]
                     patient_list = input_data[patient_list, :]
-                    # print 'METHOD', method
+                    # print('METHOD', method)
 
                     # Non-Iterative Equations
 
                     not_masked = [(x[1] != 'nan' and x[2] != 'nan') for x in patient_list]
-                    # print not_masked
+                    # print(not_masked)
                     not_masked_patient_list = patient_list[not_masked, :]
-                    # print not_masked_patient_list
+                    # print(not_masked_patient_list)
                     x, y = not_masked_patient_list[:,1].astype(float), not_masked_patient_list[:,2].astype(float)
 
                     if not_masked_patient_list.shape[0] < 10:
@@ -600,7 +600,7 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv, r2_thresholds=[.9]
                         if skip:
                             continue
 
-                        print data_points
+                        print(data_points)
 
                         RMS_sum += np.power(abs(data_points[0] - data_points[1]) / np.mean(data_points), 2)
                         LOG_sum += np.power(np.log(data_points[0]) - np.log(data_points[1]), 2)
@@ -614,20 +614,20 @@ def Coeffecient_of_Variation_Worksheet(input_csv, output_csv, r2_thresholds=[.9]
                     RC = (SD_sum_1 / n) * 1.96
 
                     output_data[row_idx+1, :] = [method, RMS_COV, LOG_COV, SD_COV, CCC, R2_score, LOA_pos, LOA_neg, RC, mean_all_vals, n]
-                    # print output_data[row_idx+1, :]
+                    # print(output_data[row_idx+1, :])
 
                     finished_methods += [method]
-                    # print methods
+                    # print(methods)
 
                     if output_data[row_idx+1, 0] != 0 and output_data[row_idx+1, 0] != '0':
-                        print 'nice'
+                        print('nice')
                         csvfile.writerow(output_data[row_idx+1,:])
 
                     row_idx += 1
 
 
                 else:
-                    # print 'SKIPPED!!!!'
+                    # print('SKIPPED!!!!')
                     continue
 
     return

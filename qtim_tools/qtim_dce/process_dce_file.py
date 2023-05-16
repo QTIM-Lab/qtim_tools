@@ -44,8 +44,8 @@ if __name__ == "__main__":
 # 		opts, args = getpot.getpot(argv)
 
 # 	except Usage, err:
-# 		print >>sys.stderr, err.msg
-# 		print >>sys.stderr, "Invalid options/parameters. For parameter help, type -help or -h."
+# 		print(>>sys.stderr, err.msg)
+# 		print(>>sys.stderr, "Invalid options/parameters. For parameter help, type -help or -h.")
 # 		return 2
 
 	tofts_parameter_calculator.calc_DCE_properties_single(filepath, label_file=[], param_file=[], AIF_label_file=[], AIF_value_data=AIF_value_data, convert_AIF_values=False, outputs=['ktrans','ve','auc'], T1_tissue=1500, T1_blood=1440, relaxivity=.0039, TR=6.8, TE=2.1, scan_time_seconds=(6*60), hematocrit=0.45, injection_start_time_seconds=160, flip_angle_degrees=10, label_suffix=[], AIF_mode='population', AIF_label_suffix='-AIF-label', AIF_label_value=1, label_mode='separate', default_population_AIF=False, initial_fitting_function_parameters=[.01,.1], outfile_prefix='mead_cobyal_high_ktrans_max_individual_ktrans_no_mask', processes=22, mask_threshold=20, mask_value=-1, gaussian_blur=.65, gaussian_blur_axis=2)

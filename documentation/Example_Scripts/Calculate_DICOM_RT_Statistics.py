@@ -68,7 +68,7 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder,
             crop_numpy[:,:,int(axial_limits[1]+1):] = 0
             nib.save(nib.Nifti1Image(crop_numpy, crop_nifti.affine), crop_segmentation)
     else:
-        print 'WARNING: No esophagus file found in the ground truth DICOM-RT. No truncation of the spinal cord to match the esophagus will occur.'
+        print('WARNING: No esophagus file found in the ground truth DICOM-RT. No truncation of the spinal cord to match the esophagus will occur.')
 
     # Create Output CSV
     output_array = np.zeros((2, len(Labels.keys())*3+1), dtype=object)
@@ -88,7 +88,7 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder,
             output = str.split(output, '\n')
             output = [x.replace(' ', '') for x in output]
 
-            print output
+            print(output)
 
             DICE = str.split(output[7], ':')[1]
             HAUSDORFF = str.split(output[-2], '=')[1]
@@ -102,8 +102,8 @@ def Compare_Segmentations(InputSeg, InputGroundTruth, InputVolume, OutputFolder,
             output_array[1,output_index + 2] = AVERAGE_DISTANCE
             output_index += 3
 
-            print os.path.basename(os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', Label_Name + '.nii.gz'))
-            print DICE, ' ', HAUSDORFF, ' ', AVERAGE_DISTANCE
+            print(os.path.basename(os.path.join(mount_path, str.split(InputSeg_Base, '.')[0] + '_split', Label_Name + '.nii.gz')))
+            print(DICE, ' ', HAUSDORFF, ' ', AVERAGE_DISTANCE)
 
             Labels.pop(Label_Name)
 

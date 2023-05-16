@@ -276,7 +276,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
     contrast_AIF_numpy = contrast_AIF_numpy[bolus_time:]
 
-    np.set_printoptions(threshold=np.nan)
+    #np.set_printoptions(threshold=np.nan)
     power = np.power
     sum = np.sum
     e = math.e
@@ -301,7 +301,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         kep = ktrans / ve
 
         log_e = -1 * kep * time_interval
-        capital_E = e**log_e
+        capital_E = e**np.float128(log_e)
         log_e_2 = log_e**2
 
         block_A = (capital_E - log_e - 1)
@@ -318,7 +318,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
         # estimated_concentration = estimated_concentration[0:np.size(res)]        
 
-        difference_term = observed_concentration- estimated_concentration
+        difference_term =np.float128(observed_concentration- estimated_concentration)
         difference_term = power(difference_term, 2)
 
         return sum(difference_term)
@@ -367,7 +367,7 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
         ktrans = result_params[0]
         ve = result_params[1]
 
-        print([ktrans, ve, auc])
+       #print([ktrans, ve, auc])
 
         output_image[index + (0,)] = ktrans
         output_image[index + (1,)] = ve

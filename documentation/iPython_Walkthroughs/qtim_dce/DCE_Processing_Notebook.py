@@ -3,7 +3,7 @@ from qtim_tools.test_data import load_test_file
 
 # test_file = "your_file_here.nii.gz"
 test_file = load_test_file(data="dce_tofts_v6")
-print 'Test File Loaded: ' + test_file
+print('Test File Loaded: ' + test_file)
 
 from qtim_tools.qtim_dce import tofts_parametric_mapper
 
@@ -19,7 +19,7 @@ injection_start_time_seconds=60
 flip_angle_degrees=30
 
 test_file_label = load_test_file(data="dce_tofts_v6_label")
-print 'Loaded test label: ' + test_file_label
+print('Loaded test label: ' + test_file_label)
 
 # Label File Parameters
 label_file=test_file_label
