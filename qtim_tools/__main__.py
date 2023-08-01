@@ -77,17 +77,16 @@ The following commands are available:
         parser = argparse.ArgumentParser(
             description='Generate DTI modalities from QTIM study raw data.')
 
-        parser.add_argument('study_name', type=str)
-        parser.add_argument('base_directory', type=str)
-        parser.add_argument('-case', type=str)     
-        parser.add_argument('-output_modalities', type=str)
-        parser.add_argument('-overwrite', type=bool)         
-        parser.add_argument('-config', type=str)   
+        parser.add_argument('study_name')
+        parser.add_argument('base_directory')
+        parser.add_argument('-case', default=None)     
+        parser.add_argument('-output_modalities',default=[])
+        parser.add_argument('-overwrite',default=[False],type=eval)            
 
         args = parser.parse_args(sys.argv[2:])
         print('Running DTI conversion on study directory... %s' % args.study_name)
 
-        qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(args.study_name, args.base_directory, specific_case=args.case, output_modalities=args.output_modalities, overwrite=args.overwrite)
+        qtim_tools.qtim_pipelines.dti_conversion.qtim_dti_conversion(study_name=args.study_name,base_directory=args.base_directory, specific_case=args.case, output_modalities=args.output_modalities, overwrite=args.overwrite)
 
     def label_statistics(self):
         parser = argparse.ArgumentParser(
@@ -152,7 +151,7 @@ The following commands are available:
         parser.add_argument('--mask_value',required=False,default=0)
         parser.add_argument('--mask_threshold',required=False,default=0)
         parser.add_argument('--T1_map_file',required=False,default=[])
-        parser.add_argument('--T1_map_suffix',required=False,default='-T1Map')
+        parser.add_argument('--T1_map_suffix',required=False,default=[])
         parser.add_argument('--AIF_label_file',required=False,default=[])
         parser.add_argument('--AIF_value_data',required=False,default=[])
         parser.add_argument('--AIF_value_suffix',required=False,default=[])
@@ -164,14 +163,12 @@ The following commands are available:
         parser.add_argument('--param_file',required=False,default=[])
         parser.add_argument('--default_population_AIF',required=False,default=False)
         parser.add_argument('--initial_fitting_function_parameters',required=False,default=[.01,.01])
-        parser.add_argument('--outputs',required=False,default=['ktrans','ve','auc'])
+        parser.add_argument('--outputs',required=False,default=['ktrans'])
         parser.add_argument('--outfile_prefix',required=True)
         parser.add_argument('--processes',required=False,default=1)
         parser.add_argument('--gaussian_blur',required=False,default=.65)
         parser.add_argument('--gaussian_blur_axis',required=False,default=2)
-        args,unknown=parser.parse_known_args()
-        if unknown:
-            print(f'Unrecognized arguments:{unknown}')
+        args=parser.parse_args(sys.argv[2:])
 
         
         print(f'Generating DCE maps from {args.filepath} to {args.outfile_prefix}')

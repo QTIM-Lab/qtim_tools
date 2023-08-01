@@ -286,42 +286,47 @@ def simplex_optimize_loop(contrast_image_numpy, contrast_AIF_numpy, time_interva
 
     ktransmax = 1
 
+
     def cost_function(params):
-
-        # The estimate concentration function is repeated locally to eke out every last bit of efficiency
-        # from this massively looping program. As much as possible is calculated outside the loop for
-        # performance reasons. Appending is faster than pre-allocating space in this case - who knew.
-
-        estimated_concentration = [0]
-
-        append = estimated_concentration.append
-
+        #estimated_concentration=[0]
+        #append = estimated_concentration.append
         ktrans = params[0]
-        ve = params[1]
+        ve = params [1]
         kep = ktrans / ve
+        
+        """log_e = -1 * kep * time_interval
+        capital_E = np.exp(log_e,dtype=np.float128)
+        log_e_2 = log_e ** 2
 
-        log_e = -1 * kep * time_interval
-        capital_E = e**np.float128(log_e)
-        log_e_2 = log_e**2
+        block_A = (capital_E - log_e -1)
+        block_B = (capital_E -(capital_E * log_e) -1)
+        
+        if np.isnan(block_B):
+            block_B = 0.0
 
-        block_A = (capital_E - log_e - 1)
-        block_B = (capital_E - (capital_E * log_e) - 1)
         block_ktrans = ktrans * time_interval / log_e_2
 
-        for i in range(1, np.size(contrast_AIF_numpy)):
+        for i in range(1,np.size(contrast_AIF_numpy)):
             term_A = contrast_AIF_numpy[i] * block_A
             term_B = contrast_AIF_numpy[i-1] * block_B
-            append(estimated_concentration[-1]*capital_E + block_ktrans * (term_A - term_B))
+            result = estimated_concentration[-1] * capital_E + block_ktrans * (term_A - term_B)
+            if mp.isnan(result) or mp.isinf(result):
+                result = 0.0
+            append(result)"""
 
-        # This is a much faster, but less accurate curve generation method
-        # res = np.exp(-1*kep*time_series)
-        # estimated_concentration = ktrans * np.convolve(contrast_AIF_numpy, res) * time_series[1]
-        # estimated_concentration = estimated_concentration[0:np.size(res)]        
+        ###Faster, but potentially inaccurate
 
-        difference_term =np.float128(observed_concentration- estimated_concentration)
-        difference_term = power(difference_term, 2)
+        res=np.exp(-1*kep*time_series)
+        estimated_concentration=ktrans*np.convolve(contrast_AIF_numpy,res)*time_series[1]
+        estimated_concentration=estimated_concentration[0:np.size(res)]
 
-        return sum(difference_term)
+        difference_term = observed_concentration - estimated_concentration
+        difference_term = np.power(difference_term,2)
+
+        return np.sum(difference_term)
+
+
+
 
     # These constraints are currently unused.
     def ve_constraint1(params):

@@ -3,9 +3,9 @@
 # system libraries
 import sys, os
 
-if 0 :  # for testing, might add the current dir and ~/abin to the PATH
-   try:    sys.path.extend(['.', '/home/abeers_bin'])
-   except: pass
+# if 0 :  # for testing, might add the current dir and ~/abin to the PATH
+#    try:    sys.path.extend(['.', '/home/abeers_bin'])
+#    except: pass
 
 import gc, math
 
@@ -1161,9 +1161,11 @@ class A1DInterface:
          adata = LAD.Afni1D(fname, verb=self.verb)
          self.dtype = 1
 
-      if not adata.ready: return 1
+      if not adata.ready:
+          return 1
 
-      if self.verb > 2: print "++ read 1D data from file '%s'" % fname
+      if self.verb > 2:
+          print("++ read 1D data from file '%s'" % fname)
 
       self.fname = fname
       self.adata = adata
@@ -1173,28 +1175,29 @@ class A1DInterface:
 
    def write_1D(self, fname):
       """write the current 1D data out (return status)"""
-      if self.verb > 1: print '++ writing 1D file %s' % fname
+      if self.verb > 1:
+          print('++ writing 1D file %s' % fname)
       if not self.adata:
-         print '** no 1D data to write'
-         return 1
+          print('** no 1D data to write')
+          return 1
       return self.adata.write(fname, overwrite=self.overwrite)
 
    def write_as_timing(self, fname, invert=0):
       """write the current 1D data out as a timing file, where a time
          is written if data at the current TR is set (non-zero)"""
       if not self.adata:
-         print '** no 1D data to write as timing'
-         return 1
+          print('** no 1D data to write as timing')
+          return 1
       return self.adata.write_as_timing(fname, invert=invert)
 
    def write_split_into_pad_runs(self, prefix):
       """break input file into one file per run, where each output file has
          all non-current runs as 0 (so file lengths stay the same)"""
       if not self.adata:
-         print '** no 1D data to write as timing'
+         print('** no 1D data to write as timing')
          return 1
       if self.set_nruns == 0 and len(self.set_run_lengths) == 0:
-         print '** -split_into_pad_runs requires -set_nruns or -set_run_lengths'
+         print('** -split_into_pad_runs requires -set_nruns or -set_run_lengths')
          return 1
       return self.adata.split_into_padded_runs(prefix, overwrite=self.overwrite)
 
@@ -1454,33 +1457,35 @@ class A1DInterface:
       self.valid_opts.check_special_opts(sys.argv)
 
       if len(sys.argv) <= 1 or '-help' in sys.argv:
-         print g_help_string
-         return 0
+          print(g_help_string)
+          return 0
 
       if '-hist' in sys.argv:
-         print g_history
-         return 0
+          print(g_history)
+          return 0
 
       if '-show_valid_opts' in sys.argv:
-         self.valid_opts.show('', 1)
-         return 0
+          self.valid_opts.show('', 1)
+          return 0
 
       if '-ver' in sys.argv:
-         print g_version
-         return 0
+          print(g_version)
+          return 0
 
       # ============================================================
       # read options specified by the user
       # ============================================================
       self.user_opts = OL.read_options(sys.argv, self.valid_opts)
       uopts = self.user_opts            # convenience variable
-      if not uopts: return 1            # error condition
+      if not uopts:
+          return 1            # error condition
 
       # ------------------------------------------------------------
       # process verb first
 
       val, err = uopts.get_type_opt(int, '-verb')
-      if val != None and not err: self.verb = val
+      if val is not None and not err:
+          self.verb = val
 
       # ------------------------------------------------------------
       # process all other options:
@@ -1490,45 +1495,53 @@ class A1DInterface:
          # ---- main options -----
          if opt.name == '-infile':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.infile = val
 
          # ----- already processed options -----
 
-         elif opt.name == '-verb': pass
+         elif opt.name == '-verb':
+             pass
 
          # ----- general options -----
 
          elif opt.name == '-add_cols':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.add_cols_file = val
 
          elif opt.name == '-set_nruns':
             val, err = uopts.get_type_opt(int, '', opt=opt)
-            if err: return 1
-            if val > 0: self.set_nruns = val
+            if err:
+                return 1
+            if val > 0:
+                self.set_nruns = val
             else:
-               print '** -set_nruns must be positive'
+               print('** -set_nruns must be positive')
                return 1
             if len(self.set_run_lengths) > 0:
-               print '** cannot use both -set_nruns and -set_run_lengths'
+               print('** cannot use both -set_nruns and -set_run_lengths')
                return 1
 
          elif opt.name == '-set_run_lengths':
             val, err = uopts.get_type_list(int, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.set_run_lengths = val
             if self.set_nruns > 0:
-               print '** cannot use both -set_nruns and -set_run_lengths'
+               print('** cannot use both -set_nruns and -set_run_lengths')
                return 1
 
          elif opt.name == '-set_tr':
             val, err = uopts.get_type_opt(float, '', opt=opt)
-            if err: return 1
-            if val > 0: self.set_tr = val
+            if err:
+                return 1
+            if val > 0:
+                self.set_tr = val
             else:
-               print '** -set_tr must be positive'
+               print('** -set_tr must be positive')
                return 1
 
          # ----- general options -----
@@ -1538,7 +1551,8 @@ class A1DInterface:
 
          elif opt.name == '-rank_style':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.rank = val
 
          elif opt.name == '-reverse_rank':
@@ -1546,7 +1560,8 @@ class A1DInterface:
 
          elif opt.name == '-censor_infile':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.censor_infile = val
 
          elif opt.name == '-censor_fill':
@@ -1554,30 +1569,33 @@ class A1DInterface:
 
          elif opt.name == '-censor_fill_parent':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.censor_fill_par = val
 
          elif opt.name == '-censor_motion':
             val, err = uopts.get_string_list('', opt=opt)
-            if err: return 1
-            try: limit = float(val[0])
+            if err:
+                return 1
+            try:
+                limit = float(val[0])
             except:
-               print "** -censor_motion: bad limit '%s'" % val[0]
-               return 1
+                print("** -censor_motion: bad limit '%s'" % val[0])
+                return 1
             if limit < 0:
-               print "** -censor_motion: LIMIT must be positive, have %g"%limit
-               return 1
+                print("** -censor_motion: LIMIT must be positive, have %g"%limit)
+                return 1
             # check for redundant options
             errors = 0
             olist = ['-derivative', '-collapse_cols', '-extreme_mask',
                      'moderate_mask', '-write_censor', '-write_CENSORTR']
             for oname in olist:
                if uopts.find_opt(oname):
-                  print "** option %s is redundant with -censor_motion" % oname
-                  errors += 1
+                   print("** option %s is redundant with -censor_motion" % oname)
+                   errors += 1
             if errors:
                ss = "\n** -censor_motion implies each of: %s"%', '.join(olist)
-               print UTIL.add_line_wrappers(ss, wrapstr='\n')
+               print(UTIL.add_line_wrappers(ss, wrapstr='\n'))
                return 1
             # set implied options
             self.derivative = 1
@@ -1591,7 +1609,8 @@ class A1DInterface:
 
          elif opt.name == '-censor_first_trs':
             val, err = uopts.get_type_opt(int, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.censor_first_trs = val
 
          elif opt.name == '-censor_next_TR':
@@ -1602,15 +1621,18 @@ class A1DInterface:
 
          elif opt.name == '-collapse_cols':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.collapse_method = val
 
          elif opt.name == '-cormat_cutoff':
             val, err = uopts.get_type_opt(float, '', opt=opt)
-            if err: return 1
-            if val >= 0 and val < 1.0: self.cormat_cutoff = val
+            if err:
+                return 1
+            if val >= 0 and val < 1.0:
+                self.cormat_cutoff = val
             else:
-               print '** -cormat_cutoff must be in [0,1)'
+               print('** -cormat_cutoff must be in [0,1)')
                return 1
 
          elif opt.name == '-demean':
@@ -1621,18 +1643,20 @@ class A1DInterface:
 
          elif opt.name == '-weight_vec':
             val, err = uopts.get_type_list(float, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.weight_vec = val
 
          elif opt.name == '-extreme_mask':
             val, err = uopts.get_type_list(float, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             if val[0]<=val[1]:
                self.set_extremes = 1
                self.extreme_min = val[0]
                self.extreme_max = val[1]
             else:
-               print '** -extreme_mask: must have min <= max'
+               print('** -extreme_mask: must have min <= max')
                return 1
 
          elif opt.name == '-backward_diff':
@@ -1650,23 +1674,26 @@ class A1DInterface:
 
          elif opt.name == '-moderate_mask':
             val, err = uopts.get_type_list(float, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             if val[0]<=val[1]:
                self.set_moderates = 1
                self.extreme_min = val[0]
                self.extreme_max = val[1]
             else:
-               print '** -extreme_mask: must have min <= max'
+               print('** -extreme_mask: must have min <= max')
                return 1
 
          elif opt.name == '-label_prefix_drop':
             val, err = uopts.get_string_list('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.label_pre_drop = val
 
          elif opt.name == '-label_prefix_keep':
             val, err = uopts.get_string_list('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.label_pre_keep = val
 
          # looks_like options, to test AfniData (not Afni1D)
@@ -1687,19 +1714,22 @@ class A1DInterface:
          elif opt.name == '-pad_into_many_runs':
             vals, err = uopts.get_type_list(int, '', 
                               len_name='-pad_into_many_runs', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.pad_to_runs = vals
 
          elif opt.name == '-quick_censor_count':
             val, err = uopts.get_string_list('', opt=opt)
-            if err: return 1
-            try: limit = float(val[0])
+            if err:
+                return 1
+            try:
+                limit = float(val[0])
             except:
-               print "** -censor_motion: bad limit '%s'" % val[0]
-               return 1
+                print("** -censor_motion: bad limit '%s'" % val[0])
+                return 1
             if limit < 0:
-               print "** -quick_censor_count: LIMIT must be > 0, have %g"%limit
-               return 1
+                print("** -quick_censor_count: LIMIT must be > 0, have %g"%limit)
+                return 1
             # check for redundant options
             errors = 0
             olist = ['-derivative', '-demean', '-collapse_cols',
@@ -1707,16 +1737,17 @@ class A1DInterface:
                      '-show_censor_count', '-verb']
             for oname in olist:
                if uopts.find_opt(oname):
-                  print "** option %s is redundant with -quick_censor_count" \
-                        % oname
+                  print("** option %s is redundant with -quick_censor_count" \
+                          % oname)
                   errors += 1
             olist = ['-censor_motion', '-write_censor', '-extreme_mask']
             for oname in olist:
                if uopts.find_opt(oname):
-                  print "** option %s is not allowed with -quick_censor_count" \
-                        % oname
+                  print("** option %s is not allowed with -quick_censor_count" \
+                          % oname)
                   errors += 1
-            if errors: return 1
+            if errors:
+                return 1
             # set implied options
             self.censor_prev_TR  = 1
             self.derivative      = 1
@@ -1736,27 +1767,32 @@ class A1DInterface:
 
          elif opt.name == '-seed':
             val, err = uopts.get_type_opt(int, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.rand_seed = val
 
          elif opt.name == '-select_cols':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.select_cols = val
 
          elif opt.name == '-select_rows':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.select_rows = val
 
          elif opt.name == '-select_groups':
             val, err = uopts.get_string_list('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.select_groups = val
 
          elif opt.name == '-select_runs':
             val, err = uopts.get_type_list(int, opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.select_runs = val
 
          elif opt.name == '-show_cormat':
@@ -1809,22 +1845,26 @@ class A1DInterface:
 
          elif opt.name == '-show_tr_run_counts':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.show_tr_run_counts = val
 
          elif opt.name == '-show_trs_censored':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.show_trs_censored = val
 
          elif opt.name == '-show_trs_run':
             val, err = uopts.get_type_opt(int, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.show_trs_run = val-1 # convert 1-based to 0-based
 
          elif opt.name == '-show_trs_uncensored':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.show_trs_uncensored = val
 
          elif opt.name == '-show_trs_to_zero':
@@ -1838,7 +1878,8 @@ class A1DInterface:
 
          elif opt.name == '-split_into_pad_runs':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.split_into_pad_runs = val
 
          elif opt.name == '-transpose':
@@ -1852,30 +1893,34 @@ class A1DInterface:
 
          elif opt.name == '-write':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.write_file = val
 
          elif opt.name == '-write_censor':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.censor_file = val
 
          elif opt.name == '-write_CENSORTR':
             val, err = uopts.get_string_opt('', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.censortr_file = val
 
          # options that do not require -infile
 
          elif opt.name == '-index_to_run_tr':
             val, err = uopts.get_type_opt(int, '', opt=opt)
-            if err: return 1
+            if err:
+                return 1
             self.global_index = val
             self.incheck = 0
 
          else:
-            print "** unknown option: %s" % opt.name
-            return 1
+             print("** unknown option: %s" % opt.name)
+             return 1
 
       return
 
@@ -1883,19 +1928,20 @@ class A1DInterface:
       """return None on completion, else error code (0 being okay)"""
 
       if not self.adata.ready and self.dtype != 2:
-         print '** not ready to process AfniData'
+         print('** not ready to process AfniData')
          return 1
 
       if self.verb > 1:
-         print '++ process_afnidata: looks_like = %d' %  self.looks_like
+          print('++ process_afnidata: looks_like = %d' %  self.looks_like)
 
       if not self.looks_like:
-         print '** no looks_like action to perform on AfniData'
+         print('** no looks_like action to perform on AfniData')
          return 1
 
       # use verb of at least 1 to print result
       verb = self.verb
-      if verb < 1: verb = 1
+      if verb < 1:
+          verb = 1
 
       if self.looks_like & 2:
          self.adata.looks_like_1D(run_lens=self.set_run_lengths, verb=verb)
@@ -1908,7 +1954,8 @@ class A1DInterface:
          self.adata.looks_like_global_times(run_lens=self.set_run_lengths,
                                             tr=self.set_tr, verb=verb)
 
-      if self.looks_like & 16: self.adata.show_married_info()
+      if self.looks_like & 16:
+          self.adata.show_married_info()
 
       return 0
 
@@ -1918,39 +1965,48 @@ class A1DInterface:
       # ---- data input options -----
 
       if self.incheck and not self.infile:
-         print '** missing -infile option'
+         print('** missing -infile option')
          return 1
-      elif self.infile and self.init_from_file(self.infile): return 1
+      elif self.infile and self.init_from_file(self.infile):
+          return 1
 
       # process AfniData separately
-      if self.dtype == 2: return self.process_afnidata()
+      if self.dtype == 2:
+          return self.process_afnidata()
 
       if self.censor_infile:
          cdata = LAD.Afni1D(self.censor_infile, verb=self.verb)
-         if cdata == None:
-            print '** failed to censor input file'
+         if cdata is None:
+            print('** failed to censor input file')
             return 1
          self.adata.apply_censor_dset(cdata)
 
       if self.add_cols_file:
          newrd = LAD.Afni1D(self.add_cols_file,verb=self.verb)
-         if not newrd.ready: return 1
-         if self.adata.append_vecs(newrd): return 1
+         if not newrd.ready:
+             return 1
+         if self.adata.append_vecs(newrd):
+             return 1
 
       if self.select_cols:
          ilist=UTIL.decode_1D_ints(self.select_cols, verb=self.verb,
                                                      imax=self.adata.nvec-1)
-         if ilist == None: return 1
-         if self.adata.reduce_by_vec_list(ilist): return 1
+         if ilist is None:
+             return 1
+         if self.adata.reduce_by_vec_list(ilist):
+             return 1
 
       if self.select_rows:
          ilist = UTIL.decode_1D_ints(self.select_rows, verb=self.verb,
                                                        imax=self.adata.nt-1)
-         if ilist == None: return 1
-         if self.adata.reduce_by_tlist(ilist): return 1
+         if ilist is None:
+             return 1
+         if self.adata.reduce_by_tlist(ilist):
+             return 1
 
       if len(self.select_groups) > 0:
-         if self.adata.reduce_by_group_list(self.select_groups): return 1
+         if self.adata.reduce_by_group_list(self.select_groups):
+             return 1
 
       if self.label_pre_drop or self.label_pre_keep:
          if self.adata.reduce_by_label_prefix(keep_pre=self.label_pre_keep,
@@ -1958,55 +2014,65 @@ class A1DInterface:
             return 1
 
       if self.transpose: # possibly transpose on read
-         if self.adata.transpose(): return 1
+         if self.adata.transpose():
+             return 1
 
       # ---- processing options -----
 
       if self.set_nruns > 0:
-         if self.adata.set_nruns(self.set_nruns): return 1
+         if self.adata.set_nruns(self.set_nruns):
+             return 1
 
       # pad_to_runs is special case, do not set run info
       if len(self.set_run_lengths) > 0 and not self.pad_to_runs:
-         if self.adata != None:
-            if self.adata.set_nruns(run_lens=self.set_run_lengths): return 1
+         if self.adata is not None:
+            if self.adata.set_nruns(run_lens=self.set_run_lengths):
+                return 1
 
       # not with things like reduce_by_tlist
       if len(self.select_runs) > 0:
-         if self.adata.reduce_by_run_list(self.select_runs): return 1
+         if self.adata.reduce_by_run_list(self.select_runs):
+             return 1
 
-      if self.set_tr > 0: self.adata.tr = self.set_tr
+      if self.set_tr > 0:
+          self.adata.tr = self.set_tr
 
       if self.derivative:
-         if self.adata.derivative(self.direct): return 1
+         if self.adata.derivative(self.direct):
+             return 1
 
       if self.demean:
-         if self.adata.demean(): return 1
+         if self.adata.demean():
+             return 1
 
       if self.sort:
          self.adata.sort(reverse=self.reverse)  # steal any reverse option
          self.reverse = 0
 
       if self.reverse:
-         if self.adata.reverse(): return 1
+         if self.adata.reverse():
+             return 1
 
       if len(self.pad_to_runs) > 0:
          if self.transpose:
-            print '** -transpose is illegal with -pad_into_many_runs'
+            print('** -transpose is illegal with -pad_into_many_runs')
             return 1
          val = self.pad_to_runs
          rlens = self.set_run_lengths # pass empty or not
          # if run_len list, verify number of runs
          if len(rlens) > 0 and len(rlens) != val[1]:
-            print '** -pad_into_many_runs: nruns=%d != length of run list: %s'\
-                  % (val[1], rlens)
+            print('** -pad_into_many_runs: nruns=%d != length of run list: %s'\
+                    % (val[1], rlens))
             return 1
-         if self.adata.pad_into_many_runs(val[0], val[1], rlens): return 1
+         if self.adata.pad_into_many_runs(val[0], val[1], rlens):
+             return 1
 
       if self.collapse_method:
          if self.adata.collapse_cols(self.collapse_method, self.weight_vec):
             return 1
          if self.collapse_file:
-            if self.write_1D(self.collapse_file): return 1
+            if self.write_1D(self.collapse_file):
+                return 1
 
       if self.set_extremes:
          if self.adata.extreme_mask(self.extreme_min, self.extreme_max):
@@ -2020,57 +2086,71 @@ class A1DInterface:
          self.adata.randomize_trs(seed=self.rand_seed)
 
       if self.censor_fill:
-         if self.adata.apply_goodlist(padbad=1): return 1
+         if self.adata.apply_goodlist(padbad=1):
+             return 1
 
       if self.censor_fill_par:
          parent = LAD.Afni1D(self.censor_fill_par, verb=self.verb)
-         if self.adata.apply_goodlist(padbad=1, parent=parent): return 1
+         if self.adata.apply_goodlist(padbad=1, parent=parent):
+             return 1
 
       if self.censor_next_TR:
-         if self.adata.clear_next_TRs(): return 1
+         if self.adata.clear_next_TRs():
+             return 1
 
       if self.censor_prev_TR:
-         if self.adata.clear_prior_TRs(): return 1
+         if self.adata.clear_prior_TRs():
+             return 1
 
       if self.censor_first_trs:
-         if self.adata.set_first_TRs(self.censor_first_trs, newval=0): return 1
+          if self.adata.set_first_TRs(self.censor_first_trs, newval=0):
+              return 1
 
       if self.vr2allin:
-         if self.adata.volreg_2_allineate(): return 1
+         if self.adata.volreg_2_allineate():
+             return 1
 
       # ---- show options come after all other processing ----
 
-      if self.show_label_ord: self.adata.show_major_order_of_labels()
-      if self.show_labels: self.adata.show_labels()
-      if self.show_group_labels: self.adata.show_group_labels()
-      if self.global_index >= 0: self.show_index_to_run_tr()
+      if self.show_label_ord:
+          self.adata.show_major_order_of_labels()
+      if self.show_labels:
+          self.adata.show_labels()
+      if self.show_group_labels:
+          self.adata.show_group_labels()
+      if self.global_index >= 0:
+          self.show_index_to_run_tr()
 
       # treat reverse as a toggle
       if self.reverse_rank:
-         if self.rank: style = self.rank
-         else:         style = 'dense'
-         if self.adata.rank(style=style, reverse=1, verb=self.verb): return 1
+         if self.rank:
+             style = self.rank
+         else:
+             style = 'dense'
+         if self.adata.rank(style=style, reverse=1, verb=self.verb):
+             return 1
       elif self.rank:
-         if self.adata.rank(style=self.rank, verb=self.verb): return 1
+         if self.adata.rank(style=self.rank, verb=self.verb):
+             return 1
 
       if self.show_argmax:
          amax = UTIL.argmax(self.adata.mat[0])
          if self.verb > 1:
-            print '-- val[%d] = %s' % (amax, self.adata.mat[0][amax])
-         print '%d' % amax
+             print('-- val[%d] = %s' % (amax, self.adata.mat[0][amax]))
+         print('%d' % amax)
 
       if self.show_argmin:
          amin = UTIL.argmin(self.adata.mat[0])
          if self.verb > 1:
-            print '-- val[%d] = %s' % (amin, self.adata.mat[0][amin])
-         print '%d' % amin
+             print('-- val[%d] = %s' % (amin, self.adata.mat[0][amin]))
+         print('%d' % amin)
 
       if self.show_indices:
-         istr = self.adata.get_indices_str(self.show_indices)
-         print istr
+          istr = self.adata.get_indices_str(self.show_indices)
+          print(istr)
 
       if self.show_displace:
-         print self.adata.get_max_displacement_str(verb=self.verb)
+          print(self.adata.get_max_displacement_str(verb=self.verb))
 
       if self.show_gcor:
          if self.show_gcor & 1:
@@ -2089,61 +2169,77 @@ class A1DInterface:
       if self.slice_order_to_times:
          self.adata.slice_order_to_times(verb=self.verb)
 
-      if self.show_num_runs: self.show_nruns()
+      if self.show_num_runs:
+          self.show_nruns()
 
-      if self.show_rows_cols: self.adata.show_rows_cols(verb=self.verb)
+      if self.show_rows_cols:
+          self.adata.show_rows_cols(verb=self.verb)
 
-      if self.show_tr_run_counts  != '': self.show_TR_run_counts()
+      if self.show_tr_run_counts  != '':
+          self.show_TR_run_counts()
 
-      if self.show_trs_censored   != '': self.show_TR_censor_list(1)
-      if self.show_trs_uncensored != '': self.show_TR_censor_list(0)
+      if self.show_trs_censored   != '':
+          self.show_TR_censor_list(1)
+      if self.show_trs_uncensored != '':
+          self.show_TR_censor_list(0)
 
-      if self.show_censor_count: self.adata.show_censor_count()
+      if self.show_censor_count:
+          self.adata.show_censor_count()
 
-      if self.show_cormat: self.adata.show_cormat()
+      if self.show_cormat:
+          self.adata.show_cormat()
 
       if self.show_cormat_warn:
          err, wstr = self.adata.make_cormat_warnings_string(self.cormat_cutoff,
                                                            name=self.infile)
-         print wstr
+         print(wstr)
 
       # ---- possibly write: last option -----
 
       if self.transpose_w: # if transpose on write, do it now
-         if self.adata.transpose(): return 1
+         if self.adata.transpose():
+             return 1
 
       if self.censortr_file:
          bdata = self.adata.copy()
          bdata.bool_negate()
-         if bdata.write_censortr(self.censortr_file): return 1
+         if bdata.write_censortr(self.censortr_file):
+             return 1
 
       if self.censor_file:
-         if self.write_1D(self.censor_file): return 1
+         if self.write_1D(self.censor_file):
+             return 1
 
       if self.split_into_pad_runs:
-         if self.write_split_into_pad_runs(self.split_into_pad_runs): return 1
+         if self.write_split_into_pad_runs(self.split_into_pad_runs):
+             return 1
 
       if self.write_file:
-         if self.write_1D(self.write_file): return 1
+         if self.write_1D(self.write_file):
+             return 1
 
       return
 
    def show_index_to_run_tr(self):
       if len(self.set_run_lengths) == 0 and len(self.adata.run_len) > 0:
          rlens = self.adata.run_len
-      else: rlens = self.set_run_lengths
+      else:
+          rlens = self.set_run_lengths
 
       run, tr = UTIL.index_to_run_tr(self.global_index, rlens)
 
       if self.verb > 1:
-         print 'global index %d = run %d, TR %d'%(self.global_index,run,tr)
-      else: print '%02d %d' % (run, tr)
+          print('global index %d = run %d, TR %d'%(self.global_index,run,tr))
+      else:
+          print('%02d %d' % (run, tr))
 
    def show_nruns(self):
       """display the number of runs"""
-      if self.verb > 1: pstr = 'number of runs: '
-      else:             pstr = ''
-      print '%s%s' % (pstr, self.adata.nruns)
+      if self.verb > 1:
+          pstr = 'number of runs: '
+      else:
+          pstr = ''
+      print('%s%s' % (pstr, self.adata.nruns))
 
    def show_TR_run_counts(self):
       """display list of TRs per run, according to self.show_tr_run_counts
@@ -2158,13 +2254,14 @@ class A1DInterface:
       """
 
       rv, trs, trs_nc = self.adata.get_tr_counts()
-      if rv: return     # failure
+      if rv:
+          return     # failure
 
       # if desired, just get sub-list
       if self.show_trs_run >= 0:
          if self.show_trs_run >= self.adata.nruns:
-            print '** -show_trs_run (%d) exceeds num runs (%d)' \
-                  % (self.show_trs_run+1, self.adata.nruns)
+            print('** -show_trs_run (%d) exceeds num runs (%d)' \
+                    % (self.show_trs_run+1, self.adata.nruns))
             return
 
          trs    = trs   [self.show_trs_run:self.show_trs_run+1]
@@ -2172,25 +2269,26 @@ class A1DInterface:
 
       style = self.show_tr_run_counts
       if style == 'trs':
-         print UTIL.int_list_string(trs, sepstr=' ')
+          print(UTIL.int_list_string(trs, sepstr=' '))
       elif style == 'trs_cen':
          tlist = [trs_nc[r]-trs[r] for r in range(len(trs))]
-         print UTIL.int_list_string(tlist, sepstr=' ')
+         print(UTIL.int_list_string(tlist, sepstr=' '))
       elif style == 'trs_no_cen':
-         print UTIL.int_list_string(trs_nc, sepstr=' ')
+          print(UTIL.int_list_string(trs_nc, sepstr=' '))
       elif style == 'frac_cen':
          tlist = [1.0-trs[r]*1.0/trs_nc[r] for r in range(len(trs))]
-         print UTIL.gen_float_list_string(tlist)
+         print(UTIL.gen_float_list_string(tlist))
       else:
-         print '** invalid -show_tr_run_counts STYLE %s' \
-               % self.show_tr_run_counts
+         print('** invalid -show_tr_run_counts STYLE %s' % self.show_tr_run_counts)
 
    def show_TR_censor_list(self, censored=0):
       """output either the cencored or uncensored TR index list in the
          specified style
       """
-      if censored: action = 'censored'
-      else:        action = 'kept'
+      if censored:
+          action = 'censored'
+      else:
+          action = 'kept'
 
       if censored:
          rv, tlist = self.adata.get_censored_trs(self.show_trs_run)
@@ -2200,53 +2298,63 @@ class A1DInterface:
          style = self.show_trs_uncensored
 
       # check bad style or failure
-      if style == '': return
-      if rv: return 1
+      if style == '':
+          return
+      if rv:
+          return 1
 
-      if   style == 'comma':   print UTIL.int_list_string(tlist, sepstr=',')
-      elif style == 'space':   print UTIL.int_list_string(tlist, sepstr=' ')
-      elif style == 'encoded': print UTIL.encode_1D_ints(tlist)
+      if   style == 'comma':
+          print(UTIL.int_list_string(tlist, sepstr=','))
+      elif style == 'space':
+          print(UTIL.int_list_string(tlist, sepstr=' '))
+      elif style == 'encoded':
+          print(UTIL.encode_1D_ints(tlist))
       elif style == 'describe':
-         if len(self.adata.goodlist) > 0: ntot = self.adata.nrowfull
-         else:                            ntot = self.adata.nt
-         print '%s %d of %d TR indices: %s' \
-               % (action, len(tlist), ntot, UTIL.encode_1D_ints(tlist))
+         if len(self.adata.goodlist) > 0:
+             ntot = self.adata.nrowfull
+         else:
+             ntot = self.adata.nt
+         print('%s %d of %d TR indices: %s' \
+                 % (action, len(tlist), ntot, UTIL.encode_1D_ints(tlist)))
       else: # assume verbose = describe + actual list
-         if len(self.adata.goodlist) > 1: ntot = self.adata.nrowfull
-         else:                            ntot = self.adata.nt
-         print '%s %d of %d TR indices: %s' \
-               % (action, len(tlist), ntot, UTIL.encode_1D_ints(tlist))
-         print UTIL.int_list_string(tlist, mesg='TRs = ',sepstr=', ')
+         if len(self.adata.goodlist) > 1:
+             ntot = self.adata.nrowfull
+         else:
+             ntot = self.adata.nt
+         print('%s %d of %d TR indices: %s' \
+                 % (action, len(tlist), ntot, UTIL.encode_1D_ints(tlist)))
+         print(UTIL.int_list_string(tlist, mesg='TRs = ',sepstr=', '))
 
 def test(self, verb=3):
       # init
-      print '------------------------ initial reads -----------------------'
+      print('------------------------ initial reads -----------------------')
       self.verb = verb
       # these should not fail, so quit if they do
       # first try AFNI_data4, then regression data
 
       # reset
-      print '------------------------ reset files -----------------------'
+      print('------------------------ reset files -----------------------')
 
       # failures
-      print '------------------------ should fail -----------------------'
+      print('------------------------ should fail -----------------------')
 
       # more tests
       return None
 
 def main():
    aint = A1DInterface()
-   if not aint: return 1
+   if not aint:
+       return 1
 
    rv = aint.process_options()
-   if rv != None: return rv
+   if rv is not None:
+       return rv
 
    rv = aint.process_data()
-   if rv != None: return rv
+   if rv is not None:
+       return rv
 
    return aint.status
 
 if __name__ == '__main__':
    sys.exit(main())
-
-
